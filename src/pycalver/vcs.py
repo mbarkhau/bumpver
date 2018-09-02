@@ -17,12 +17,6 @@ import subprocess as sp
 log = logging.getLogger("pycalver.vcs")
 
 
-class WorkingDirectoryIsDirtyException(Exception):
-
-    def __init__(self, message):
-        self.message = message
-
-
 class BaseVCS:
 
     @classmethod
@@ -50,20 +44,13 @@ class BaseVCS:
             raise
 
     @classmethod
-    def assert_nondirty(cls):
+    def dirty_files(cls):
         status_output = sp.check_output(cls._STATUS_COMMAND)
-        lines = [
-            line.strip()
+        return [
+            line.decode("utf-8")[2:].strip()
             for line in status_output.splitlines()
             if not line.strip().startswith(b"??")
         ]
-
-        if lines:
-            cleaned_output = b"\n".join(lines)
-            cls_name = cls.__name__
-            raise WorkingDirectoryIsDirtyException(
-                f"{cls_name} working directory is not clean:\n{cleaned_output}"
-            )
 
 
 class Git(BaseVCS):
@@ -76,6 +63,10 @@ class Git(BaseVCS):
     def tag(cls, name):
         sp.check_output(["git", "tag", name])
 
+    @classmethod
+    def add_path(cls, path):
+        sp.check_output(["git", "add", "--update", path])
+
 
 class Mercurial(BaseVCS):
 
@@ -87,25 +78,17 @@ class Mercurial(BaseVCS):
     def tag(cls, name):
         sp.check_output(["hg", "tag", name])
 
+    @classmethod
+    def add_path(cls, path):
+        pass
+
 
 VCS = [Git, Mercurial]
 
 
-def get_vcs(allow_dirty=False):
+def get_vcs():
     for vcs in VCS:
-        if not vcs.is_usable():
-            continue
-
-        if not allow_dirty:
-            try:
-                vcs.assert_nondirty()
-            except WorkingDirectoryIsDirtyException as e:
-                log.warn(
-                    f"{e.message}\n\n"
-                    f"Use --allow-dirty to override this if you know what you're doing."
-                )
-                raise
-
-        return vcs
+        if vcs.is_usable():
+            return vcs
 
     return None

@@ -146,7 +146,7 @@ def init(dry: bool) -> None:
     "--commit",
     default=True,
     is_flag=True,
-    help="Tag the commit.",
+    help="Commit after updating version strings.",
 )
 @click.option(
     "--tag",
@@ -154,7 +154,24 @@ def init(dry: bool) -> None:
     is_flag=True,
     help="Tag the commit.",
 )
-def bump(release: str, verbose: bool, dry: bool, commit: bool, tag: bool) -> None:
+@click.option(
+    "--allow-dirty",
+    default=False,
+    is_flag=True,
+    help=(
+        "Commit even when working directory is has uncomitted changes. "
+        "(WARNING: The commit will still be aborted if there are uncomitted "
+        "to files with version strings."
+    ),
+)
+def bump(
+    release: str,
+    verbose: bool,
+    dry: bool,
+    commit: bool,
+    tag: bool,
+    allow_dirty: bool,
+) -> None:
     _init_loggers(verbose)
 
     if release and release not in parse.VALID_RELESE_VALUES:
@@ -178,6 +195,25 @@ def bump(release: str, verbose: bool, dry: bool, commit: bool, tag: bool) -> Non
 
     if dry:
         log.info("Running with '--dry', showing diffs instead of updating files.")
+
+    _vcs = vcs.get_vcs()
+    dirty_files = _vcs.dirty_files()
+
+    if dirty_files:
+        log.warn(f"{_vcs.__name__} working directory is not clean:")
+        for file in dirty_files:
+            log.warn("    " + file)
+
+    if not allow_dirty and dirty_files:
+        sys.exit(1)
+
+    pattern_files = cfg["file_patterns"].keys()
+    dirty_pattern_files = set(dirty_files) & set(pattern_files)
+    if dirty_pattern_files:
+        log.error("Not commiting when pattern files are dirty:")
+        for file in dirty_pattern_files:
+            log.warn("    " + file)
+        sys.exit(1)
 
     matches: typ.List[parse.PatternMatch]
     for filepath, patterns in cfg["file_patterns"].items():
@@ -203,10 +239,10 @@ def bump(release: str, verbose: bool, dry: bool, commit: bool, tag: bool) -> Non
                 tofile="b/" + filepath,
             )))
 
-        # if not dry:
-        #     new_content = "\n".join(new_lines)
-        #     with io.open(filepath, mode="wt", encoding="utf-8") as fh:
-        #         fh.write(new_content)
+        if not dry:
+            new_content = "\n".join(new_lines)
+            with io.open(filepath, mode="wt", encoding="utf-8") as fh:
+                fh.write(new_content)
 
     if dry:
         return
@@ -214,7 +250,6 @@ def bump(release: str, verbose: bool, dry: bool, commit: bool, tag: bool) -> Non
     if not commit:
         return
 
-    v = vcs.get_vcs()
-    if v is None:
+    if _vcs is None:
         log.warn("Version Control System not found, aborting commit.")
         return
