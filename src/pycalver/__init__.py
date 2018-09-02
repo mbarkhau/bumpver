@@ -6,6 +6,6 @@
 
 import os
 
-__version__ = "v201809.0001-beta"
+__version__ = "v201809.0002-beta"
 
 DEBUG = os.environ.get("PYCALVER_DEBUG", "0") == "1"

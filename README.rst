@@ -38,9 +38,9 @@ which is compatible with python packaging software
     :target: https://pypi.python.org/pypi/pycalver
     :alt: PyPI Version
 
-.. |version| image:: https://img.shields.io/badge/CalVer-v201809.0001--beta-blue.svg
+.. |version| image:: https://img.shields.io/badge/CalVer-v201809.0002--beta-blue.svg
     :target: https://calver.org/
-    :alt: CalVer v201809.0001-beta
+    :alt: CalVer v201809.0002-beta
 
 .. |wheel| image:: https://img.shields.io/pypi/wheel/pycalver.svg
     :target: https://pypi.org/project/pycalver/#files
@@ -53,7 +53,7 @@ which is compatible with python packaging software
 
 The PyCalVer package provides the ``pycalver`` command and
 module to generate version strings which follow the format:
-``v{calendar_version}.{build_number}[-{tag}]``
+``v{calendar_version}.{build_number}[-{release_tag}]``
 
 Some examples:
 
@@ -81,8 +81,8 @@ expression:
 
     import re
 
+    # https://regex101.com/r/fnj60p/10
     pycalver_re = re.compile(r"""
-    # https://regex101.com/r/fnj60p/9
     \b
     (?P<version>
         (?P<calver>
@@ -90,15 +90,13 @@ expression:
            (?P<year>\d{4})
            (?P<month>\d{2})
         )
-        (?:
+        (?P<build>
             \.                      # "." build nr prefix
-            (?P<build>\d{4,})
+            \d{4,}
         )
-        (?:
+        (?P<release>
             \-                      # "-" release prefix
-            (?P<release>
-              alpha|beta|dev|rc|post
-            )
+            (?:alpha|beta|dev|rc|post)
         )?
     )(?:\s|$)
     """, flags=re.VERBOSE)
@@ -111,8 +109,8 @@ expression:
         "calver"  : "v201712",
         "year"    : "2017",
         "month"   : "12",
-        "build"   : "0001",
-        "release" : "alpha",
+        "build"   : ".0001",
+        "release" : "-alpha",
     }
 
     version_str = "v201712.0033"
@@ -123,23 +121,33 @@ expression:
         "calver"  : "v201712",
         "year"    : "2017",
         "month"   : "12",
-        "build"   : "0033",
+        "build"   : ".0033",
         "release" : None,
     }
 
 
-Usage
------
+Installation
+------------
 
 Before we look at project setup, we can simply install and test
-by passing a version string to ``pycalver bump``.
+by passing a version string to ``pycalver incr``.
 
 
 .. code-block:: bash
 
     $ pip install pycalver
-    $ pycalver bump v201801.0033-beta
-    v201809.0034-beta
+
+    $ pycalver incr v201801.0033-beta
+    PyCalVer Version: v201809.0034-beta
+    PEP440 Version: 201809.34b0
+
+    $ pycalver incr v201801.0033-beta --release=final
+    PyCalVer Version: v201809.0034
+    PEP440 Version: 201809.34
+
+    $ pycalver incr v201809.1999
+    PyCalVer Version: v201809.22000
+    PEP440 Version: 201809.22000
 
 
 The CalVer component is set to the current year and month, the
@@ -147,11 +155,55 @@ build number is incremented by one and the optional release tag
 is preserved as is, unless specified otherwise via the
 ``--release=<tag>`` parameter.
 
-To setup a project, add the following lines to your ``setup.cfg``
+
+Configuration
+-------------
+
+The fastest way to setup a project is to invoke
+``pycalver init``.
+
+
+.. code-block:: bash
+
+    $ cd my-project
+    ~/my-project$ pycalver init
+    Updated setup.cfg
 
 
 .. code-block:: ini
 
+    # setup.cfg
+    [bdist_wheel]
+    universal = 1
+
+    [pycalver]
+    current_version = v201809.0001-dev
+    commit = True
+    tag = True
+
+    [pycalver:file:setup.cfg]
+    patterns =
+        current_version = {version}
+
+    [pycalver:file:setup.py]
+    patterns =
+        "{version}",
+        "{pep440_version}",
+
+    [pycalver:file:README.rst]
+    patterns =
+        {version}
+        {pep440_version}
+
+
+Depending on your project, the above will probably cover all
+version numbers across your repository. Something like the
+following may illustrate additional changes you'll need to make.
+
+
+.. code-block:: ini
+
+    # setup.cfg
     [pycalver]
     current_version = v201809.0001-beta
     commit = True
@@ -163,7 +215,7 @@ To setup a project, add the following lines to your ``setup.cfg``
 
     [pycalver:file:setup.py]
     patterns =
-        version="{pep440_version}",
+        version="{pep440_version}"
 
     [pycalver:file:src/myproject.py]
     patterns =
@@ -175,7 +227,20 @@ To setup a project, add the following lines to your ``setup.cfg``
         :alt: CalVer {version}
 
 
-The above setup.cfg file is very explicit, and can be shortened quite a bit.
+If ``patterns`` is not specified for a ``pycalver:file:``
+section, the default patterns are used:
+
+
+.. code-block:: ini
+
+    [pycalver:file:src/myproject.py]
+    patterns =
+        {version}
+        {pep440_version}
+
+
+This allows us to less explicit but shorter configuration, like
+this:
 
 
 .. code-block:: ini
@@ -194,9 +259,38 @@ The above setup.cfg file is very explicit, and can be shortened quite a bit.
         :alt: CalVer {version}
 
 
-This makes use of the default ``patterns = {version}``, which
-will replace all occurrences of a PyCalVer version string with
-the updated ``current_version``.
+Pattern Search and Replacement
+------------------------------
+
+``patterns`` is used both to search for version strings and to
+generate the replacement strings. The following placeholders are
+available for use, everything else in a pattern is treated as
+literal text.
+
+.. table:: Patterns Placeholders
+
+    ================== ======================
+    placeholder        example
+    ================== ======================
+    ``pep440_version`` 201809.1b0
+    ``version``        v201809.0001-alpha
+    ``calver``         v201809
+    ``year``           2018
+    ``month``          09
+    ``build``          .0001
+    ``release``        -alpha
+    ================== ======================
+
+Note that the separator/prefix characters are part of what is
+matched and generated for a given placeholder, and they should
+not be included in your patterns.
+
+A further restriction is, that a version string cannot span
+multiple lines in your source file.
+
+
+Pattern Search and Replacement
+------------------------------
 
 Now we can call ``pycalver bump`` to bump all occurrences of
 version strings in these files. Normally this will change local
@@ -543,4 +637,5 @@ express such information assumes 1. that the author of a package
 is aware of how a given change needs to be reflected in a
 version number and 2. that users and packaging softare correctly
 parse that meaning. When I used semantic versioning, I realized that
-the major version number of my packages would never change, because I don't think breaking changes should ever be One of the biggest offenses expres
+the major version number of my packages would never change,
+because I don't think breaking changes should ever be

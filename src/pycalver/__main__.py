@@ -10,6 +10,7 @@ import os
 import sys
 import click
 import logging
+import difflib
 import typing as typ
 
 from . import DEBUG
@@ -57,10 +58,34 @@ def show() -> None:
 
     cfg = config.parse()
     if cfg is None:
-        return
+        log.error("Could not parse configuration from setup.cfg")
+        sys.exit(1)
 
     print(f"Current Version: {cfg['current_version']}")
     print(f"PEP440 Version: {cfg['pep440_version']}")
+
+
+@cli.command()
+@click.argument("old_version")
+@click.option(
+    "--release",
+    default=None,
+    metavar="<name>",
+    help="Override release name of current_version",
+)
+def incr(old_version: str, release: str = None) -> None:
+    _init_loggers(verbose=False)
+
+    if release and release not in parse.VALID_RELESE_VALUES:
+        log.error(f"Invalid argument --release={release}")
+        log.error(f"Valid arguments are: {', '.join(parse.VALID_RELESE_VALUES)}")
+        sys.exit(1)
+
+    new_version = version.bump(old_version, release=release)
+    new_version_nfo = parse.parse_version_info(new_version)
+
+    print("PyCalVer Version:", new_version)
+    print("PEP440 Version:", new_version_nfo["pep440_version"])
 
 
 @cli.command()
@@ -77,7 +102,7 @@ def init(dry: bool) -> None:
     cfg = config.parse()
     if cfg:
         log.error("Configuration already initialized in setup.cfg")
-        return
+        sys.exit(1)
 
     cfg_lines = config.default_config_lines()
 
@@ -100,6 +125,12 @@ def init(dry: bool) -> None:
 
 @cli.command()
 @click.option(
+    "--release",
+    default=None,
+    metavar="<name>",
+    help="Override release name of current_version",
+)
+@click.option(
     "--verbose",
     default=False,
     is_flag=True,
@@ -112,35 +143,78 @@ def init(dry: bool) -> None:
     help="Display diff of changes, don't rewrite files.",
 )
 @click.option(
-    "--release",
-    default=None,
-    metavar="<name>",
-    help="Override release name of current_version",
+    "--commit",
+    default=True,
+    is_flag=True,
+    help="Tag the commit.",
 )
-def bump(verbose: bool, dry: bool, release: typ.Optional[str] = None) -> None:
+@click.option(
+    "--tag",
+    default=True,
+    is_flag=True,
+    help="Tag the commit.",
+)
+def bump(release: str, verbose: bool, dry: bool, commit: bool, tag: bool) -> None:
     _init_loggers(verbose)
+
     if release and release not in parse.VALID_RELESE_VALUES:
         log.error(f"Invalid argument --release={release}")
         log.error(f"Valid arguments are: {', '.join(parse.VALID_RELESE_VALUES)}")
-        return
+        sys.exit(1)
 
     cfg = config.parse()
 
     if cfg is None:
-        log.error("Unable to parse pycalver configuration from setup.cfg")
-        return
+        log.error("Could not parse configuration from setup.cfg")
+        sys.exit(1)
 
     old_version = cfg["current_version"]
     new_version = version.bump(old_version, release=release)
+    new_version_nfo = parse.parse_version_info(new_version)
+    new_version_fmt_kwargs = new_version_nfo._asdict()
 
     log.info(f"Old Version: {old_version}")
     log.info(f"New Version: {new_version}")
+
+    if dry:
+        log.info("Running with '--dry', showing diffs instead of updating files.")
 
     matches: typ.List[parse.PatternMatch]
     for filepath, patterns in cfg["file_patterns"].items():
         with io.open(filepath, mode="rt", encoding="utf-8") as fh:
             content = fh.read()
-        lines = content.splitlines()
-        matches = parse.parse_patterns(lines, patterns)
+
+        old_lines = content.splitlines()
+        new_lines = old_lines.copy()
+
+        matches = parse.parse_patterns(old_lines, patterns)
         for m in matches:
-            print(m)
+            replacement = m.pattern.format(**new_version_fmt_kwargs)
+            span_l, span_r = m.span
+            new_line = m.line[:span_l] + replacement + m.line[span_r:]
+            new_lines[m.lineno] = new_line
+
+        if dry or verbose:
+            print("\n".join(difflib.unified_diff(
+                old_lines,
+                new_lines,
+                lineterm="",
+                fromfile="a/" + filepath,
+                tofile="b/" + filepath,
+            )))
+
+        # if not dry:
+        #     new_content = "\n".join(new_lines)
+        #     with io.open(filepath, mode="wt", encoding="utf-8") as fh:
+        #         fh.write(new_content)
+
+    if dry:
+        return
+
+    if not commit:
+        return
+
+    v = vcs.get_vcs()
+    if v is None:
+        log.warn("Version Control System not found, aborting commit.")
+        return

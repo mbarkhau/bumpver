@@ -11,8 +11,7 @@ import sys
 import logging
 import typing as typ
 import datetime as dt
-
-from pkg_resources import parse_version
+import pkg_resources
 
 from . import lex_id
 
@@ -22,6 +21,7 @@ log = logging.getLogger("pycalver.parse")
 VALID_RELESE_VALUES = ("alpha", "beta", "dev", "rc", "post")
 
 
+# https://regex101.com/r/fnj60p/10
 PYCALVER_RE: typ.re.Pattern[str] = re.compile(r"""
 \b
 (?P<version>
@@ -30,22 +30,20 @@ PYCALVER_RE: typ.re.Pattern[str] = re.compile(r"""
        (?P<year>\d{4})
        (?P<month>\d{2})
     )
-    (?:
+    (?P<build>
         \.                      # "." build nr prefix
-        (?P<build>\d{4,})
+        \d{4,}
     )
-    (?:
+    (?P<release>
         \-                      # "-" release prefix
-        (?P<release>
-          alpha|beta|dev|rc|post
-        )
+        (?:alpha|beta|dev|rc|post)
     )?
 )(?:\s|$)
 """, flags=re.VERBOSE)
 
 
 RE_PATTERN_PARTS = {
-    "pep440_version" : r"\d{6}\.\d+(a|b|dev|rc|post)?\d*",
+    "pep440_version" : r"\b\d{6}\.[1-9]\d*(a|b|dev|rc|post)?\d*(?:\s|$)",
     "version"        : r"v\d{6}\.\d{4,}\-(?:alpha|beta|dev|rc|post)",
     "calver"         : r"v\d{6}",
     "build"          : r"\.\d{4,}",
@@ -55,15 +53,28 @@ RE_PATTERN_PARTS = {
 
 class PatternMatch(typ.NamedTuple):
 
-    lineno  : int
+    lineno  : int                   # zero based
     line    : str
     pattern : str
     span    : typ.Tuple[int, int]
     match   : str
 
 
-MaybeMatch = typ.Optional[typ.re.Match[str]]
-PyCalVerInfo = typ.Dict[str, str]
+class VersionInfo(typ.NamedTuple):
+
+    pep440_version : str
+    version        : str
+    calver         : str
+    year           : str
+    month          : str
+    build          : str
+    release        : typ.Optional[str]
+
+
+def parse_version_info(version: str) -> VersionInfo:
+    match = PYCALVER_RE.match(version)
+    pep440_version = pkg_resources.parse_version(version)
+    return VersionInfo(pep440_version=pep440_version, **match.groupdict())
 
 
 def iter_pattern_matches(lines: typ.List[str], pattern: str) -> typ.Iterable[PatternMatch]:
@@ -80,10 +91,9 @@ def iter_pattern_matches(lines: typ.List[str], pattern: str) -> typ.Iterable[Pat
         .replace("(", "\\(")
         .format(**RE_PATTERN_PARTS)
     )
-    for i, line in enumerate(lines):
+    for lineno, line in enumerate(lines):
         match = pattern_re.search(line)
         if match:
-            lineno = i + 1
             yield PatternMatch(lineno, line, pattern, match.span(), match.group(0))
 
 

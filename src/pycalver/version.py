@@ -8,6 +8,8 @@ import logging
 import datetime as dt
 
 from . import lex_id
+from . import parse
+
 log = logging.getLogger("pycalver.version")
 
 
@@ -18,15 +20,16 @@ def current_calver() -> str:
 def bump(old_version: str, release: str=None) -> str:
     # old_version is assumed to be a valid calver string,
     # validated in pycalver.config.parse.
-
-    old_calver, rest = old_version.split(".")
-    old_build, old_release = rest.split("-")
+    old_ver = parse.parse_version_info(old_version)
 
     new_calver = current_calver()
-    new_build = lex_id.next_id(old_build)
+    new_build = lex_id.next_id(old_ver.build[1:])
     if release is None:
-        # preserve existing release
-        new_release = old_release
+        if old_ver.release:
+            # preserve existing release
+            new_release = old_ver.release[1:]
+        else:
+            new_release = None
     else:
         new_release = release
 
