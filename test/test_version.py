@@ -1,30 +1,37 @@
 import datetime as dt
-import pycalver.version
+from pycalver import version
 
 
-def test_calver():
-    import random
+def test_current_calver():
+    v = version.current_calver()
+    assert len(v) == 7
+    assert v.startswith("v")
+    assert v[1:].isdigit()
 
-    first_version_str = "v201808.0001-dev"
-    padding = len(first_version_str) + 3
-    version_str = first_version_str
 
-    def _current_calver() -> str:
-        _current_calver.delta += dt.timedelta(days=int(random.random() * 5))
+# def test_calver():
+#     import random
 
-        return (dt.datetime.utcnow() + _current_calver.delta).strftime("v%Y%m")
+#     first_version_str = "v201808.0001-dev"
+#     padding = len(first_version_str) + 3
+#     version_str = first_version_str
 
-    _current_calver.delta = dt.timedelta(days=1)
+#     def _current_calver() -> str:
+#         _current_calver.delta += dt.timedelta(days=int(random.random() * 5))
 
-    global current_calver
-    current_calver = _current_calver
+#         return (dt.datetime.utcnow() + _current_calver.delta).strftime("v%Y%m")
 
-    for i in range(1050):
-        version_str = incr_version(version_str, tag=random.choice([
-            None, "alpha", "beta", "rc"
-        ]))
-        print(f"{version_str:<{padding}}", end=" ")
-        if (i + 1) % 8 == 0:
-            print()
+#     _current_calver.delta = dt.timedelta(days=1)
 
-    print()
+#     global current_calver
+#     current_calver = _current_calver
+
+#     for i in range(1050):
+#         version_str = incr_version(version_str, tag=random.choice([
+#             None, "alpha", "beta", "rc"
+#         ]))
+#         print(f"{version_str:<{padding}}", end=" ")
+#         if (i + 1) % 8 == 0:
+#             print()
+
+#     print()

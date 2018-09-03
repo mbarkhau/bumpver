@@ -107,16 +107,9 @@ def main():
         print(f"{_curr_id:<13} {ord_val(_curr_id):>12}")
         _next_id = next_id(_curr_id)
 
-        assert _curr_id < next_id
-        assert int(_curr_id, 10) < int(next_id, 10)
-        assert ord_val(_curr_id) < ord_val(next_id)
-
-        # while next_id.startswith("0") and int(next_id) < 1000:
-        #     _next_id = next_id(_next_id)
-
-        if next_id.count("9") == len(next_id):
+        if _next_id.count("9") == len(_next_id):
             # all nines, we're done
-            print(f"{next_id:<13} {ord_val(next_id):>12}")
+            print(f"{_next_id:<13} {ord_val(_next_id):>12}")
             break
 
         if _next_id[0] != _curr_id[0] and len(_curr_id) > 1:

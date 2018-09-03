@@ -1,0 +1,22 @@
+language: python
+
+python:
+  # - "3.7"
+  - "3.6"
+  # NOTE (mb 2018-09-03): These should be installed via
+  #   a bdist wheel, generated with python3.6.
+  # - "3.5"
+  # - "3.4"
+  # - "2.7"
+
+install:
+  - pip install rst2html5 flake8 pytest pytest-cov mypy typing-extensions
+  - pip install .
+
+script:
+  - export PYTHONPATH=src/:$PYTHONPATH
+  - export MYPYPATH=stubs/
+  - python -m flake8 src/lib3to6/
+  - python -m mypy src/lib3to6/
+  - python -m pytest --cov=lib3to6 test/
+  - rst2html5 --strict README.rst > /dev/null

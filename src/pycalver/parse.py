@@ -5,15 +5,10 @@
 # SPDX-License-Identifier: MIT
 
 import re
-import io
-import os
-import sys
 import logging
 import typing as typ
-import datetime as dt
 import pkg_resources
 
-from . import lex_id
 
 log = logging.getLogger("pycalver.parse")
 
@@ -42,12 +37,19 @@ PYCALVER_RE: typ.re.Pattern[str] = re.compile(r"""
 """, flags=re.VERBOSE)
 
 
+# NOTE (mb 2018-09-03): These are matchers for parts, which are
+#   used in the patterns, they're not for validation. This means
+#   that they may find strings, which are not valid pycalver
+#   strings, when parsed in their full context. For such cases,
+#   the patterns should be expanded.
+
+
 RE_PATTERN_PARTS = {
-    "pep440_version" : r"\b\d{6}\.[1-9]\d*(a|b|dev|rc|post)?\d*(?:\s|$)",
-    "version"        : r"v\d{6}\.\d{4,}\-(?:alpha|beta|dev|rc|post)",
+    "pep440_version" : r"\d{6}\.[1-9]\d*(a|b|dev|rc|post)?\d*",
+    "version"        : r"v\d{6}\.\d{4,}(\-(alpha|beta|dev|rc|post))?",
     "calver"         : r"v\d{6}",
     "build"          : r"\.\d{4,}",
-    "release"        : r"(\-(?:alpha|beta|dev|rc|post))?",
+    "release"        : r"(\-(alpha|beta|dev|rc|post))?",
 }
 
 
@@ -73,7 +75,7 @@ class VersionInfo(typ.NamedTuple):
 
 def parse_version_info(version: str) -> VersionInfo:
     match = PYCALVER_RE.match(version)
-    pep440_version = pkg_resources.parse_version(version)
+    pep440_version = str(pkg_resources.parse_version(version))
     return VersionInfo(pep440_version=pep440_version, **match.groupdict())
 
 
