@@ -7,11 +7,23 @@ def test_next_id_basic():
     assert lex_id.next_id("09") == "110"
 
 
+def test_next_id_overflow():
+    try:
+        prev_id = "9999"
+        next_id = lex_id.next_id(prev_id)
+        assert False, (prev_id, "->", next_id)
+    except OverflowError:
+        pass
+
+
 def test_next_id_random():
     for i in range(1000):
         prev_id = str(random.randint(1, 100000))
-        next_id = lex_id.next_id(prev_id)
-        assert prev_id < next_id
+        try:
+            next_id = lex_id.next_id(prev_id)
+            assert prev_id < next_id
+        except OverflowError:
+            assert len(prev_id) == prev_id.count("9")
 
 
 def test_ord_val():

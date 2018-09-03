@@ -10,8 +10,6 @@ import os
 import sys
 import click
 import logging
-import difflib
-import typing as typ
 
 from . import DEBUG
 from . import vcs
@@ -56,13 +54,13 @@ def cli():
 def show() -> None:
     _init_loggers(verbose=False)
 
-    cfg = config.parse()
+    cfg: config.MaybeConfig = config.parse()
     if cfg is None:
         log.error("Could not parse configuration from setup.cfg")
         sys.exit(1)
 
-    print(f"Current Version: {cfg['current_version']}")
-    print(f"PEP440 Version: {cfg['pep440_version']}")
+    print(f"Current Version: {cfg.current_version}")
+    print(f"PEP440 Version: {cfg.pep440_version}")
 
 
 @cli.command()
@@ -99,7 +97,7 @@ def init(dry: bool) -> None:
     """Initialize [pycalver] configuration in setup.cfg"""
     _init_loggers(verbose=False)
 
-    cfg = config.parse()
+    cfg: config.MaybeConfig = config.parse()
     if cfg:
         log.error("Configuration already initialized in setup.cfg")
         sys.exit(1)
@@ -179,16 +177,14 @@ def bump(
         log.error(f"Valid arguments are: {', '.join(parse.VALID_RELESE_VALUES)}")
         sys.exit(1)
 
-    cfg = config.parse()
+    cfg: config.MaybeConfig = config.parse()
 
     if cfg is None:
         log.error("Could not parse configuration from setup.cfg")
         sys.exit(1)
 
-    old_version = cfg["current_version"]
+    old_version = cfg.current_version
     new_version = version.bump(old_version, release=release)
-    new_version_nfo = parse.parse_version_info(new_version)
-    new_version_fmt_kwargs = new_version_nfo._asdict()
 
     log.info(f"Old Version: {old_version}")
     log.info(f"New Version: {new_version}")
@@ -196,53 +192,12 @@ def bump(
     if dry:
         log.info("Running with '--dry', showing diffs instead of updating files.")
 
+    file_patterns = cfg.file_patterns
+    filepaths = set(file_patterns.keys())
+
     _vcs = vcs.get_vcs()
-    dirty_files = _vcs.dirty_files()
-
-    if dirty_files:
-        log.warn(f"{_vcs.__name__} working directory is not clean:")
-        for file in dirty_files:
-            log.warn("    " + file)
-
-    if not allow_dirty and dirty_files:
-        sys.exit(1)
-
-    pattern_files = cfg["file_patterns"].keys()
-    dirty_pattern_files = set(dirty_files) & set(pattern_files)
-    if dirty_pattern_files:
-        log.error("Not commiting when pattern files are dirty:")
-        for file in dirty_pattern_files:
-            log.warn("    " + file)
-        sys.exit(1)
-
-    matches: typ.List[parse.PatternMatch]
-    for filepath, patterns in cfg["file_patterns"].items():
-        with io.open(filepath, mode="rt", encoding="utf-8") as fh:
-            content = fh.read()
-
-        old_lines = content.splitlines()
-        new_lines = old_lines.copy()
-
-        matches = parse.parse_patterns(old_lines, patterns)
-        for m in matches:
-            replacement = m.pattern.format(**new_version_fmt_kwargs)
-            span_l, span_r = m.span
-            new_line = m.line[:span_l] + replacement + m.line[span_r:]
-            new_lines[m.lineno] = new_line
-
-        if dry or verbose:
-            print("\n".join(difflib.unified_diff(
-                old_lines,
-                new_lines,
-                lineterm="",
-                fromfile="a/" + filepath,
-                tofile="b/" + filepath,
-            )))
-
-        if not dry:
-            new_content = "\n".join(new_lines)
-            with io.open(filepath, mode="wt", encoding="utf-8") as fh:
-                fh.write(new_content)
+    _vcs.assert_not_dirty(filepaths, allow_dirty)
+    rewrite.rewrite(new_version, file_patterns, dry, verbose)
 
     if dry:
         return

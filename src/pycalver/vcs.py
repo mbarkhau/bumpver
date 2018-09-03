@@ -9,8 +9,10 @@
 # MIT License - (C) 2013-2014 Filip Noetzel
 
 import os
+import sys
 import logging
 import tempfile
+import typing as typ
 import subprocess as sp
 
 
@@ -51,6 +53,25 @@ class BaseVCS:
             for line in status_output.splitlines()
             if not line.strip().startswith(b"??")
         ]
+
+    @classmethod
+    def assert_not_dirty(cls, filepaths: typ.Set[str], allow_dirty=False) -> None:
+        dirty_files = cls.dirty_files()
+
+        if dirty_files:
+            log.warn(f"{cls.__name__} working directory is not clean:")
+            for file in dirty_files:
+                log.warn("    " + file)
+
+        if not allow_dirty and dirty_files:
+            sys.exit(1)
+
+        dirty_pattern_files = set(dirty_files) & filepaths
+        if dirty_pattern_files:
+            log.error("Not commiting when pattern files are dirty:")
+            for file in dirty_pattern_files:
+                log.warn("    " + file)
+            sys.exit(1)
 
 
 class Git(BaseVCS):

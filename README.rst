@@ -52,8 +52,8 @@ which is compatible with python packaging software
 
 
 The PyCalVer package provides the ``pycalver`` command and
-module to generate version strings which follow the format:
-``v{calendar_version}.{build_number}[-{release_tag}]``
+module to generate version strings which follow the following
+format: ``v{calendar_version}.{build_number}[-{release_tag}]``
 
 Some examples:
 
@@ -69,9 +69,9 @@ Some examples:
     v202207.18134
 
 
-The ``pycalver bump`` command will parse specified/configured
-files for such strings and rewrite them with an updated version
-string.
+The ``pycalver bump`` command will parse the files you configure
+in ``setup.cfg`` for such strings and rewrite them with an
+updated version string.
 
 The format accepted by PyCalVer can be parsed with this regular
 expression:

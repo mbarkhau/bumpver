@@ -85,6 +85,9 @@ MINIMUM_ID = "0"
 
 def next_id(prev_id: str) -> str:
     num_digits = len(prev_id)
+    if prev_id.count("9") == num_digits:
+        raise OverflowError("max lexical version reached: " + prev_id)
+
     _prev_id = int(prev_id, 10)
     _next_id = int(_prev_id) + 1
     next_id = f"{_next_id:0{num_digits}}"

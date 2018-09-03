@@ -1,4 +1,6 @@
+import random
 import datetime as dt
+
 from pycalver import version
 
 
@@ -9,29 +11,47 @@ def test_current_calver():
     assert v[1:].isdigit()
 
 
-# def test_calver():
-#     import random
+def test_bump_beta():
+    calver = version.current_calver()
+    cur_version = calver + ".0001-beta"
+    assert cur_version < version.bump(cur_version)
+    assert version.bump(cur_version).endswith("-beta")
+    assert version.bump(cur_version, release="alpha").endswith("-alpha")
+    assert version.bump(cur_version, release="final").endswith("0002")
 
-#     first_version_str = "v201808.0001-dev"
-#     padding = len(first_version_str) + 3
-#     version_str = first_version_str
 
-#     def _current_calver() -> str:
-#         _current_calver.delta += dt.timedelta(days=int(random.random() * 5))
+def test_bump_final():
+    calver = version.current_calver()
+    cur_version = calver + ".0001"
+    assert cur_version < version.bump(cur_version)
+    assert version.bump(cur_version, release="alpha").endswith("-alpha")
+    assert version.bump(cur_version, release="final").endswith("0002")
+    assert version.bump(cur_version).endswith("0002")
 
-#         return (dt.datetime.utcnow() + _current_calver.delta).strftime("v%Y%m")
 
-#     _current_calver.delta = dt.timedelta(days=1)
+def test_bump_future():
+    future_date = dt.datetime.today() + dt.timedelta(days=300)
+    future_calver = future_date.strftime("v%Y%m")
+    cur_version = future_calver + ".0001"
+    assert cur_version < version.bump(cur_version)
 
-#     global current_calver
-#     current_calver = _current_calver
 
-#     for i in range(1050):
-#         version_str = incr_version(version_str, tag=random.choice([
-#             None, "alpha", "beta", "rc"
-#         ]))
-#         print(f"{version_str:<{padding}}", end=" ")
-#         if (i + 1) % 8 == 0:
-#             print()
+def test_bump_random():
+    cur_date = dt.date.today()
+    cur_version = cur_date.strftime("v%Y%m") + ".0001-dev"
 
-#     print()
+    def _mock_current_calver():
+        return cur_date.strftime("v%Y%m")
+
+    _orig_current_calver = version.current_calver
+    version.current_calver = _mock_current_calver
+    try:
+        for i in range(1000):
+            cur_date += dt.timedelta(days=int((1 + random.random()) ** 10))
+            new_version = version.bump(cur_version, release=random.choice([
+                None, "alpha", "beta", "rc", "final"
+            ]))
+            assert cur_version < new_version
+            cur_version = new_version
+    finally:
+        version.current_calver = _orig_current_calver
