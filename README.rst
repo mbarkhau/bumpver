@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmbarkhau%2Fpycalver.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmbarkhau%2Fpycalver?ref=badge_shield)
+
 PyCalVer: Automatic CalVer Versioning for Python Packages
 =========================================================
 
@@ -639,3 +641,5 @@ version number and 2. that users and packaging softare correctly
 parse that meaning. When I used semantic versioning, I realized that
 the major version number of my packages would never change,
 because I don't think breaking changes should ever be
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmbarkhau%2Fpycalver.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmbarkhau%2Fpycalver?ref=badge_large)
