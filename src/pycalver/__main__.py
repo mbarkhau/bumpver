@@ -83,7 +83,7 @@ def incr(old_version: str, release: str = None) -> None:
     new_version_nfo = parse.parse_version_info(new_version)
 
     print("PyCalVer Version:", new_version)
-    print("PEP440 Version:", new_version_nfo["pep440_version"])
+    print("PEP440 Version:", new_version_nfo.pep440_version)
 
 
 @cli.command()
@@ -196,15 +196,14 @@ def bump(
     filepaths = set(file_patterns.keys())
 
     _vcs = vcs.get_vcs()
-    _vcs.assert_not_dirty(filepaths, allow_dirty)
-    rewrite.rewrite(new_version, file_patterns, dry, verbose)
-
-    if dry:
-        return
-
-    if not commit:
-        return
-
     if _vcs is None:
         log.warn("Version Control System not found, aborting commit.")
+    else:
+        _vcs.assert_not_dirty(filepaths, allow_dirty)
+
+    rewrite.rewrite(new_version, file_patterns, dry, verbose)
+
+    if dry or not commit or _vcs is None:
         return
+
+    # TODO (mb 2018-09-04): add files and commit

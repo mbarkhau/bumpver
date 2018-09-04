@@ -102,7 +102,7 @@ def ord_val(lex_id: str) -> int:
     return int(lex_id[1:], 10)
 
 
-def main():
+def main() -> None:
     _curr_id = "01"
     print(f"{'lexical':<13} {'numerical':>12}")
 

@@ -21,18 +21,29 @@ log = logging.getLogger("pycalver.vcs")
 
 class BaseVCS:
 
-    @classmethod
-    def commit(cls, message):
-        f = tempfile.NamedTemporaryFile("wb", delete=False)
-        f.write(message.encode("utf-8"))
-        f.close()
-        cmd = cls._COMMIT_COMMAND + [f.name]
-        env_items = list(os.environ.items()) + [(b"HGENCODING", b"utf-8")]
-        sp.check_output(cmd, env=dict(env_items))
-        os.unlink(f.name)
+    _TEST_USABLE_COMMAND: typ.List[str]
+    _COMMIT_COMMAND: typ.List[str]
+    _STATUS_COMMAND: typ.List[str]
 
     @classmethod
-    def is_usable(cls):
+    def commit(cls, message: str) -> None:
+        message_data = message.encode("utf-8")
+
+        tmp_file = tempfile.NamedTemporaryFile("wb", delete=False)
+
+        with tmp_file as fh:
+            fh.write(message_data)
+
+        cmd = cls._COMMIT_COMMAND + [tmp_file.name]
+        env = os.environ.copy()
+        # TODO (mb 2018-09-04): check that this works on py27,
+        #   might need to be bytes there, idk.
+        env["HGENCODING"] = "utf-8"
+        sp.check_output(cmd, env=env)
+        os.unlink(tmp_file.name)
+
+    @classmethod
+    def is_usable(cls) -> bool:
         try:
             return sp.call(
                 cls._TEST_USABLE_COMMAND,
@@ -46,7 +57,7 @@ class BaseVCS:
             raise
 
     @classmethod
-    def dirty_files(cls):
+    def dirty_files(cls) -> typ.List[str]:
         status_output = sp.check_output(cls._STATUS_COMMAND)
         return [
             line.decode("utf-8")[2:].strip()
@@ -107,7 +118,7 @@ class Mercurial(BaseVCS):
 VCS = [Git, Mercurial]
 
 
-def get_vcs():
+def get_vcs() -> typ.Optional[typ.Type[BaseVCS]]:
     for vcs in VCS:
         if vcs.is_usable():
             return vcs
