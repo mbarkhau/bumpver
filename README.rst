@@ -58,7 +58,7 @@ format: ``v{calendar_version}.{build_number}[-{release_tag}]``
 Some examples:
 
 
-.. code-block::
+.. code-block:
 
     v201711.0001-alpha
     v201712.0027-beta
@@ -287,10 +287,6 @@ not be included in your patterns.
 
 A further restriction is, that a version string cannot span
 multiple lines in your source file.
-
-
-Pattern Search and Replacement
-------------------------------
 
 Now we can call ``pycalver bump`` to bump all occurrences of
 version strings in these files. Normally this will change local
@@ -573,33 +569,36 @@ from pkg_resources import parse_version
 The Life of a Library
 ---------------------
 
-mylib      v201711.001-alpha     # birth of a project (in alpha)
-mylib      v201711.002-alpha     # new features (in alpha)
-mylib      v201712.003-beta      # bugfix release (in beta)
-mylib      v201712.004-rc        # release candidate
-mylib      v201712.005           # stable release
-mylib      v201712.006           # stable bugfix release
+.. code-block:
 
-mylib2     v201712.007-beta      # breaking change (new package name!)
-mylib2     v201801.008-beta      # new features (in beta)
-mylib2     v201801.009           # stable release
+    mylib      v201711.001-alpha     # birth of a project (in alpha)
+    mylib      v201711.002-alpha     # new features (in alpha)
+    mylib      v201712.003-beta      # bugfix release (in beta)
+    mylib      v201712.004-rc        # release candidate
+    mylib      v201712.005           # stable release
+    mylib      v201712.006           # stable bugfix release
 
-mylib      v201802.007           # security fix for legacy version
-mylib2     v201802.010           # security fix
+    mylib2     v201712.007-beta      # breaking change (new package name!)
+    mylib2     v201801.008-beta      # new features (in beta)
+    mylib2     v201801.009           # stable release
 
-mylib2     v202604.9900           # threshold for four digit build numbers
-mylib2     v202604.9901           # still four digits in the same month
-mylib2     v202604.9911           # last build number with four digits
-mylib2     v202605.09912          # build number zero padding added with date turnover
-mylib2     v202605.09913          # stable release
+    mylib      v201802.007           # security fix for legacy version
+    mylib2     v201802.010           # security fix
 
-mylib2     v203202.16051-rc       # release candidate
-mylib2     v203202.16052          # stable release
+    mylib2     v202604.9900           # threshold for four digit build numbers
+    mylib2     v202604.9901           # still four digits in the same month
+    mylib2     v202604.9911           # last build number with four digits
+    mylib2     v202605.09912          # build number zero padding added with date turnover
+    mylib2     v202605.09913          # stable release
+
+    mylib2     v203202.16051-rc       # release candidate
+    mylib2     v203202.16052          # stable release
 
     ...
     v202008.500    # 500 is the limit for four digit build numbers, but
     v202008.508    # zero padding is added only after the turnover to
     v202009.0509   # a new month, so that lexical ordering is preserved.
+
 
 The date portion of the version, gives the user an indication of
 how up their dependency is, whether or not a project is still
