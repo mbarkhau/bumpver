@@ -16,7 +16,7 @@ install:
 script:
   - export PYTHONPATH=src/:$PYTHONPATH
   - export MYPYPATH=stubs/
-  - python -m flake8 src/lib3to6/
-  - python -m mypy src/lib3to6/
-  - python -m pytest --cov=lib3to6 test/
+  - python -m flake8 src/pycalver/
+  - python -m mypy src/pycalver/
+  - python -m pytest --cov=pycalver test/
   - rst2html5 --strict README.rst > /dev/null
