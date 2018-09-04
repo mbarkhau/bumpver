@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: MIT
 
 import logging
+import typing as typ
 import datetime as dt
 
 from . import lex_id
@@ -34,6 +35,8 @@ def bump(old_version: str, *, release: str=None) -> str:
         new_calver = old_ver.calver
 
     new_build = lex_id.next_id(old_ver.build[1:])
+    new_release: typ.Optional[str] = None
+
     if release is None:
         if old_ver.release:
             # preserve existing release

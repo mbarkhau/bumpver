@@ -17,7 +17,7 @@ log = logging.getLogger("pycalver.rewrite")
 
 def rewrite(
     new_version: str,
-    file_patterns: typ.Dict[str, str],
+    file_patterns: typ.Dict[str, typ.List[str]],
     dry=False,
     verbose=False,
 ) -> None:

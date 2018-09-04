@@ -17,7 +17,7 @@ VALID_RELESE_VALUES = ("alpha", "beta", "dev", "rc", "post")
 
 
 # https://regex101.com/r/fnj60p/10
-PYCALVER_RE: typ.re.Pattern[str] = re.compile(r"""
+PYCALVER_RE: typ.Pattern[str] = re.compile(r"""
 \b
 (?P<version>
     (?P<calver>
@@ -75,6 +75,8 @@ class VersionInfo(typ.NamedTuple):
 
 def parse_version_info(version: str) -> VersionInfo:
     match = PYCALVER_RE.match(version)
+    if match is None:
+        raise ValueError(f"Invalid pycalver: {version}")
     pep440_version = str(pkg_resources.parse_version(version))
     return VersionInfo(pep440_version=pep440_version, **match.groupdict())
 

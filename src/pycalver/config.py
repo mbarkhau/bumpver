@@ -32,8 +32,8 @@ class Config(typ.NamedTuple):
 MaybeConfig = typ.Optional[Config]
 
 
-def _parse_buffer(cfg_buffer: io.StringIO) -> MaybeConfig:
-    cfg_parser = configparser.RawConfigParser("")
+def parse_buffer(cfg_buffer: io.StringIO) -> MaybeConfig:
+    cfg_parser = configparser.RawConfigParser()
     cfg_parser.readfp(cfg_buffer)
 
     if "pycalver" not in cfg_parser:
@@ -99,7 +99,7 @@ def parse(config_file="setup.cfg") -> MaybeConfig:
         cfg_buffer.write(fh.read())
 
     cfg_buffer.seek(0)
-    return _parse_buffer(cfg_buffer)
+    return parse_buffer(cfg_buffer)
 
 
 def default_config_lines() -> typ.List[str]:
