@@ -25,9 +25,8 @@ PYTHON37 ?= $(PYENV37)/bin/python
 PYTHON36 ?= $(PYENV36)/bin/python
 PYTHON27 ?= $(PYENV27)/bin/python
 
-BDIST_WHEEL_LIB3TO6 = $(shell bash -c "ls -1t dist/pycalver*py2*.whl | head -n 1")
-SDIST_LIB3TO6 = $(shell bash -c "ls -1t dist/pycalver*.tar.gz | head -n 1")
-DIST_WHEEL_TEST = $(shell bash -c "ls -1t test_project/dist/*py2*.whl | head -n 1")
+BDIST_WHEEL_PYCALVER = $(shell bash -c "ls -1t dist/pycalver*py2*.whl | head -n 1")
+SDIST_PYCALVER = $(shell bash -c "ls -1t dist/pycalver*.tar.gz | head -n 1")
 BUILD_LOG_DIR = "test_build_logs/"
 BUILD_LOG_FILE := $(shell date +"$(BUILD_LOG_DIR)%Y%m%dt%H%M%S%N.log")
 
@@ -149,7 +148,7 @@ build: build/.local_install.make_marker
 
 upload: build/.install.make_marker build/README.html
 	$(PYTHON36) setup.py bdist_wheel --python-tag=py2.py3
-	$(PYENV36)/bin/twine upload $(BDIST_WHEEL_LIB3TO6)
+	$(PYENV36)/bin/twine upload $(BDIST_WHEEL_PYCALVER)
 
 
 setup_conda_envs: build/.setup_conda_envs.make_marker
