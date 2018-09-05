@@ -18,7 +18,7 @@ def current_calver() -> str:
     return dt.date.today().strftime("v%Y%m")
 
 
-def bump(old_version: str, *, release: str=None) -> str:
+def bump(old_version: str, *, release: str = None) -> str:
     # old_version is assumed to be a valid calver string,
     # validated in pycalver.config.parse.
     old_ver = parse.parse_version_info(old_version)
