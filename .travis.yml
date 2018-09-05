@@ -14,7 +14,7 @@ python:
 
 before_install:
   - sudo apt-get install -y git mercurial
-  - sudo setup_travis.sh
+  - sudo bash setup_travis.sh
 
 
 install:
