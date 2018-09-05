@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-set -v
 
 rst2html5 --strict README.rst > /dev/null
 rst2html5 --strict CHANGELOG.rst > /dev/null
