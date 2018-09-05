@@ -4,14 +4,12 @@ language: python
 cache: pip
 
 before_install:
-  - uname
   - sudo apt-get install -y git mercurial
   - sudo bash travis_build_wheel.sh
 
 script:
   - python --version
   - bash travis_run_tests.sh
-
 
 matrix:
   include:

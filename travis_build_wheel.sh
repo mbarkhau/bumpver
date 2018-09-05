@@ -4,11 +4,7 @@ set -e
 if [[ $(which python3.6) ]]; then
     python3.6 --version
 else
-    if [[ $(uname) ]]; then
-        curl -sSf -o python-3.6.tar.bz2 https://s3.amazonaws.com/travis-python-archives/binaries/ubuntu/14.04/x86_64/python-3.6.tar.bz2
-    else
-        curl -sSf -o python-3.6.tar.bz2 https://s3.amazonaws.com/travis-python-archives/binaries/ubuntu/14.04/x86_64/python-3.6.tar.bz2
-    fi
+    curl -sSf -o python-3.6.tar.bz2 https://s3.amazonaws.com/travis-python-archives/binaries/ubuntu/16.04/x86_64/python-3.6.tar.bz2
     tar xjf python-3.6.tar.bz2 --directory /
     source $HOME/virtualenv/python3.6.0/bin/activate
 fi
