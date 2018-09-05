@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-echo "python3.7 path: $(which python3.7)"
-
 if [[ $(which python3.7) ]]; then
     python3.7 --version
 else
@@ -12,5 +10,5 @@ else
 fi
 
 python3.7 --version
-python3.7 -m pip install lib3to6
+python3.7 -m pip install setuptools lib3to6
 python3.7 setup.py bdist_wheel --python-tag=py2.py3
