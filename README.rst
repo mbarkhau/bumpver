@@ -26,8 +26,8 @@ which is compatible with python packaging software
     :target: http://mypy-lang.org/
     :alt: Checked with mypy
 
-.. |coverage| image:: https://img.shields.io/badge/coverage-86%25-green.svg
-    :target: https://travis-ci.org/mbarkhau/pycalver
+.. |coverage| image:: https://codecov.io/gh/mbarkhau/pycalver/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/mbarkhau/pycalver
     :alt: Code Coverage
 
 .. |license| image:: https://img.shields.io/pypi/l/pycalver.svg
