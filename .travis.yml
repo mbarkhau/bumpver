@@ -14,13 +14,7 @@ cache: pip
 install:
   - sudo apt-get install -y git mercurial
 
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
-  # - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-  #     wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-  #   else
-  #     wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-  #   fi
+  # - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   # - bash miniconda.sh -b -p $HOME/miniconda
   # - export PATH="$HOME/miniconda/bin:$PATH"
   # - hash -r
@@ -31,12 +25,12 @@ install:
   # - conda info -a
 
   # # Setup envs
-  # - conda create --name cpy27 --python=2.7
-  # - conda create --name cpy34 --python=3.4
-  # - conda create --name cpy35 --python=3.5
-  # - conda create --name cpy36 --python=3.6
-  # - conda create --name cpy37 --python=3.7
-  # - conda create --name pypy27
+  # - conda create -q --name cpy27 python=2.7
+  # - conda create -q --name cpy34 python=3.4
+  # - conda create -q --name cpy35 python=3.5
+  # - conda create -q --name cpy36 python=3.6
+  # - conda create -q --name cpy37 python=3.7
+  # - conda create -q --name pypy27
   # - conda activate pypy27
   # - conda install -c conda-forge pypy2.7
   # - conda deactivate
@@ -47,11 +41,18 @@ install:
   # - conda deactivate
 
 script:
+  # While setup.py does spec these requirements
+  # we'll only be installing via setup.py indirectly using the
+  # wheel that we'll build. For the test run on the
+  # src/ from the repository, we need to install the
+  # dependencies separately.
+  - python -m pip install $(cat requirements.txt)
   - python -m pip install $(cat requirements-test.txt)
   - python -m flake8 src/pycalver/
   - MYPYPATH=stubs/ python -m mypy src/pycalver/
   - rst2html5 --strict README.rst > /dev/null
   - rst2html5 --strict CHANGELOG.rst > /dev/null
+
   - PYTHONPATH=src/:$PYTHONPATH python -m pytest --cov=pycalver test/
   - codecov
   - python setup.py bdist_wheel --python-tag=py2.py3
