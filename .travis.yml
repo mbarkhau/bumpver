@@ -16,9 +16,6 @@ before_install:
   - sudo apt-get install -y git mercurial
   - sudo bash travis_build_wheel.sh
 
-install:
-  - pip install $(cat requirements-test.txt)
-
 script:
   - python --version
   - bash travis_run_tests.sh
