@@ -1,24 +1,54 @@
 os: linux
+dist: xenial
+sudo: true
+
+# The python from travis is used to lint, mypy and test the
+# non-transpiled src/, as well as to build the universal wheel
+# that will be tested using the environments set up using conda
+python:
+  - "3.7"
 
 language: python
 cache: pip
 
-before_install:
+install:
   - sudo apt-get install -y git mercurial
-  - sudo bash travis_build_wheel.sh
+  - python -m pip install setuptools lib3to6
+
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  # - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+  #     wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+  #   else
+  #     wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  #   fi
+  # - bash miniconda.sh -b -p $HOME/miniconda
+  # - export PATH="$HOME/miniconda/bin:$PATH"
+  # - hash -r
+
+  # - conda config --set always_yes yes --set changeps1 no
+  # - conda update -q conda
+  # # Useful for debugging any issues with conda
+  # - conda info -a
+
+  # # Setup envs
+  # - conda create --name cpy27 --python=2.7
+  # - conda create --name cpy34 --python=3.4
+  # - conda create --name cpy35 --python=3.5
+  # - conda create --name cpy36 --python=3.6
+  # - conda create --name cpy37 --python=3.7
+  # - conda create --name pypy27
+  # - conda activate pypy27
+  # - conda install -c conda-forge pypy2.7
+  # - conda deactivate
+
+  # - conda create --name pypy35
+  # - conda activate pypy35
+  # - conda install -c conda-forge pypy3.5
+  # - conda deactivate
 
 script:
-  - python --version
-  - bash travis_run_tests.sh
-
-matrix:
-  include:
-  - python: "3.6"
-  - python: "3.5"
-  - python: "3.4"
-  - python: "2.7"
-  - python: "pypy3.5"
-  - python: "pypy2.7"
-  - python: "3.7"
-    dist: xenial
-    sudo: true
+  - python -m pip install $(cat requirements-test.txt)
+  - python -m flake8 src/pycalver/
+  - MYPYPATH=stubs/ python -m mypy src/pycalver/
+  - PYTHONPATH=src/:$PYTHONPATH python -m pytest --cov=pycalver test/
