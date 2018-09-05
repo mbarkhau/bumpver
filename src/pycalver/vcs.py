@@ -71,8 +71,8 @@ class BaseVCS:
 
         if dirty_files:
             log.warn(f"{cls.__name__} working directory is not clean:")
-            for file in dirty_files:
-                log.warn("    " + file)
+            for dirty_file in dirty_files:
+                log.warn("    " + dirty_file)
 
         if not allow_dirty and dirty_files:
             sys.exit(1)
@@ -80,8 +80,8 @@ class BaseVCS:
         dirty_pattern_files = set(dirty_files) & filepaths
         if dirty_pattern_files:
             log.error("Not commiting when pattern files are dirty:")
-            for file in dirty_pattern_files:
-                log.warn("    " + file)
+            for dirty_file in dirty_pattern_files:
+                log.warn("    " + dirty_file)
             sys.exit(1)
 
 
