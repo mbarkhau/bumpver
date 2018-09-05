@@ -14,18 +14,17 @@ cache: pip
 install:
   - sudo apt-get install -y git mercurial
 
-  # - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-  # - bash miniconda.sh -b -p $HOME/miniconda
-  # - export PATH="$HOME/miniconda/bin:$PATH"
-  # - hash -r
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
 
-  # - conda config --set always_yes yes --set changeps1 no
-  # - conda update -q conda
-  # # Useful for debugging any issues with conda
-  # - conda info -a
-
-  # # Setup envs
-  # - conda create -q --name cpy27 python=2.7
+  # Setup envs
+  - conda create -q --name cpy27 python=2.7
   # - conda create -q --name cpy34 python=3.4
   # - conda create -q --name cpy35 python=3.5
   # - conda create -q --name cpy36 python=3.6
@@ -55,5 +54,15 @@ script:
 
   - PYTHONPATH=src/:$PYTHONPATH python -m pytest --cov=pycalver test/
   - codecov
+
+  - python -m pip install lib3to6
   - python setup.py bdist_wheel --python-tag=py2.py3
   - ls -l dist/*
+
+  - conda activate cpy27
+  - python --version
+  - python -m pip install $(cat requirements-test.txt)
+  - python -m pip install $(ls -1t dist/*.whl | head -n 1)
+  - python -m pytest --cov=pycalver test/
+  - conda deactivate
+  - python --version
