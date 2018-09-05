@@ -7,15 +7,16 @@ cache: pip
 
 python:
   - "3.7"
-  - "3.6"
-  - "3.5"
+  # - "3.6"
+  # - "3.5"
   # - "3.4"   # not available for xenial
   - "2.7"
 
 before_install:
+  - curl -sSf -o python-3.7.tar.bz2 https://s3.amazonaws.com/travis-python-archives/binaries/ubuntu/16.04/x86_64/python-3.7.tar.bz2
+  - sudo tar xjf python-3.7.tar.bz2 --directory /
   - sudo apt-get install -y git mercurial
-  - sudo apt-get install -y python3.7
-  - sudo python3.7 -m pip install lib3to6
+  - python3.7 -m pip install lib3to6
 
 
 install:
@@ -23,6 +24,8 @@ install:
   - python3.7 setup.py bdist_wheel --python-tag=py2.py3
 
 script:
+  - python --version
+  - python3.7 --version
   - python -m flake8 src/pycalver/
 
   - export MYPYPATH=stubs/
