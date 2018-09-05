@@ -28,6 +28,9 @@ var/
 .eggs/
 .pytest_cache/
 
+# source dirs have to be explicitly added
+src/
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.

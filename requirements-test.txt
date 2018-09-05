@@ -1,0 +1,7 @@
+flake8
+mypy
+typing-extensions
+rst2html5
+pytest
+pytest-cov
+codecov
