@@ -14,21 +14,11 @@ python:
 
 before_install:
   - sudo apt-get install -y git mercurial
-  - sudo bash build_wheel_on_travis.sh
+  - sudo bash travis_build_wheel.sh
 
 install:
   - pip install $(cat requirements-test.txt)
 
 script:
   - python --version
-  - python -m flake8 src/pycalver/
-
-  - export MYPYPATH=stubs/
-  - python -m mypy src/pycalver/
-
-  - export PYTHONPATH=src/:$PYTHONPATH
-  - python -m pytest --cov=pycalver test/
-  - codecov
-
-  - rst2html5 --strict README.rst > /dev/null
-  - rst2html5 --strict CHANGELOG.rst > /dev/null
+  - bash travis_run_tests.sh
