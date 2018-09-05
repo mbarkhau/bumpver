@@ -9,19 +9,18 @@ python:
   - "3.7"
   - "3.6"
   - "3.5"
-  - "3.4"
+  # - "3.4"   # not available for xenial
   - "2.7"
 
 before_install:
-  - apt-get install -y git mercurial
-  - apt-get install -y python3.7
-  - python3.7 -m pip install lib3to6
-  - python3.7 setup.py bdist_wheel --python-tag=py2.py3
+  - sudo apt-get install -y git mercurial
+  - sudo apt-get install -y python3.7
+  - sudo python3.7 -m pip install lib3to6
 
 
 install:
   - pip install $(cat requirements-test.txt)
-  - pip install .
+  - python3.7 setup.py bdist_wheel --python-tag=py2.py3
 
 script:
   - python -m flake8 src/pycalver/
