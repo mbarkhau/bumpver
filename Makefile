@@ -89,18 +89,6 @@ devtest: build/.install.make_marker
 		test/
 
 
-build/.coverage_percent.txt: test
-	@mkdir -p build/
-	@grep -oP '>[0-9]+%</td>' htmlcov/index.html \
-		| head -n 1 \
-		| grep -oP '[.0-9]+' \
-		> build/.coverage_percent.txt
-
-
-README.rst: build/.coverage_percent.txt
-	@sed -i "s/coverage-[0-9]*/coverage-$$(cat build/.coverage_percent.txt)/" README.rst
-
-
 build/README.html: build/.install.make_marker README.rst CHANGELOG.rst
 	@cat README.rst > build/.full_readme.rst
 	@echo "\n" >> build/.full_readme.rst
