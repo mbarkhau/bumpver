@@ -13,7 +13,6 @@ cache: pip
 
 install:
   - sudo apt-get install -y git mercurial
-  - python -m pip install setuptools lib3to6
 
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
@@ -51,4 +50,9 @@ script:
   - python -m pip install $(cat requirements-test.txt)
   - python -m flake8 src/pycalver/
   - MYPYPATH=stubs/ python -m mypy src/pycalver/
+  - rst2html5 --strict README.rst > /dev/null
+  - rst2html5 --strict CHANGELOG.rst > /dev/null
   - PYTHONPATH=src/:$PYTHONPATH python -m pytest --cov=pycalver test/
+  - codecov
+  - python setup.py bdist_wheel --python-tag=py2.py3
+  - ls -l dist/*
