@@ -25,7 +25,7 @@ def test_parse(tmpdir):
     setup_path = tmpdir.mkdir("minimal").join("setup.cfg")
     setup_path.write("\n".join((
         "[pycalver]",
-        f"current_version = v201808.0001-dev",
+        "current_version = v201808.0001-dev",
         "commit = False",
         "tag = False",
         "",
@@ -78,7 +78,7 @@ def test_parse_invalid_version(tmpdir):
     setup_path = tmpdir.mkdir("fail").join("setup.cfg")
     setup_path.write("\n".join((
         "[pycalver]",
-        f"current_version = 0.1.0",
+        "current_version = 0.1.0",
         "commit = False",
     )))
 

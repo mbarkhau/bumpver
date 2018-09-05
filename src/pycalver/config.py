@@ -36,7 +36,7 @@ def parse_buffer(cfg_buffer: io.StringIO) -> MaybeConfig:
     cfg_parser = configparser.RawConfigParser()
     cfg_parser.readfp(cfg_buffer)
 
-    if "pycalver" not in cfg_parser:
+    if not cfg_parser.has_section("pycalver"):
         log.error("setup.cfg does not contain a [pycalver] section.")
         return None
 

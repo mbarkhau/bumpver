@@ -2,6 +2,7 @@
 set -e
 
 # minimal test requirements for py27 testing
+python -m pip install -U pip
 python -m pip install pytest rst2html5
 
 rst2html5 --strict README.rst > /dev/null
