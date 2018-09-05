@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -v
 
 if [[ $(which python3.7) ]]; then
     python3.7 --version

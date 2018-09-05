@@ -35,7 +35,7 @@ which is compatible with python packaging software
     :alt: MIT License
 
 .. |pypi| image:: https://img.shields.io/pypi/v/pycalver.svg
-    :target: https://pypi.python.org/pypi/pycalver
+    :target: https://github.com/mbarkhau/pycalver/blob/master/CHANGELOG.rst
     :alt: PyPI Version
 
 .. |version| image:: https://img.shields.io/badge/CalVer-v201809.0002--beta-blue.svg
