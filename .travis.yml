@@ -1,22 +1,26 @@
 os: linux
-dist: xenial
-sudo: true
 
 language: python
 cache: pip
 
-python:
-  - "3.7"
-  - "3.6"
-  - "3.5"
-  - "pypy3.5"
-  - "2.7"
-  - "pypy2.7"
-
 before_install:
+  - uname
   - sudo apt-get install -y git mercurial
   - sudo bash travis_build_wheel.sh
 
 script:
   - python --version
   - bash travis_run_tests.sh
+
+
+matrix:
+  include:
+  - python: "3.6"
+  - python: "3.5"
+  - python: "3.4"
+  - python: "2.7"
+  - python: "pypy3.5"
+  - python: "pypy2.7"
+  - python: "3.7"
+    dist: xenial
+    sudo: true

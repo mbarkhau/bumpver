@@ -13,7 +13,7 @@ python -m pip install $(ls -1t dist/pycalver*.whl | head -n 1)
 grep 'coding: utf-8' $(python -c 'import pycalver;print(pycalver.__file__.replace(".pyc", ".py"))')
 python -m pytest test/
 
-if [[ $(python -c "import sys;print(sys.version[:3])") == "3.7" ]]; then
+if [[ $(python -c "import sys;sys.exit(sys.version[:3] < '3.6')")  ]]; then
   python -m pip install $(cat requirements-test.txt)
   python -m flake8 src/pycalver/
 
