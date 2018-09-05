@@ -13,14 +13,13 @@ python:
   - "2.7"
 
 before_install:
-  - curl -sSf -o python-3.7.tar.bz2 https://s3.amazonaws.com/travis-python-archives/binaries/ubuntu/16.04/x86_64/python-3.7.tar.bz2
-  - sudo tar xjf python-3.7.tar.bz2 --directory /
   - sudo apt-get install -y git mercurial
-  - python3.7 -m pip install lib3to6
+  - sudo setup_travis.sh
 
 
 install:
   - pip install $(cat requirements-test.txt)
+  - python3.7 -m pip install lib3to6
   - python3.7 setup.py bdist_wheel --python-tag=py2.py3
 
 script:
