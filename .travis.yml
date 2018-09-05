@@ -14,17 +14,13 @@ python:
 
 before_install:
   - sudo apt-get install -y git mercurial
-  - sudo bash setup_travis.sh
-
+  - sudo bash build_wheel_on_travis.sh
 
 install:
   - pip install $(cat requirements-test.txt)
-  - python3.7 -m pip install lib3to6
-  - python3.7 setup.py bdist_wheel --python-tag=py2.py3
 
 script:
   - python --version
-  - python3.7 --version
   - python -m flake8 src/pycalver/
 
   - export MYPYPATH=stubs/
