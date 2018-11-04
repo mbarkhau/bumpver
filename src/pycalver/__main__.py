@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # This file is part of the pycalver project
-# https://github.com/mbarkhau/pycalver
+# https://gitlab.com/mbarkhau/pycalver
 #
-# (C) 2018 Manuel Barkhau (@mbarkhau)
+# Copyright (c) 2018 Manuel Barkhau (@mbarkhau) - MIT License
 # SPDX-License-Identifier: MIT
 
 import io

@@ -1,8 +1,0 @@
-flake8
-flake8-bugbear
-mypy
-typing-extensions
-rst2html5
-pytest
-pytest-cov
-codecov

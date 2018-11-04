@@ -1,4 +1,0 @@
-setuptools
-pathlib2
-typing
-click

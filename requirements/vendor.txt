@@ -1,0 +1,22 @@
+# These dependencies are installed using:
+#
+#   pip install --upgrade
+#   pip install --upgrade --no-deps --target vendor/
+#
+# Vendored dependencies are installed both in the virtual
+# environment as well as in the vendor/ directory. This way:
+#
+# 1. All transitive dependencies of a package are installed in
+#    the virtualenv (in the first installation step)
+# 2. If there is a binary version of the package available, it
+#    will be installed into the virtualenv
+# 3. In the third step only (--no-deps) the source version of
+#    the (--no-binary) package is installed to vendor/
+#
+# This allows us to:
+#
+# 1. Easily navigate to the source of a vendored dependency
+# 2. Use binary versions packages instead of source versions of
+#    packages, simply by not including the vendor/ directory in
+#    the PYTHONPATH. The version from the virtualenv will then
+#    be loaded instead.

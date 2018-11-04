@@ -1,0 +1,34 @@
+# These dependencies are installed using:
+#
+#   conda install --channel conda-forge --name <env>
+#
+# Conda should be used for
+#
+# 1. Binary python packages (numpy, pandas, pillow).
+#    The pypi may not always have binary packages for all platforms
+#    and architectures you want to support. For example, pyblake2 only
+#    has binary wheels for windows on pypi, whereas there are binary
+#    packages on conda-forge (as of Sep 2018).
+#    Binary wheels are becomming more common on the pypi this is
+#    becomming, so this is less and less of an issue. Most of the time
+#    it should be fine to add the dependency to pypi.txt instead.
+#
+# 2. Non python packages (nodejs, typescript).
+#    Using conda for these kinds of dependencies minimizes
+#    installation overhead for developers.
+
+# https://pypi.org/project/ujson/
+# UltraJSON is an ultra fast JSON encoder and decoder written
+# in pure C with bindings for Python 2.5+ and 3.
+ujson
+
+# The hot new pkdf on the block is argon2, winner of
+# the https://password-hashing.net/ competition.
+argon2_cffi
+
+# https://blake2.net/
+# BLAKE2 is a cryptographic hash function faster than MD5, SHA-1,
+# SHA-2, and SHA-3, yet is at least as secure as the latest standard
+# SHA-3. BLAKE2 has been adopted by many projects due to its high
+# speed, security, and simplicity.
+pyblake2

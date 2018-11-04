@@ -1,0 +1,26 @@
+# These dependencies are installed using:
+#
+#   pip install --upgrade
+#
+# This list should only contain packages related to
+# local development and debugging. It should not contain
+# any packages required for production, building or packaging
+
+# PuDB is a full-screen, console-based visual debugger for Python.
+# https://documen.tician.de/pudb/
+pudb
+
+# Py-Spy: A sampling profiler for Python programs.
+# https://github.com/benfred/py-spy
+# This is good for coarse grained profiling (even on production)
+py-spy
+
+# SNAKEVIZ : A browser based viewer for the output of Python’s cProfile.
+# https://jiffyclub.github.io/snakeviz/
+# This is good for fine grained profiling (function level/micro optimizations)
+snakeviz
+
+# I've yet to find a decent memory profiler for python, feel free to
+# add one after you've tested it and found it to be actually useful.
+
+ipython     # nuff said

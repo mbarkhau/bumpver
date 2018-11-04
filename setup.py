@@ -1,7 +1,7 @@
 # This file is part of the pycalver project
-# https://github.com/mbarkhau/pycalver
+# https://gitlab.com/mbarkhau/pycalver
 #
-# (C) 2018 Manuel Barkhau (mbarkhau@gmail.com)
+# (C) 2018 Manuel Barkhau (@mbarkhau)
 # SPDX-License-Identifier: MIT
 
 import os
@@ -9,13 +9,13 @@ import sys
 import setuptools
 
 
-def project_path(filename):
-    dirpath = os.path.abspath(os.path.dirname(__file__))
-    return os.path.join(dirpath, filename)
+def project_path(*sub_paths):
+    project_dirpath = os.path.abspath(os.path.dirname(__file__))
+    return os.path.join(project_dirpath, *sub_paths)
 
 
-def read(filename):
-    with open(project_path(filename), mode="rb") as fh:
+def read(*sub_paths):
+    with open(project_path(*sub_paths), mode="rb") as fh:
         return fh.read().decode("utf-8")
 
 
@@ -39,12 +39,12 @@ setuptools.setup(
     name="pycalver",
     license="MIT",
     author="Manuel Barkhau",
-    author_email="mbarkhau@gmail.com",
-    url="https://github.com/mbarkhau/pycalver",
+    author_email="@mbarkhau",
+    url="https://gitlab.com/mbarkhau/pycalver",
     version="201809.2b0",
 
     keywords="version versioning bumpversion calver",
-    description="CalVer versioning for python projects",
+    description="CalVer versioning for python libraries.",
     long_description=long_description,
 
     packages=packages,

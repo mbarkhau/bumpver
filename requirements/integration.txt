@@ -1,0 +1,24 @@
+# These dependencies are installed using:
+#
+#   pip install --upgrade
+#
+# This file should only declare dependencies related to code
+# formatting, linting, testing and packaging.
+#
+# No dependencies required for production should be listed here.
+
+flake8
+flake8-bugbear
+flake8-docstrings
+flake8-builtins
+flake8-comprehensions
+pylint
+mypy
+pytest
+pytest-cov
+pylint
+
+twine
+
+straitjacket
+pycalver
