@@ -22,8 +22,8 @@ log = logging.getLogger("pycalver.vcs")
 class BaseVCS:
 
     _TEST_USABLE_COMMAND: typ.List[str]
-    _COMMIT_COMMAND: typ.List[str]
-    _STATUS_COMMAND: typ.List[str]
+    _COMMIT_COMMAND     : typ.List[str]
+    _STATUS_COMMAND     : typ.List[str]
 
     @classmethod
     def commit(cls, message: str) -> None:
@@ -38,18 +38,14 @@ class BaseVCS:
         env = os.environ.copy()
         # TODO (mb 2018-09-04): check that this works on py27,
         #   might need to be bytes there, idk.
-        env["HGENCODING"] = "utf-8"
+        env['HGENCODING'] = "utf-8"
         sp.check_output(cmd, env=env)
         os.unlink(tmp_file.name)
 
     @classmethod
     def is_usable(cls) -> bool:
         try:
-            return sp.call(
-                cls._TEST_USABLE_COMMAND,
-                stderr=sp.PIPE,
-                stdout=sp.PIPE,
-            ) == 0
+            return sp.call(cls._TEST_USABLE_COMMAND, stderr=sp.PIPE, stdout=sp.PIPE) == 0
         except OSError as e:
             if e.errno == 2:
                 # mercurial is not installed then, ok.
@@ -88,8 +84,8 @@ class BaseVCS:
 class Git(BaseVCS):
 
     _TEST_USABLE_COMMAND = ["git", "rev-parse", "--git-dir"]
-    _COMMIT_COMMAND = ["git", "commit", "-F"]
-    _STATUS_COMMAND = ["git", "status", "--porcelain"]
+    _COMMIT_COMMAND      = ["git", "commit"   , "-F"]
+    _STATUS_COMMAND      = ["git", "status"   , "--porcelain"]
 
     @classmethod
     def tag(cls, name):
@@ -102,9 +98,9 @@ class Git(BaseVCS):
 
 class Mercurial(BaseVCS):
 
-    _TEST_USABLE_COMMAND = ["hg", "root"]
-    _COMMIT_COMMAND = ["hg", "commit", "--logfile"]
-    _STATUS_COMMAND = ["hg", "status", "-mard"]
+    _TEST_USABLE_COMMAND = ["hg", 'root']
+    _COMMIT_COMMAND      = ["hg", "commit", "--logfile"]
+    _STATUS_COMMAND      = ["hg", "status", "-mard"]
 
     @classmethod
     def tag(cls, name):

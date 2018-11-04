@@ -20,13 +20,13 @@ log = logging.getLogger("pycalver.config")
 
 class Config(typ.NamedTuple):
 
-    current_version : str
-    pep440_version  : str
+    current_version: str
+    pep440_version : str
 
-    tag             : bool
-    commit          : bool
+    tag   : bool
+    commit: bool
 
-    file_patterns   : typ.Dict[str, typ.List[str]]
+    file_patterns: typ.Dict[str, typ.List[str]]
 
 
 MaybeConfig = typ.Optional[Config]
@@ -34,7 +34,10 @@ MaybeConfig = typ.Optional[Config]
 
 def parse_buffer(cfg_buffer: io.StringIO) -> MaybeConfig:
     cfg_parser = configparser.RawConfigParser()
-    cfg_parser.readfp(cfg_buffer)
+    if hasattr(cfg_parser, 'read_file'):
+        cfg_parser.read_file(cfg_buffer)
+    else:
+        cfg_parser.readfp(cfg_buffer)
 
     if not cfg_parser.has_section("pycalver"):
         log.error("setup.cfg does not contain a [pycalver] section.")
@@ -46,7 +49,7 @@ def parse_buffer(cfg_buffer: io.StringIO) -> MaybeConfig:
         log.error("setup.cfg does not have 'pycalver.current_version'")
         return None
 
-    current_version = base_cfg["current_version"]
+    current_version = base_cfg['current_version']
     if PYCALVER_RE.match(current_version) is None:
         log.error(f"setup.cfg 'pycalver.current_version is invalid")
         log.error(f"current_version = {current_version}")
@@ -54,7 +57,7 @@ def parse_buffer(cfg_buffer: io.StringIO) -> MaybeConfig:
 
     pep440_version = str(pkg_resources.parse_version(current_version))
 
-    tag = base_cfg.get("tag", "").lower() in ("yes", "true", "1", "on")
+    tag    = base_cfg.get("tag"   , "").lower() in ("yes", "true", "1", "on")
     commit = base_cfg.get("commit", "").lower() in ("yes", "true", "1", "on")
 
     file_patterns: typ.Dict[str, typ.List[str]] = {}
@@ -76,9 +79,7 @@ def parse_buffer(cfg_buffer: io.StringIO) -> MaybeConfig:
             file_patterns[filepath] = ["{version}", "{pep440_version}"]
         else:
             file_patterns[filepath] = [
-                line.strip()
-                for line in patterns.splitlines()
-                if line.strip()
+                line.strip() for line in patterns.splitlines() if line.strip()
             ]
 
     if not file_patterns:
@@ -118,29 +119,28 @@ def default_config_lines() -> typ.List[str]:
     ]
 
     if os.path.exists("setup.py"):
-        cfg_lines.extend([
-            "[pycalver:file:setup.py]",
-            "patterns = ",
-            "    \"{version}\"",
-            "    \"{pep440_version}\"",
-            "",
-        ])
+        cfg_lines.extend(
+            [
+                "[pycalver:file:setup.py]",
+                "patterns = ",
+                "    \"{version}\"",
+                "    \"{pep440_version}\"",
+                "",
+            ]
+        )
 
     if os.path.exists("README.rst"):
-        cfg_lines.extend([
-            "[pycalver:file:README.rst]",
-            "patterns = ",
-            "    {version}",
-            "    {pep440_version}",
-            "",
-        ])
+        cfg_lines.extend(
+            [
+                "[pycalver:file:README.rst]",
+                "patterns = ",
+                "    {version}",
+                "    {pep440_version}",
+                "",
+            ]
+        )
 
     if os.path.exists("README.md"):
-        cfg_lines.extend([
-            "[pycalver:file:README.md]",
-            "    {version}",
-            "    {pep440_version}",
-            "",
-        ])
+        cfg_lines.extend(["[pycalver:file:README.md]", "    {version}", "    {pep440_version}", ""])
 
     return cfg_lines

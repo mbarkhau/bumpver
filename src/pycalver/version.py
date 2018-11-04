@@ -27,9 +27,9 @@ def bump(old_version: str, *, release: str = None) -> str:
 
     if old_ver.calver > new_calver:
         log.warning(
-            f"'version.bump' called with '{old_version}', " +
-            f"which is from the future, " +
-            f"maybe your system clock is out of sync."
+            f"'version.bump' called with '{old_version}', "
+            + f"which is from the future, "
+            + f"maybe your system clock is out of sync."
         )
         # leave calver as is (don't go back in time)
         new_calver = old_ver.calver
@@ -43,7 +43,7 @@ def bump(old_version: str, *, release: str = None) -> str:
             new_release = old_ver.release[1:]
         else:
             new_release = None
-    elif release == "final":
+    elif release == 'final':
         new_release = None
     else:
         new_release = release

@@ -8,4 +8,4 @@ import os
 
 __version__ = "v201809.0002-beta"
 
-DEBUG = os.environ.get("PYCALVER_DEBUG", "0") == "1"
+DEBUG = os.environ.get("PYDEBUG", "0") == "1"

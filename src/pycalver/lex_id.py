@@ -90,7 +90,7 @@ def next_id(prev_id: str) -> str:
 
     _prev_id = int(prev_id, 10)
     _next_id = int(_prev_id) + 1
-    next_id = f"{_next_id:0{num_digits}}"
+    next_id  = f"{_next_id:0{num_digits}}"
     if prev_id[0] != next_id[0]:
         next_id = str(_next_id * 11)
     return next_id
