@@ -1,4 +1,5 @@
 flake8
+flake8-bugbear
 mypy
 typing-extensions
 rst2html5

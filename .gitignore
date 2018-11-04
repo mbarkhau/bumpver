@@ -27,6 +27,7 @@ var/
 *.egg
 .eggs/
 .pytest_cache/
+.ipynb_checkpoints/
 
 # source dirs have to be explicitly added
 src/

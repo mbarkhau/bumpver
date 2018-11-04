@@ -43,15 +43,21 @@ setuptools.setup(
     url="https://github.com/mbarkhau/pycalver",
     version="201809.2b0",
 
+    keywords="version versioning bumpversion calver",
     description="CalVer versioning for python projects",
     long_description=long_description,
-    long_description_content_type="text/x-rst",
 
     packages=packages,
     package_dir=package_dir,
     zip_safe=True,
-    install_requires=["typing", "click", "setuptools"],
-    setup_requires=["lib3to6==v201809.0017-alpha"],
+    install_requires=["typing", "click"],
+    setup_requires=[
+        "lib3to6==v201809.0017-alpha",
+        "pytest-runner",
+    ],
+    tests_require=[
+        "pytest",
+    ],
     entry_points='''
         [console_scripts]
         pycalver=pycalver.__main__:cli

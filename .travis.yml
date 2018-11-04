@@ -47,18 +47,20 @@ script:
   # dependencies separately.
   - python -m pip install $(cat requirements.txt)
   - python -m pip install $(cat requirements-test.txt)
+  # lint
   - python -m flake8 src/pycalver/
   - MYPYPATH=stubs/ python -m mypy src/pycalver/
+  # doc
   - rst2html5 --strict README.rst > /dev/null
   - rst2html5 --strict CHANGELOG.rst > /dev/null
-
+  # test repo src/
   - PYTHONPATH=src/:$PYTHONPATH python -m pytest --cov=pycalver test/
   - codecov
-
+  # build wheel
   - python -m pip install lib3to6
   - python setup.py bdist_wheel --python-tag=py2.py3
   - ls -l dist/*
-
+  # test wheel
   - conda activate cpy27
   - python --version
   - python -m pip install $(cat requirements-test.txt)
