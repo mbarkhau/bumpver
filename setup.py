@@ -19,20 +19,20 @@ def read(*sub_paths):
         return fh.read().decode("utf-8")
 
 
-packages = setuptools.find_packages(project_path("src"))
-package_dir = {"": "src"}
+install_requires = [
+    line.strip()
+    for line in read("requirements", "pypi.txt").splitlines()
+    if line.strip() and not line.startswith("#")
+]
 
+package_dir = {"": "src"}
 
 if any(arg.startswith("bdist") for arg in sys.argv):
     import lib3to6
     package_dir = lib3to6.fix(package_dir)
 
 
-long_description = (
-    read("README.rst") +
-    "\n\n" +
-    read("CHANGELOG.rst")
-)
+long_description = "\n\n".join((read("README.md"), read("CONTRIBUTING.md"), read("CHANGELOG.md")))
 
 
 setuptools.setup(
@@ -46,22 +46,17 @@ setuptools.setup(
     keywords="version versioning bumpversion calver",
     description="CalVer versioning for python libraries.",
     long_description=long_description,
-
-    packages=packages,
+    long_description_content_type="text/markdown",
+    packages=["pycalver"],
     package_dir=package_dir,
-    zip_safe=True,
-    install_requires=["typing", "click"],
-    setup_requires=[
-        "lib3to6==v201809.0017-alpha",
-        "pytest-runner",
-    ],
-    tests_require=[
-        "pytest",
-    ],
-    entry_points='''
+    install_requires=install_requires,
+    setup_requires=["lib3to6"],
+    entry_points="""
         [console_scripts]
         pycalver=pycalver.__main__:cli
-    ''',
+    """,
+    python_requires=">=3.6",
+    zip_safe=True,
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Console",

@@ -403,6 +403,8 @@ build_dist:
 ##      and is copied into a temp container during the build).
 ##   2. Your docker daemon is not running or configured to
 ##      expose on tcp://localhost:2375
+##   3. Your shell is not configured to connect to your docker
+## 		daemon via "export DOCKER_HOST=localhost:2375"
 .PHONY: build_docker
 build_docker:
 	@if [[ -f $$HOME/.ssh/${PKG_NAME}_gitlab_runner_id_rsa ]]; then \
