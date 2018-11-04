@@ -174,8 +174,8 @@ elif [[ ! ${GIT_REPO_URL} =~ ^https?://[^/]+/[^/]+/[^/]+(/|.git)?$ ]]; then
     exit 1;
 fi
 
-if [[ -z $DOCKER_ALPINE_BASE_IMAGE ]]; then
-    DOCKER_ALPINE_BASE_IMAGE=frolvlad/alpine-glibc
+if [[ -z $DOCKER_BASE_IMAGE ]]; then
+    DOCKER_BASE_IMAGE=frolvlad/alpine-glibc
 fi
 
 if [[ -z ${MODULE_NAME} ]]; then
@@ -211,6 +211,7 @@ function format_template()
         | sed "s;\${GIT_REPO_DOMAIN};${GIT_REPO_DOMAIN};g" \
         | sed "s;\${DEFAULT_PYTHON_VERSION};${DEFAULT_PYTHON_VERSION};g" \
         | sed "s;\${DOCKER_REGISTRY_DOMAIN};${DOCKER_REGISTRY_DOMAIN};g" \
+        | sed "s;\${DOCKER_BASE_IMAGE};${DOCKER_BASE_IMAGE};g" \
         | sed "s;\${PAGES_DOMAIN};${PAGES_DOMAIN};g" \
         | sed "s;\${PAGES_URL};${PAGES_URL};g" \
         | sed "s;\${AUTHOR_CONTACT};${AUTHOR_CONTACT};g" \
