@@ -20,5 +20,6 @@ pylint
 
 twine
 
+md-toc
 straitjacket
 pycalver

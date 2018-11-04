@@ -70,7 +70,8 @@ ADD makefile makefile
 
 RUN make install
 
-RUN rm /root/.ssh/id_rsa
+RUN rm -f /root/.ssh/id_rsa
+
 # Deleting pkgs implies that `conda install`
 # will at have to pull all packages again.
 RUN conda clean --all --yes

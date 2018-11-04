@@ -57,22 +57,20 @@ DEV_ENV_PY := $(DEV_ENV)/bin/python
 
 
 build/envs.txt: requirements/conda.txt
-	@mkdir -p build/
+	@mkdir -p build/;
 
 	@if [[ ! -f $(CONDA_BIN) ]]; then \
+		echo "installing miniconda ..."; \
 		if [[ $(PLATFORM) == "Linux" ]]; then \
-			echo "installing miniconda ..."; \
 			curl "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" \
-				-O build/miniconda3.sh; \
-		fi
-		if [[ $(PLATFORM) == "MINGW64_NT-10.0" ]]; then \
+				> build/miniconda3.sh; \
+		elif [[ $(PLATFORM) == "MINGW64_NT-10.0" ]]; then \
 			curl "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" \
-				-O build/miniconda3.sh; \
-		fi
-		if [[ $(PLATFORM) == "Darwin" ]]; then \
+				> build/miniconda3.sh; \
+		elif [[ $(PLATFORM) == "Darwin" ]]; then \
 			curl "https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh" \
-				-O build/miniconda3.sh; \
-		fi
+				> build/miniconda3.sh; \
+		fi; \
 		bash build/miniconda3.sh -b -p $(CONDA_ROOT); \
 		rm build/miniconda3.sh; \
 	fi
@@ -94,7 +92,7 @@ build/envs.txt: requirements/conda.txt
 
 
 build/deps.txt: build/envs.txt requirements/*.txt
-	@mkdir -p build/
+	@mkdir -p build/;
 
 	@SUPPORTED_PYTHON_VERSIONS="$(SUPPORTED_PYTHON_VERSIONS)" \
 		CONDA_ENV_NAMES="$(CONDA_ENV_NAMES)" \
@@ -319,11 +317,12 @@ check:  fmt lint mypy test
 ## Start shell with environ variables set.
 .PHONY: env
 env:
-	@bash -c '\
-		ENV=dev \
-		PYTHONPATH=\"src/:vendor/:$$PYTHONPATH\" \
-		PATH=\"$(DEV_ENV)/bin/:$$PATH\"; \
-		$$SHELL '
+	@bash --init-file <(echo '\
+		source $$HOME/.bashrc; \
+		export ENV=dev; \
+		export PYTHONPATH="src/:vendor/:$$PYTHONPATH"; \
+		conda activate $(DEV_ENV_NAME) \
+	')
 
 
 ## Drop into an ipython shell with correct env variables set
@@ -411,12 +410,12 @@ build_docker:
 			--build-arg SSH_PRIVATE_RSA_KEY="$$(cat ${HOME}/.ssh/${PKG_NAME}_gitlab_runner_id_rsa)" \
 			--file docker_base.Dockerfile \
 			--tag $(DOCKER_REGISTRY_URL)/base:latest \
-			.
-	else
+			.; \
+	else \
 		docker build \
 			--file docker_base.Dockerfile \
 			--tag $(DOCKER_REGISTRY_URL)/base:latest \
-			.
+			.; \
 	fi
 
 	docker push $(DOCKER_REGISTRY_URL)/base:latest

@@ -1,285 +1,275 @@
-PyCalVer: Automatic CalVer Versioning for Python Packages
-=========================================================
+# PyCalVer: Automatic CalVer Versioning for Python Packages
 
-PyCalVer is a very simple versioning system,
-which is compatible with python packaging software
-(
-`setuptools <https://setuptools.readthedocs.io/en/latest/setuptools.html#specifying-your-project-s-version>`_,
-`PEP440 <https://www.python.org/dev/peps/pep-0440/>`_
-).
+PyCalVer is a very simple versioning system, which is compatible
+with python packaging software
+[setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html#specifying-your-project-s-version>)
+[PEP440](https://www.python.org/dev/peps/pep-0440/).
 
-.. start-badges
-
-.. list-table::
-    :stub-columns: 1
-
-    * - package
-      - | |license| |wheel| |pyversions| |pypi| |version|
-    * - tests
-      - | |travis| |mypy| |coverage|
-
-.. |travis| image:: https://api.travis-ci.org/mbarkhau/pycalver.svg?branch=master
-    :target: https://travis-ci.org/mbarkhau/pycalver
-    :alt: Build Status
-
-.. |mypy| image:: http://www.mypy-lang.org/static/mypy_badge.svg
-    :target: http://mypy-lang.org/
-    :alt: Checked with mypy
-
-.. |coverage| image:: https://codecov.io/gh/mbarkhau/pycalver/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/mbarkhau/pycalver
-    :alt: Code Coverage
-
-.. |license| image:: https://img.shields.io/pypi/l/pycalver.svg
-    :target: https://github.com/mbarkhau/pycalver/blob/master/LICENSE
-    :alt: MIT License
-
-.. |pypi| image:: https://img.shields.io/pypi/v/pycalver.svg
-    :target: https://github.com/mbarkhau/pycalver/blob/master/CHANGELOG.rst
-    :alt: PyPI Version
-
-.. |version| image:: https://img.shields.io/badge/CalVer-v201809.0002--beta-blue.svg
-    :target: https://calver.org/
-    :alt: CalVer v201809.0002-beta
-
-.. |wheel| image:: https://img.shields.io/pypi/wheel/pycalver.svg
-    :target: https://pypi.org/project/pycalver/#files
-    :alt: PyPI Wheel
-
-.. |pyversions| image:: https://img.shields.io/pypi/pyversions/pycalver.svg
-    :target: https://pypi.python.org/pypi/pycalver
-    :alt: Supported Python Versions
+[![Build Status][ci_build_img]][ci_build_ref]
+[![Code Coverage][codecov_img]][codecov_ref]
+[![MIT License][license_img]][license_ref]
+[![Code Style: sjfmt][style_img]][style_ref]
+[![Type Checked with mypy][mypy_img]][mypy_ref]
+[![PyCalVer v201809.0002-beta][version_img]][version_ref]
+[![PyPI Version][pypi_img]][pypi_ref]
+[![PyPI Downloads][downloads_img]][downloads_ref]
+[![PyPI Wheel][wheel_img]][wheel_ref]
+[![Supported Python Versions][pyversions_img]][pyversions_ref]
 
 
-The PyCalVer package provides the ``pycalver`` command and
+|            Name            |    role    |  since  | until |
+|----------------------------|------------|---------|-------|
+| Manuel Barkhau (@mbarkhau) | maintainer | 2018-09 | -     |
+
+
+<!--
+  $ pip install md-toc
+  $ md_toc -i gitlab README.md
+-->
+
+[](TOC)
+
+- [PyCalVer: Automatic CalVer Versioning for Python Packages](#pycalver-automatic-calver-versioning-for-python-packages)
+    - [Introduction](#introduction)
+- [https://regex101.com/r/fnj60p/10](#https-regex101-com-r-fnj60p-10)
+    - [Usage](#usage)
+        - [Installation](#installation)
+        - [Configuration](#configuration)
+        - [Pattern Search and Replacement](#pattern-search-and-replacement)
+        - [Other Versioning Software](#other-versioning-software)
+    - [Rational](#rational)
+        - [Some Details](#some-details)
+        - [Lexical Ids](#lexical-ids)
+        - [Realities of Verion Numbers](#realities-of-verion-numbers)
+        - [Should I use PyCalVer for my Project?](#should-i-use-pycalver-for-my-project)
+        - [Marketing/Vanity](#marketing-vanity)
+        - [Rational](#rational-1)
+        - [Breaking Things is a Big Deal](#breaking-things-is-a-big-deal)
+        - [A Word on Marketing](#a-word-on-marketing)
+        - [Commitment to Compatability](#commitment-to-compatability)
+        - [The Life of a Library](#the-life-of-a-library)
+        - [FAQ](#faq)
+
+[](TOC)
+
+## Introduction
+
+The PyCalVer package provides the `pycalver` command and
 module to generate version strings which follow the following
-format: ``v{calendar_version}.{build_number}[-{release_tag}]``
+format: `v{calendar_version}.{build_number}[-{release_tag}]`
 
 Some examples:
 
+```
+v201711.0001-alpha
+v201712.0027-beta
+v201801.0031
+v201801.0032-post
+...
+v202207.18133
+v202207.18134
+```
 
-.. code-block:
-
-    v201711.0001-alpha
-    v201712.0027-beta
-    v201801.0031
-    v201801.0032-post
-    ...
-    v202207.18133
-    v202207.18134
-
-
-The ``pycalver bump`` command will parse the files you configure
-in ``setup.cfg`` for such strings and rewrite them with an
+The `pycalver bump` command will parse the files you configure
+in `setup.cfg` for such strings and rewrite them with an
 updated version string.
 
 The format accepted by PyCalVer can be parsed with this regular
 expression:
 
+```python
+import re
 
-.. code-block:: python
+# https://regex101.com/r/fnj60p/10
+pycalver_re = re.compile(r"""
+\b
+(?P<version>
+    (?P<calver>
+       v                        # "v" version prefix
+       (?P<year>\d{4})
+       (?P<month>\d{2})
+    )
+    (?P<build>
+        \.                      # "." build nr prefix
+        \d{4,}
+    )
+    (?P<release>
+        \-                      # "-" release prefix
+        (?:alpha|beta|dev|rc|post)
+    )?
+)(?:\s|$)
+""", flags=re.VERBOSE)
 
-    import re
+version_str = "v201712.0001-alpha"
+version_info = pycalver_re.match(version_str).groupdict()
 
-    # https://regex101.com/r/fnj60p/10
-    pycalver_re = re.compile(r"""
-    \b
-    (?P<version>
-        (?P<calver>
-           v                        # "v" version prefix
-           (?P<year>\d{4})
-           (?P<month>\d{2})
-        )
-        (?P<build>
-            \.                      # "." build nr prefix
-            \d{4,}
-        )
-        (?P<release>
-            \-                      # "-" release prefix
-            (?:alpha|beta|dev|rc|post)
-        )?
-    )(?:\s|$)
-    """, flags=re.VERBOSE)
+assert version_info == {
+    "version" : "v201712.0001-alpha",
+    "calver"  : "v201712",
+    "year"    : "2017",
+    "month"   : "12",
+    "build"   : ".0001",
+    "release" : "-alpha",
+}
 
-    version_str = "v201712.0001-alpha"
-    version_info = pycalver_re.match(version_str).groupdict()
+version_str = "v201712.0033"
+version_info = pycalver_re.match(version_str).groupdict()
 
-    assert version_info == {
-        "version" : "v201712.0001-alpha",
-        "calver"  : "v201712",
-        "year"    : "2017",
-        "month"   : "12",
-        "build"   : ".0001",
-        "release" : "-alpha",
-    }
+assert version_info == {
+    "version" : "v201712.0033",
+    "calver"  : "v201712",
+    "year"    : "2017",
+    "month"   : "12",
+    "build"   : ".0033",
+    "release" : None,
+}
+```
 
-    version_str = "v201712.0033"
-    version_info = pycalver_re.match(version_str).groupdict()
+## Usage
 
-    assert version_info == {
-        "version" : "v201712.0033",
-        "calver"  : "v201712",
-        "year"    : "2017",
-        "month"   : "12",
-        "build"   : ".0033",
-        "release" : None,
-    }
-
-
-Installation
-------------
+### Installation
 
 Before we look at project setup, we can simply install and test
-by passing a version string to ``pycalver incr``.
+by passing a version string to `pycalver incr`.
 
+```shell
+$ pip install pycalver
 
-.. code-block:: bash
+$ pycalver incr v201801.0033-beta
+PyCalVer Version: v201809.0034-beta
+PEP440 Version: 201809.34b0
 
-    $ pip install pycalver
+$ pycalver incr v201801.0033-beta --release=final
+PyCalVer Version: v201809.0034
+PEP440 Version: 201809.34
 
-    $ pycalver incr v201801.0033-beta
-    PyCalVer Version: v201809.0034-beta
-    PEP440 Version: 201809.34b0
-
-    $ pycalver incr v201801.0033-beta --release=final
-    PyCalVer Version: v201809.0034
-    PEP440 Version: 201809.34
-
-    $ pycalver incr v201809.1999
-    PyCalVer Version: v201809.22000
-    PEP440 Version: 201809.22000
-
+$ pycalver incr v201809.1999
+PyCalVer Version: v201809.22000
+PEP440 Version: 201809.22000
+```
 
 The CalVer component is set to the current year and month, the
 build number is incremented by one and the optional release tag
 is preserved as is, unless specified otherwise via the
-``--release=<tag>`` parameter.
+`--release=<tag>` parameter.
 
 
-Configuration
--------------
+### Configuration
 
 The fastest way to setup a project is to invoke
-``pycalver init``.
+`pycalver init`.
 
 
-.. code-block:: bash
+```shell
+$ cd my-project
+~/my-project$ pycalver init
+Updated setup.cfg
+```
 
-    $ cd my-project
-    ~/my-project$ pycalver init
-    Updated setup.cfg
+This will add the following to your `setup.cfg`:
 
+```ini
+[bdist_wheel]
+universal = 1
 
-.. code-block:: ini
+[pycalver]
+current_version = v201809.0001-dev
+commit = True
+tag = True
 
-    # setup.cfg
-    [bdist_wheel]
-    universal = 1
+[pycalver:file:setup.cfg]
+patterns =
+    current_version = {version}
 
-    [pycalver]
-    current_version = v201809.0001-dev
-    commit = True
-    tag = True
+[pycalver:file:setup.py]
+patterns =
+    "{version}",
+    "{pep440_version}",
 
-    [pycalver:file:setup.cfg]
-    patterns =
-        current_version = {version}
-
-    [pycalver:file:setup.py]
-    patterns =
-        "{version}",
-        "{pep440_version}",
-
-    [pycalver:file:README.rst]
-    patterns =
-        {version}
-        {pep440_version}
-
+[pycalver:file:README.md]
+patterns =
+    {version}
+    {pep440_version}
+```
 
 Depending on your project, the above will probably cover all
 version numbers across your repository. Something like the
-following may illustrate additional changes you'll need to make.
+following may illustrate additional changes you might need to
+make.
 
 
-.. code-block:: ini
+```ini
+[pycalver]
+current_version = v201809.0001-beta
+commit = True
+tag = True
 
-    # setup.cfg
-    [pycalver]
-    current_version = v201809.0001-beta
-    commit = True
-    tag = True
+[pycalver:file:setup.cfg]
+patterns =
+    current_version = {version}
 
-    [pycalver:file:setup.cfg]
-    patterns =
-        current_version = {version}
+[pycalver:file:setup.py]
+patterns =
+    version="{pep440_version}"
 
-    [pycalver:file:setup.py]
-    patterns =
-        version="{pep440_version}"
+[pycalver:file:src/myproject.py]
+patterns =
+    __version__ = "{version}"
 
-    [pycalver:file:src/myproject.py]
-    patterns =
-        __version__ = "{version}"
+[pycalver:file:README.md]
+patterns =
+    [PyCalVer {calver}{build}-{release}]
+    img.shields.io/badge/PyCalVer-{calver}{build}--{release}-blue
+```
 
-    [pycalver:file:README.rst]
-    patterns =
-        badge/CalVer-{calver}{build}-{release}-blue.svg
-        :alt: CalVer {version}
-
-
-If ``patterns`` is not specified for a ``pycalver:file:``
+If `patterns` is not specified for a `pycalver:file:`
 section, the default patterns are used:
 
 
-.. code-block:: ini
+```ini
+[pycalver:file:src/myproject.py]
+patterns =
+    {version}
+    {pep440_version}
+```
 
-    [pycalver:file:src/myproject.py]
-    patterns =
-        {version}
-        {pep440_version}
-
-
-This allows us to less explicit but shorter configuration, like
+This allows for a less explicit but shorter configuration, like
 this:
 
 
-.. code-block:: ini
+```ini
+[pycalver]
+current_version = v201809.0001-beta
+commit = True
+tag = True
 
-    [pycalver]
-    current_version = v201809.0001-beta
-    commit = True
-    tag = True
+[pycalver:file:setup.cfg]
+[pycalver:file:setup.py]
+[pycalver:file:src/myproject.py]
+[pycalver:file:README.md]
+patterns =
+    [PyCalVer {calver}{build}-{release}]
+    img.shields.io/badge/PyCalVer-{calver}{build}--{release}-blue
+```
 
-    [pycalver:file:setup.cfg]
-    [pycalver:file:setup.py]
-    [pycalver:file:src/myproject.py]
-    [pycalver:file:README.rst]
-    patterns =
-        badge/CalVer-{calver}{build}-{release}-blue.svg
-        :alt: CalVer {version}
+### Pattern Search and Replacement
 
-
-Pattern Search and Replacement
-------------------------------
-
-``patterns`` is used both to search for version strings and to
+`patterns` is used both to search for version strings and to
 generate the replacement strings. The following placeholders are
 available for use, everything else in a pattern is treated as
 literal text.
 
-.. table:: Patterns Placeholders
 
-    ================== ======================
-    placeholder        example
-    ================== ======================
-    ``pep440_version`` 201809.1b0
-    ``version``        v201809.0001-alpha
-    ``calver``         v201809
-    ``year``           2018
-    ``month``          09
-    ``build``          .0001
-    ``release``        -alpha
-    ================== ======================
+|   placeholder    |      example       |
+|------------------|--------------------|
+| `pep440_version` | 201809.1b0         |
+| `version`        | v201809.0001-alpha |
+| `calver`         | v201809            |
+| `year`           | 2018               |
+| `month`          | 09                 |
+| `build`          | .0001              |
+| `release`        | -alpha             |
+
 
 Note that the separator/prefix characters are part of what is
 matched and generated for a given placeholder, and they should
@@ -288,26 +278,22 @@ not be included in your patterns.
 A further restriction is, that a version string cannot span
 multiple lines in your source file.
 
-Now we can call ``pycalver bump`` to bump all occurrences of
+Now we can call `pycalver bump` to bump all occurrences of
 version strings in these files. Normally this will change local
-files, but the ``--dry`` flag will instead display a diff of the
+files, but the `--dry` flag will instead display a diff of the
 changes that would be applied.
 
 
-.. code-block:: bash
+```shell
+$ pycalver show
+Current Version: v201809.0001-beta
+PEP440 Version: 201809.1b0
 
-    $ pycalver show
-    Current Version: v201809.0001-beta
-    PEP440 Version: 201809.1b0
+$ pycalver bump --dry
+Dont forget to do $ git push --tags
+```
 
-    $ pycalver bump --dry
-    TODO
-    Don't forget to git push --tags
-
-
-
-Other Versioning Software
--------------------------
+### Other Versioning Software
 
 This project is very similar to bumpversion, upon which it is
 partially based, but since the PyCalVer version strings can be
@@ -317,25 +303,25 @@ Most of the interaction that users will have is reduced to two
 commands:
 
 
-.. code-block:: bash
-
-    $ pycalver bump
-    TODO: Output
+```shell
+$ pycalver bump
+TODO: Output
+```
 
 
 More rarely, when changing the release type:
 
-.. code-block:: bash
+```shell
+$ pycalver bump --release beta
+TODO: Output
 
-    $ pycalver bump --release beta
-    TODO: Output
+$ pycalver bump --release final
+TODO: Output
+```
 
-    $ pycalver bump --release final
-    TODO: Output
+## Rational
 
-
-Some Details
-------------
+### Some Details
 
  - Version numbers are for public releases. For the purposes of
    development of the project itself, reference VCS branches and
@@ -352,25 +338,25 @@ regular expression:
 
 These are the full version strings, for public announcements and
 conversations it will often be sufficient to refer simply to
-``v201801``, by which the most recent ``post`` release build of
+`v201801`, by which the most recent `post` release build of
 that month is meant.
 
 
+```
+version_str = "v201712.0027-beta"
+version_dict = pycalver_re.match("v201712.0027-beta").groupdict()
+import pkg_resources    # from setuptools
+version = pkg_resources.parse_version(version_str)
+--
 
-    version_str = "v201712.0027-beta"
-    version_dict = pycalver_re.match("v201712.0027-beta").groupdict()
-    import pkg_resources    # from setuptools
-    version = pkg_resources.parse_version(version_str)
-    --
-
-    In [2]: version_dict
-    {'year': '2017', 'month': '12', 'build_nr': '0027', 'tag': 'beta'}
-    >>> str(version)
-    201712.27b0
+In [2]: version_dict
+{'year': '2017', 'month': '12', 'build_nr': '0027', 'tag': 'beta'}
+>>> str(version)
+201712.27b0
+```
 
 
-Lexical Ids
------------
+### Lexical Ids
 
 Most projects will be served perfectly well by the default four
 digit zero padded build number. Depending on your build system
@@ -380,30 +366,30 @@ they are incremented in a way that preserves lexical ordering as
 well as numerical order. Examples will perhaps illustrate more
 clearly.
 
-.. code-block:: python
-
-    "0001"
-    "0002"
-    "0003"
-    ...
-    "0999"
-    "11000"
-    "11001"
-    ...
-    "19998"
-    "19999"
-    "220000"
-    "220001"
+```python
+"0001"
+"0002"
+"0003"
+...
+"0999"
+"11000"
+"11001"
+...
+"19998"
+"19999"
+"220000"
+"220001"
+```
 
 What is happening here is that the left-most digit is incremented
 early, whenever the left-most digit changes. The formula is very simple:
 
-.. code-block:: python
-
-    prev_id = "0999"
-    next_id = str(int(prev_id, 10) + 1)           # "1000"
-    if prev_id[0] != next_id[0]:                  # "0" != "1"
-        next_id = str(int(next_id, 10) * 11)      # 1000 * 11 = 11000
+```python
+prev_id = "0999"
+next_id = str(int(prev_id, 10) + 1)           # "1000"
+if prev_id[0] != next_id[0]:                  # "0" != "1"
+    next_id = str(int(next_id, 10) * 11)      # 1000 * 11 = 11000
+```
 
 
 In practice you can just ignore the left-most digit, in case you
@@ -411,8 +397,7 @@ do want to read something into the semantically meaningless
 build number.
 
 
-Realities of Verion Numbers
----------------------------
+### Realities of Verion Numbers
 
 Nobody knows what the semantics of a version number are, because
 nobody can guarantee that a given release adheres to whatever
@@ -429,8 +414,7 @@ simple.
 Some additional constraints are applied to conform with PEP440
 
 
-Should I use PyCalVer for my Project?
--------------------------------------
+### Should I use PyCalVer for my Project?
 
 If your project is 1. not useful by itself, but only when used
 by other software, 2. has a finite scope/a definition of "done",
@@ -439,14 +423,12 @@ coverage, then PyCalVer is worth considering.
 You release at most once per month.
 
 
-Marketing/Vanity
-----------------
+### Marketing/Vanity
 
 Quotes from http://sedimental.org/designing_a_version.html
 
 
-Rational
---------
+### Rational
 
 PyCalVer is opinionated software. This keeps things simple,
 when the opintions match yours, but makes it useless for
@@ -477,8 +459,7 @@ foundations of other big shiny projects, which get to do their
 big and exciting 2.0 major releases.
 
 
-Breaking Things is a Big Deal
------------------------------
+### Breaking Things is a Big Deal
 
 Using an increment in a version string to express that a release
 may break client code is not tennable. A developer cannot be
@@ -501,8 +482,7 @@ PyCalVer version strings can be parsed according to PEP440
 https://www.python.org/dev/peps/pep-0440/
 
 
-A Word on Marketing
--------------------
+### A Word on Marketing
 
 This setup of expectations for users can go one of two ways,
 
@@ -512,8 +492,7 @@ for libraries, it pays to keep things as simple as possible for
 your human users.
 
 
-Commitment to Compatability
----------------------------
+### Commitment to Compatability
 
 Software projects can depend on many libraries. Consider that one
 package introducing a breaking change is enough to mess up your
@@ -566,38 +545,37 @@ https://calver.org/
 from pkg_resources import parse_version
 
 
-The Life of a Library
----------------------
+### The Life of a Library
 
-.. code-block:
+```
+mylib      v201711.001-alpha     # birth of a project (in alpha)
+mylib      v201711.002-alpha     # new features (in alpha)
+mylib      v201712.003-beta      # bugfix release (in beta)
+mylib      v201712.004-rc        # release candidate
+mylib      v201712.005           # stable release
+mylib      v201712.006           # stable bugfix release
 
-    mylib      v201711.001-alpha     # birth of a project (in alpha)
-    mylib      v201711.002-alpha     # new features (in alpha)
-    mylib      v201712.003-beta      # bugfix release (in beta)
-    mylib      v201712.004-rc        # release candidate
-    mylib      v201712.005           # stable release
-    mylib      v201712.006           # stable bugfix release
+mylib2     v201712.007-beta      # breaking change (new package name!)
+mylib2     v201801.008-beta      # new features (in beta)
+mylib2     v201801.009           # stable release
 
-    mylib2     v201712.007-beta      # breaking change (new package name!)
-    mylib2     v201801.008-beta      # new features (in beta)
-    mylib2     v201801.009           # stable release
+mylib      v201802.007           # security fix for legacy version
+mylib2     v201802.010           # security fix
 
-    mylib      v201802.007           # security fix for legacy version
-    mylib2     v201802.010           # security fix
+mylib2     v202604.9900           # threshold for four digit build numbers
+mylib2     v202604.9901           # still four digits in the same month
+mylib2     v202604.9911           # last build number with four digits
+mylib2     v202605.09912          # build number zero padding added with date turnover
+mylib2     v202605.09913          # stable release
 
-    mylib2     v202604.9900           # threshold for four digit build numbers
-    mylib2     v202604.9901           # still four digits in the same month
-    mylib2     v202604.9911           # last build number with four digits
-    mylib2     v202605.09912          # build number zero padding added with date turnover
-    mylib2     v202605.09913          # stable release
+mylib2     v203202.16051-rc       # release candidate
+mylib2     v203202.16052          # stable release
 
-    mylib2     v203202.16051-rc       # release candidate
-    mylib2     v203202.16052          # stable release
-
-    ...
-    v202008.500    # 500 is the limit for four digit build numbers, but
-    v202008.508    # zero padding is added only after the turnover to
-    v202009.0509   # a new month, so that lexical ordering is preserved.
+...
+v202008.500    # 500 is the limit for four digit build numbers, but
+v202008.508    # zero padding is added only after the turnover to
+v202009.0509   # a new month, so that lexical ordering is preserved.
+```
 
 
 The date portion of the version, gives the user an indication of
@@ -611,8 +589,7 @@ project that is only on build number 10, is probably still in
 early development.
 
 
-FAQ
----
+### FAQ
 
 Q: "So you're trying to tell me I need to create a whole new
 package every time I introduce a introduce a breaking change?!".
@@ -638,3 +615,36 @@ version number and 2. that users and packaging softare correctly
 parse that meaning. When I used semantic versioning, I realized that
 the major version number of my packages would never change,
 because I don't think breaking changes should ever be
+
+
+
+[build_img]: https://gitlab.com/mbarkhau/pycalver/badges/master/pipeline.svg
+[build_ref]: https://gitlab.com/mbarkhau/pycalver/pipelines
+
+[codecov_img]: https://gitlab.com/mbarkhau/pycalver/badges/master/coverage.svg
+[codecov_ref]: https://mbarkhau.gitlab.io/pycalver/cov
+
+[license_img]: https://img.shields.io/badge/License-MIT-blue.svg
+[license_ref]: https://gitlab.com/mbarkhau/pycalver/blob/master/LICENSE
+
+[mypy_img]: https://img.shields.io/badge/mypy-100%25-green.svg
+[mypy_ref]: http://mypy-lang.org/
+
+[style_img]: https://img.shields.io/badge/code%20style-%20sjfmt-f71.svg
+[style_ref]: https://gitlab.com/mbarkhau/straitjacket/
+
+[pypi_img]: https://img.shields.io/pypi/v/pycalver.svg
+[pypi_ref]: https://gitlab.com/mbarkhau/pycalver/blob/master/CHANGELOG.rst
+
+[downloads_img]: https://pepy.tech/badge/pycalver
+[downloads_ref]: https://pepy.tech/project/pycalver
+
+[version_img]: https://img.shields.io/badge/PyCalVer-v201809.0002--beta-blue.svg
+[version_ref]: https://pypi.org/project/pycalver/
+
+[wheel_img]: https://img.shields.io/pypi/wheel/pycalver.svg
+[wheel_ref]: https://pypi.org/project/pycalver/#files
+
+[pyversions_img]: https://img.shields.io/pypi/pyversions/pycalver.svg
+[pyversions_ref]: https://pypi.python.org/pypi/pycalver
+
