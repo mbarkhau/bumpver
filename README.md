@@ -1,11 +1,11 @@
 # PyCalVer: Automatic CalVer Versioning for Python Packages
 
-PyCalVer is a very simple versioning system, which is compatible
+PyCalVer is a simple versioning system, which is compatible
 with python packaging software
 [setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html#specifying-your-project-s-version>)
 [PEP440](https://www.python.org/dev/peps/pep-0440/).
 
-[![Build Status][ci_build_img]][ci_build_ref]
+[![Build Status][build_img]][build_ref]
 [![Code Coverage][codecov_img]][codecov_ref]
 [![MIT License][license_img]][license_ref]
 [![Code Style: sjfmt][style_img]][style_ref]
@@ -29,34 +29,33 @@ with python packaging software
 
 [](TOC)
 
-- [PyCalVer: Automatic CalVer Versioning for Python Packages](#pycalver-automatic-calver-versioning-for-python-packages)
-    - [Introduction](#introduction)
-- [https://regex101.com/r/fnj60p/10](#https-regex101-com-r-fnj60p-10)
-    - [Usage](#usage)
-        - [Installation](#installation)
-        - [Configuration](#configuration)
-        - [Pattern Search and Replacement](#pattern-search-and-replacement)
-        - [Other Versioning Software](#other-versioning-software)
-    - [Rational](#rational)
-        - [Some Details](#some-details)
-        - [Lexical Ids](#lexical-ids)
-        - [Realities of Verion Numbers](#realities-of-verion-numbers)
-        - [Should I use PyCalVer for my Project?](#should-i-use-pycalver-for-my-project)
-        - [Marketing/Vanity](#marketing-vanity)
-        - [Rational](#rational-1)
-        - [Breaking Things is a Big Deal](#breaking-things-is-a-big-deal)
-        - [A Word on Marketing](#a-word-on-marketing)
-        - [Commitment to Compatability](#commitment-to-compatability)
-        - [The Life of a Library](#the-life-of-a-library)
-        - [FAQ](#faq)
+- [Introduction](#introduction)
+    - [Versioning Behaviour](#versioning-behaviour)
+    - [Lexical Ids](#lexical-ids)
+- [Usage](#usage)
+    - [Installation](#installation)
+    - [Configuration](#configuration)
+    - [Pattern Search and Replacement](#pattern-search-and-replacement)
+    - [Other Versioning Software](#other-versioning-software)
+- [Rational](#rational)
+    - [Some Details](#some-details)
+    - [Realities of Verion Numbers](#realities-of-verion-numbers)
+    - [Should I use PyCalVer for my Project?](#should-i-use-pycalver-for-my-project)
+    - [Marketing/Vanity](#marketing-vanity)
+    - [Rational](#rational-1)
+    - [Breaking Things is a Big Deal](#breaking-things-is-a-big-deal)
+    - [A Word on Marketing](#a-word-on-marketing)
+    - [Commitment to Compatability](#commitment-to-compatability)
+    - [The Life of a Library](#the-life-of-a-library)
+    - [FAQ](#faq)
 
 [](TOC)
 
 ## Introduction
 
-The PyCalVer package provides the `pycalver` command and
-module to generate version strings which follow the following
-format: `v{calendar_version}.{build_number}[-{release_tag}]`
+The PyCalVer package provides the `pycalver` command and module
+to generate version strings. These use the following format:
+`v{calendar_version}.{build_number}[-{release_tag}]`
 
 Some examples:
 
@@ -70,12 +69,13 @@ v202207.18133
 v202207.18134
 ```
 
-The `pycalver bump` command will parse the files you configure
-in `setup.cfg` for such strings and rewrite them with an
-updated version string.
+The `pycalver bump` command parses your files for such strings
+and rewrites them with an incremented version string.
 
-The format accepted by PyCalVer can be parsed with this regular
-expression:
+### Format
+
+The format for PyCalVer version strings can be parsed with this
+regular expression:
 
 ```python
 import re
@@ -125,34 +125,89 @@ assert version_info == {
 }
 ```
 
-## Usage
+### Versioning Behaviour
 
-### Installation
-
-Before we look at project setup, we can simply install and test
-by passing a version string to `pycalver incr`.
+To illustrate how PyCalVer increments version strings, we can use
+`pycalver incr`:
 
 ```shell
 $ pip install pycalver
-
+...
 $ pycalver incr v201801.0033-beta
 PyCalVer Version: v201809.0034-beta
 PEP440 Version: 201809.34b0
+```
 
+This is the simple case:
+
+ - The calendar component is update to the current year and month.
+ - The build number is incremented by 1.
+ - The optional release tag is preserved as is.
+
+Here is how to explicitly update the release tag:
+
+```shell
+$ pycalver incr v201801.0033-beta --release=alpha
+PyCalVer Version: v201809.0034-alpha
+PEP440 Version: 201809.34a0
 $ pycalver incr v201801.0033-beta --release=final
 PyCalVer Version: v201809.0034
 PEP440 Version: 201809.34
-
-$ pycalver incr v201809.1999
-PyCalVer Version: v201809.22000
-PEP440 Version: 201809.22000
 ```
 
-The CalVer component is set to the current year and month, the
-build number is incremented by one and the optional release tag
-is preserved as is, unless specified otherwise via the
-`--release=<tag>` parameter.
+The version number is padded with extra zeros, to maintain the
+lexical ordering of version numbers. What happens when the
+padding is exhausted?
 
+```shell
+$ pycalver incr v201809.0999
+PyCalVer Version: v201809.11000
+PEP440 Version: 201809.11000
+```
+
+This is because the build number is generated as a sequence of
+lexical ids.
+
+
+### Lexical Ids
+
+The padded build number will occasionally have to be expanded. In
+order to preserve both lexical ordering as well numerical
+ordering, build numbers are incremented in a peculiar way.
+Examples will perhaps illustrate more clearly.
+
+```python
+"0001"
+"0002"
+"0003"
+...
+"0999"
+"11000"
+"11001"
+...
+"19998"
+"19999"
+"220000"
+"220001"
+```
+
+What is happening here is that the left-most digit is incremented
+early/preemptively. Whenever the left-most digit would change,
+the width of the id is expanded using this simple formula:
+
+```python
+prev_id = "0999"
+next_id = str(int(prev_id, 10) + 1)           # "1000"
+if prev_id[0] != next_id[0]:                  # "0" != "1"
+    next_id = str(int(next_id, 10) * 11)      # 1000 * 11 = 11000
+```
+
+This behaviour ensures that the following semantic is always
+preserved: `old_version < new_version`. This will even be the
+case if the version number was incremented twice in the same
+month.
+
+## Usage
 
 ### Configuration
 
@@ -169,9 +224,6 @@ Updated setup.cfg
 This will add the following to your `setup.cfg`:
 
 ```ini
-[bdist_wheel]
-universal = 1
-
 [pycalver]
 current_version = v201809.0001-dev
 commit = True
@@ -192,11 +244,9 @@ patterns =
     {pep440_version}
 ```
 
-Depending on your project, the above will probably cover all
-version numbers across your repository. Something like the
-following may illustrate additional changes you might need to
-make.
-
+This may or may not cover all version numbers across your
+repository. Something like the following may illustrate
+additional changes you might need to make.
 
 ```ini
 [pycalver]
@@ -222,20 +272,16 @@ patterns =
     img.shields.io/badge/PyCalVer-{calver}{build}--{release}-blue
 ```
 
-If `patterns` is not specified for a `pycalver:file:`
-section, the default patterns are used:
-
+You can ommit `patterns` if the default patterns are sufficient.
+These are:
 
 ```ini
-[pycalver:file:src/myproject.py]
 patterns =
     {version}
     {pep440_version}
 ```
 
-This allows for a less explicit but shorter configuration, like
-this:
-
+This allows for a shorter (albeit less explicit) configuration:
 
 ```ini
 [pycalver]
@@ -290,36 +336,23 @@ Current Version: v201809.0001-beta
 PEP440 Version: 201809.1b0
 
 $ pycalver bump --dry
+TODO: diff output
 Dont forget to do $ git push --tags
 ```
 
-### Other Versioning Software
+TODO: commits and tags
 
-This project is very similar to bumpversion, upon which it is
-partially based, but since the PyCalVer version strings can be
-generated automatically, usage is quite a bit more simple. Users
-do not have to deal with parsing and generating version strings.
-Most of the interaction that users will have is reduced to two
-commands:
-
-
-```shell
-$ pycalver bump
-TODO: Output
-```
-
-
-More rarely, when changing the release type:
-
-```shell
-$ pycalver bump --release beta
-TODO: Output
-
-$ pycalver bump --release final
-TODO: Output
-```
 
 ## Rational
+
+### Other Versioning Software
+
+This project is very similar to
+[bumpversion](https://github.com/peritus/bumpversion), upon which
+it is partially based. So why another library?
+PyCalVer version strings can be
+generated automatically, usage is a bit more simple.
+
 
 ### Some Details
 
@@ -355,46 +388,6 @@ In [2]: version_dict
 201712.27b0
 ```
 
-
-### Lexical Ids
-
-Most projects will be served perfectly well by the default four
-digit zero padded build number. Depending on your build system
-however, you may get into higher build numbers. Since build
-numbers have no semantic meaning (beyond larger = later/newer),
-they are incremented in a way that preserves lexical ordering as
-well as numerical order. Examples will perhaps illustrate more
-clearly.
-
-```python
-"0001"
-"0002"
-"0003"
-...
-"0999"
-"11000"
-"11001"
-...
-"19998"
-"19999"
-"220000"
-"220001"
-```
-
-What is happening here is that the left-most digit is incremented
-early, whenever the left-most digit changes. The formula is very simple:
-
-```python
-prev_id = "0999"
-next_id = str(int(prev_id, 10) + 1)           # "1000"
-if prev_id[0] != next_id[0]:                  # "0" != "1"
-    next_id = str(int(next_id, 10) * 11)      # 1000 * 11 = 11000
-```
-
-
-In practice you can just ignore the left-most digit, in case you
-do want to read something into the semantically meaningless
-build number.
 
 
 ### Realities of Verion Numbers
