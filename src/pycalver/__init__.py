@@ -3,9 +3,6 @@
 #
 # Copyright (c) 2018 Manuel Barkhau (@mbarkhau) - MIT License
 # SPDX-License-Identifier: MIT
-
-import os
+"""PyCalVer: Automatic CalVer Versioning for Python Packages."""
 
 __version__ = "v201809.0002-beta"
-
-DEBUG = os.environ.get("PYDEBUG", "0") == "1"

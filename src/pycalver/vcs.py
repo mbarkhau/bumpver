@@ -1,12 +1,12 @@
 # This file is part of the pycalver project
 # https://github.com/mbarkhau/pycalver
 #
-# (C) 2018 Manuel Barkhau (@mbarkhau)
+# Copyright (c) 2018 Manuel Barkhau (@mbarkhau) - MIT License
 # SPDX-License-Identifier: MIT
 #
 # pycalver/vcs.py (this file) is based on code from the
 # bumpversion project: https://github.com/peritus/bumpversion
-# MIT License - (C) 2013-2014 Filip Noetzel
+# Copyright (c) 2013-2014 Filip Noetzel - MIT License
 
 import os
 import sys
@@ -83,9 +83,9 @@ class BaseVCS:
 
 class Git(BaseVCS):
 
-    _TEST_USABLE_COMMAND = ["git", "rev-parse", "--git-dir"]
-    _COMMIT_COMMAND      = ["git", "commit"   , "-F"]
-    _STATUS_COMMAND      = ["git", "status"   , "--porcelain"]
+    _TEST_USABLE_COMMAND = ["git", "rev-parse", '--git-dir']
+    _COMMIT_COMMAND      = ["git", "commit"   , '-F']
+    _STATUS_COMMAND      = ["git", "status"   , '--porcelain']
 
     @classmethod
     def tag(cls, name):
@@ -99,8 +99,8 @@ class Git(BaseVCS):
 class Mercurial(BaseVCS):
 
     _TEST_USABLE_COMMAND = ["hg", 'root']
-    _COMMIT_COMMAND      = ["hg", "commit", "--logfile"]
-    _STATUS_COMMAND      = ["hg", "status", "-mard"]
+    _COMMIT_COMMAND      = ["hg", "commit", '--logfile']
+    _STATUS_COMMAND      = ["hg", "status", '-mard']
 
     @classmethod
     def tag(cls, name):
@@ -114,9 +114,10 @@ class Mercurial(BaseVCS):
 VCS = [Git, Mercurial]
 
 
-def get_vcs() -> typ.Optional[typ.Type[BaseVCS]]:
+def get_vcs() -> typ.Type[BaseVCS]:
+    """Get appropriate sub"""
     for vcs in VCS:
         if vcs.is_usable():
             return vcs
 
-    return None
+    raise OSError("No such directory .hg/ or .git/ ")

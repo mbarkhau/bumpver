@@ -3,13 +3,13 @@ from pycalver import rewrite
 
 def test_rewrite_lines():
     old_lines = [
-        '# This file is part of the pycalver project',
-        '# https://github.com/mbarkhau/pycalver',
-        '#',
-        '# (C) 2018 Manuel Barkhau (@mbarkhau)',
-        '# SPDX-License-Identifier: MIT',
+        "# This file is part of the pycalver project",
+        "# https://github.com/mbarkhau/pycalver",
+        "#",
+        "# (C) 2018 Manuel Barkhau (@mbarkhau)",
+        "# SPDX-License-Identifier: MIT",
         '',
-        'import os',
+        "import os",
         '',
         '__version__ = "v201809.0002-beta"',
         'DEBUG = os.environ.get("PYDEBUG", "0") == "1"',

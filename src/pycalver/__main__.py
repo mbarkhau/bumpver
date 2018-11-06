@@ -4,6 +4,11 @@
 #
 # Copyright (c) 2018 Manuel Barkhau (@mbarkhau) - MIT License
 # SPDX-License-Identifier: MIT
+"""
+CLI module for pycalver.
+
+Provided subcommands: show, init, incr, bump
+"""
 
 import io
 import os
@@ -24,13 +29,13 @@ log = logging.getLogger("pycalver.__main__")
 
 def _init_loggers(verbose: bool) -> None:
     if DEBUG:
-        log_formatter = logging.Formatter('%(levelname)s - %(name)s - %(message)s')
+        log_formatter = logging.Formatter("%(levelname)s - %(name)s - %(message)s")
         log_level     = logging.DEBUG
     elif verbose:
-        log_formatter = logging.Formatter('%(levelname)s - %(message)s')
+        log_formatter = logging.Formatter("%(levelname)s - %(message)s")
         log_level     = logging.INFO
     else:
-        log_formatter = logging.Formatter('%(message)s')
+        log_formatter = logging.Formatter("%(message)s")
         log_level     = logging.WARNING
 
     loggers = [log, vcs.log, parse.log, config.log, rewrite.log, version.log]
@@ -47,11 +52,12 @@ def _init_loggers(verbose: bool) -> None:
 
 @click.group()
 def cli():
-    """parse and update project versions automatically."""
+    """Parse and update project versions."""
 
 
 @cli.command()
 def show() -> None:
+    """Show current version."""
     _init_loggers(verbose=False)
 
     cfg: config.MaybeConfig = config.parse()
@@ -69,6 +75,7 @@ def show() -> None:
     "--release", default=None, metavar="<name>", help="Override release name of current_version"
 )
 def incr(old_version: str, release: str = None) -> None:
+    """Increment a version number for demo purposes."""
     _init_loggers(verbose=False)
 
     if release and release not in parse.VALID_RELESE_VALUES:
@@ -76,7 +83,7 @@ def incr(old_version: str, release: str = None) -> None:
         log.error(f"Valid arguments are: {', '.join(parse.VALID_RELESE_VALUES)}")
         sys.exit(1)
 
-    new_version     = version.bump(old_version, release=release)
+    new_version     = version.incr(old_version, release=release)
     new_version_nfo = parse.parse_version_info(new_version)
 
     print("PyCalVer Version:", new_version)
@@ -88,7 +95,7 @@ def incr(old_version: str, release: str = None) -> None:
     "--dry", default=False, is_flag=True, help="Display diff of changes, don't rewrite files."
 )
 def init(dry: bool) -> None:
-    """Initialize [pycalver] configuration in setup.cfg"""
+    """Initialize [pycalver] configuration."""
     _init_loggers(verbose=False)
 
     cfg   : config.MaybeConfig = config.parse()
@@ -138,6 +145,7 @@ def init(dry: bool) -> None:
 def bump(
     release: str, verbose: bool, dry: bool, commit: bool, tag: bool, allow_dirty: bool
 ) -> None:
+    """Increment the current version string and update project files."""
     _init_loggers(verbose)
 
     if release and release not in parse.VALID_RELESE_VALUES:
@@ -152,7 +160,7 @@ def bump(
         sys.exit(1)
 
     old_version = cfg.current_version
-    new_version = version.bump(old_version, release=release)
+    new_version = version.incr(old_version, release=release)
 
     log.info(f"Old Version: {old_version}")
     log.info(f"New Version: {new_version}")
@@ -163,15 +171,17 @@ def bump(
     file_patterns = cfg.file_patterns
     filepaths     = set(file_patterns.keys())
 
-    _vcs = vcs.get_vcs()
-    if _vcs is None:
-        log.warn("Version Control System not found, aborting commit.")
-    else:
-        _vcs.assert_not_dirty(filepaths, allow_dirty)
-
     rewrite.rewrite(new_version, file_patterns, dry, verbose)
 
-    if dry or not commit or _vcs is None:
+    try:
+        _vcs = vcs.get_vcs()
+    except OSError:
+        log.warn("Version Control System not found, aborting commit.")
+        return
+
+    _vcs.assert_not_dirty(filepaths, allow_dirty)
+
+    if dry or not commit:
         return
 
     # TODO (mb 2018-09-04): add files and commit
