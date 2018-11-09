@@ -392,12 +392,19 @@ code in order to minimize common pitfalls.
 
 Please read, view at your leasure:
 
- - https://www.python.org/dev/peps/pep-0008/
- - https://github.com/amontalenti/elements-of-python-style
- - https://github.com/google/styleguide/blob/gh-pages/pyguide.md
- - https://www.youtube.com/watch?v=o9pEzgHorH0
- - https://www.youtube.com/watch?v=OSGv2VnC0go
- - https://www.youtube.com/watch?v=wf-BqAjZb8M
+ - Talks:
+   - [Stop Writing Classes by Jack Diederich](https://www.youtube.com/watch?v=o9pEzgHorH0)
+   - [The Naming of Ducks: Where Dynamic Types Meet Smart Conventions by Brandon Rhodes](https://www.youtube.com/watch?v=YklKUuDpX5c)
+   - [Transforming Code into Beautiful, Idiomatic Python by Raymond Hettinger](https://www.youtube.com/watch?v=OSGv2VnC0go)
+   - [Beyond PEP 8 -- Best practices for beautiful intelligible code by Raymond Hettinger](https://www.youtube.com/watch?v=wf-BqAjZb8M)
+ - Articles, Essays, Books:
+   - Short ebook for Novice to Intermediate Pythonistas:
+     [How to Make Mistakes in Python](https://www.oreilly.com/programming/free/how-to-make-mistakes-in-python.csp)
+   - [The Little Book of Python Anti-Patterns](https://docs.quantifiedcode.com/python-anti-patterns/)
+ - Style Guides:
+   - https://www.python.org/dev/peps/pep-0008/
+   - https://github.com/amontalenti/elements-of-python-style
+   - https://github.com/google/styleguide/blob/gh-pages/pyguide.md
 
 Keep in mind, that all of this is about the form of your code, and
 catching common pitfalls or gotchas. None of this releives you of the

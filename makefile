@@ -55,6 +55,8 @@ CONDA_ENV_PATHS := \
 DEV_ENV := $(ENV_PREFIX)/$(DEV_ENV_NAME)
 DEV_ENV_PY := $(DEV_ENV)/bin/python
 
+RSA_KEY_PATH := ${HOME}/.ssh/${PKG_NAME}_gitlab_runner_id_rsa
+
 
 build/envs.txt: requirements/conda.txt
 	@mkdir -p build/;
@@ -129,10 +131,6 @@ build/deps.txt: build/envs.txt requirements/*.txt
 	@mv build/deps.txt.tmp build/deps.txt
 
 
-# Add the following 'help' target to your Makefile
-# And add help text after each target name starting with '\#\#'
-# A category can be added with @category
-
 ## This help message
 .PHONY: help
 help:
@@ -204,8 +202,12 @@ clean:
 	@printf "\n setup/update completed  ✨ 🍰 ✨ \n\n"
 
 
-## Force update of dependencies
-##    (this removes makefile markers)
+## Force update of dependencies by removing marker files
+##   Use this when you know an external dependency was
+##   updated, but that is not reflected in your
+##   requirements files.
+##
+##   Usage: make force update
 .PHONY: force
 force:
 	rm -f build/envs.txt
@@ -293,12 +295,12 @@ test:
 	@rm -rf "src/__pycache__";
 	@rm -rf "test/__pycache__";
 
-	ENV=dev PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+	ENV=${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
 		$(DEV_ENV_PY) -m pytest -v \
 		--doctest-modules \
 		--cov-report html \
 		--cov-report term \
-		--cov=$(PKG_NAME) \
+		$(shell ls -1 src/ | awk '{ print "--cov "$$1 }') \
 		test/ src/;
 
 	@rm -rf ".pytest_cache";
@@ -319,7 +321,7 @@ check:  fmt lint mypy test
 env:
 	@bash --init-file <(echo '\
 		source $$HOME/.bashrc; \
-		export ENV=dev; \
+		export ENV=${ENV-dev}; \
 		export PYTHONPATH="src/:vendor/:$$PYTHONPATH"; \
 		conda activate $(DEV_ENV_NAME) \
 	')
@@ -341,7 +343,7 @@ devtest:
 
 
 ifndef FILTER
-	ENV=dev PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+	ENV=${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
 		$(DEV_ENV_PY) -m pytest -v \
 		--doctest-modules \
 		--no-cov \
@@ -350,7 +352,7 @@ ifndef FILTER
 		--exitfirst \
 		test/ src/;
 else
-	ENV=dev PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+	ENV=${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
 		$(DEV_ENV_PY) -m pytest -v \
 		--doctest-modules \
 		--no-cov \
@@ -370,22 +372,25 @@ endif
 
 
 ## Generate Documentation
-.PHONY: doc
-doc:
-	echo "Not Implemented"
+# .PHONY: doc
+# doc:
+# 	echo "Not Implemented"
 
 
 ## Bump Version number in all files
-.PHONY: bump_version
-bump_version:
-	echo "Not Implemented"
+# .PHONY: bump_version
+# bump_version:
+# 	echo "Not Implemented"
 
 
-## Freeze dependencies of the current development env
-##   These dependencies are used for the docker image
-.PHONY: freeze
-freeze:
-	echo "Not Implemented"
+## Freeze dependencies of the current development env.
+##   The requirements files this produces should be used
+##   in order to have reproducable builds, otherwise you
+##   should minimize the number of pinned versions in
+##   your requirements.
+# .PHONY: freeze
+# freeze:
+# 	echo "Not Implemented"
 
 
 ## Create python sdist and bdist_wheel distributions
@@ -401,15 +406,14 @@ build_dist:
 ##   1. No ssh key at $(HOME)/.ssh/${PKG_NAME}_gitlab_runner_id_rsa
 ##      (which is needed to install packages from private repos
 ##      and is copied into a temp container during the build).
-##   2. Your docker daemon is not running or configured to
-##      expose on tcp://localhost:2375
-##   3. Your shell is not configured to connect to your docker
-## 		daemon via "export DOCKER_HOST=localhost:2375"
+##   2. Your docker daemon is not running
+##   3. You're using WSL and docker is not exposed on tcp://localhost:2375
+##   4. You're using WSL but didn't do export DOCKER_HOST="tcp://localhost:2375"
 .PHONY: build_docker
 build_docker:
-	@if [[ -f $$HOME/.ssh/${PKG_NAME}_gitlab_runner_id_rsa ]]; then \
+	@if [[ -f "${RSA_KEY_PATH}" ]]; then \
 		docker build \
-			--build-arg SSH_PRIVATE_RSA_KEY="$$(cat ${HOME}/.ssh/${PKG_NAME}_gitlab_runner_id_rsa)" \
+			--build-arg SSH_PRIVATE_RSA_KEY="$$(cat '${RSA_KEY_PATH}')" \
 			--file docker_base.Dockerfile \
 			--tag $(DOCKER_REGISTRY_URL)/base:latest \
 			.; \

@@ -18,9 +18,11 @@ downloads/
 eggs/
 lib/
 lib64/
+vendor/
 parts/
 sdist/
 var/
+public/
 .mypy_cache/
 *.egg-info/
 .installed.cfg
@@ -28,6 +30,7 @@ var/
 .eggs/
 .pytest_cache/
 .ipynb_checkpoints/
+package-lock.json
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -46,7 +49,7 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-.coverage_percent.txt
+.coverage*
 
 # Translations
 *.mo
@@ -65,3 +68,4 @@ target/
 README.html
 envs.txt
 test_build_logs/*.log
+build/miniconda3.sh

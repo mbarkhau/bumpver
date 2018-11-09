@@ -29,7 +29,7 @@ ENV MINICONDA_VER latest
 ENV MINICONDA Miniconda3-$MINICONDA_VER-Linux-x86_64.sh
 ENV MINICONDA_URL https://repo.continuum.io/miniconda/$MINICONDA
 
-RUN curl -L ${MINICONDA_URL} --silent -o miniconda3.sh && \
+RUN curl -L "$MINICONDA_URL" --silent -o miniconda3.sh && \
     /bin/bash miniconda3.sh -f -b -p $CONDA_DIR && \
     rm miniconda3.sh && \
     /opt/conda/bin/conda clean -tipsy && \
@@ -49,7 +49,7 @@ ARG SSH_PRIVATE_RSA_KEY
 ENV ENV_SSH_PRIVATE_RSA_KEY=${SSH_PRIVATE_RSA_KEY}
 
 # Write private key and generate public key
-RUN if [[ $ENV_SSH_PRIVATE_RSA_KEY ]]; then \
+RUN if [[ "$ENV_SSH_PRIVATE_RSA_KEY" ]]; then \
     echo -n "-----BEGIN RSA PRIVATE KEY-----" >> /root/.ssh/id_rsa && \
     echo -n ${ENV_SSH_PRIVATE_RSA_KEY} \
     | sed 's/-----BEGIN RSA PRIVATE KEY-----//' \
