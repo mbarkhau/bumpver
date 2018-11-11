@@ -5,7 +5,6 @@
 # https://stackoverflow.com/questions/448910
 # https://shiroyasha.svbtle.com/escape-sequences-a-quick-guide-1
 
-MAKEFLAGS += --warn-undefined-variables
 SHELL := /bin/bash
 .SHELLFLAGS := -O extglob -eo pipefail -c
 .DEFAULT_GOAL := help
