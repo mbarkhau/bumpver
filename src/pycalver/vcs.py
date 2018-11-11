@@ -112,7 +112,7 @@ class VCS:
         self('tag', tag=tag_name)
 
     def push(self, tag_name) -> None:
-        self('push', tag=tag_name)
+        self('push_tag', tag=tag_name)
 
     def __repr__(self) -> str:
         return f"VCS(name='{self.name}')"
