@@ -26,7 +26,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'add_path' : "git add --update {path}",
         'commit'   : "git commit --file {path}",
         'tag'      : "git tag --annotate {tag} --message '{tag}'",
-        'push_tag' : "git push {tag}",
+        'push_tag' : "git push origin '{tag}'",
     },
     'hg': {
         'is_usable': "hg root",
