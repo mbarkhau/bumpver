@@ -21,22 +21,22 @@ VCS_SUBCOMMANDS_BY_NAME = {
     'git': {
         'is_usable': "git rev-parse --git-dir",
         'fetch'    : "git fetch",
-        'push_tag' : "git push {tag}",
-        'commit'   : "git commit --file {path}",
-        'status'   : "git status --porcelain",
-        'tag'      : "git tag --annotate {name} --message '{name}'",
-        'add_path' : "git add --update {path}",
         'ls_tags'  : "git tag --list v*",
+        'status'   : "git status --porcelain",
+        'add_path' : "git add --update {path}",
+        'commit'   : "git commit --file {path}",
+        'tag'      : "git tag --annotate {tag} --message '{tag}'",
+        'push_tag' : "git push {tag}",
     },
     'hg': {
         'is_usable': "hg root",
         'fetch'    : "hg pull",
-        'push_tag' : "hg push {tag}",
-        'commit'   : "hg commit --logfile",
-        'status'   : "hg status -mard",
-        'tag'      : "hg tag {name} --message '{name}'",
-        'add_path' : "hg add {path}",
         'ls_tags'  : "hg tags",
+        'status'   : "hg status -mard",
+        'add_path' : "hg add {path}",
+        'commit'   : "hg commit --logfile",
+        'tag'      : "hg tag {tag} --message '{tag}'",
+        'push_tag' : "hg push {tag}",
     },
 }
 
@@ -108,11 +108,11 @@ class VCS:
         self('commit', env=env, path=tmp_file.name)
         os.unlink(tmp_file.name)
 
-    def tag(self, name) -> None:
-        self('tag', name=name)
+    def tag(self, tag_name) -> None:
+        self('tag', tag=tag_name)
 
-    def push(self) -> None:
-        self('push')
+    def push(self, tag_name) -> None:
+        self('push', tag=tag_name)
 
     def __repr__(self) -> str:
         return f"VCS(name='{self.name}')"
