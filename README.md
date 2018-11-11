@@ -1,7 +1,8 @@
 # PyCalVer: Automatic CalVer Versioning for Python Packages
 
-PyCalVer is a simple versioning system, which is compatible
-with python packaging software
+PyCalVer is a simple versioning system. It version strings
+everywhere in your project, it generates git/mercurial tags and
+is compatible with python packaging software
 [setuptools](https://setuptools.readthedocs.io/en/latest/setuptools.html#specifying-your-project-s-version>)
 [PEP440](https://www.python.org/dev/peps/pep-0440/).
 
@@ -29,27 +30,29 @@ with python packaging software
 
 [](TOC)
 
-- [Introduction](#introduction)
-    - [Versioning Behaviour](#versioning-behaviour)
-    - [Lexical Ids](#lexical-ids)
-- [Usage](#usage)
-    - [Installation](#installation)
-    - [Configuration](#configuration)
-    - [Pattern Search and Replacement](#pattern-search-and-replacement)
-    - [Other Versioning Software](#other-versioning-software)
-- [Rational](#rational)
-    - [Some Details](#some-details)
-    - [Realities of Verion Numbers](#realities-of-verion-numbers)
-    - [Should I use PyCalVer for my Project?](#should-i-use-pycalver-for-my-project)
-    - [Marketing/Vanity](#marketing-vanity)
-    - [Rational](#rational-1)
-    - [Breaking Things is a Big Deal](#breaking-things-is-a-big-deal)
-    - [A Word on Marketing](#a-word-on-marketing)
-    - [Commitment to Compatability](#commitment-to-compatability)
-    - [The Life of a Library](#the-life-of-a-library)
-    - [FAQ](#faq)
+  - [Introduction](#introduction)
+      - [Format](#format)
+      - [Versioning Behaviour](#versioning-behaviour)
+      - [Lexical Ids](#lexical-ids)
+  - [Usage](#usage)
+      - [Configuration](#configuration)
+      - [Bump It Up](#bump-it-up)
+      - [Pattern Search and Replacement](#pattern-search-and-replacement)
+  - [Rational](#rational)
+      - [Other Versioning Software](#other-versioning-software)
+      - [Some Details](#some-details)
+      - [Realities of Version Numbers](#realities-of-version-numbers)
+      - [Should I use PyCalVer for my Project?](#should-i-use-pycalver-for-my-project)
+      - [Marketing/Vanity](#marketing-vanity)
+      - [Rational](#rational-1)
+      - [Breaking Things is a Big Deal](#breaking-things-is-a-big-deal)
+      - [A Word on Marketing](#a-word-on-marketing)
+      - [Commitment to Compatibility](#commitment-to-compatibility)
+      - [The Life of a Library](#the-life-of-a-library)
+      - [FAQ](#faq)
 
 [](TOC)
+
 
 ## Introduction
 
@@ -207,6 +210,7 @@ preserved: `old_version < new_version`. This will even be the
 case if the version number was incremented twice in the same
 month.
 
+
 ## Usage
 
 ### Configuration
@@ -221,11 +225,11 @@ $ cd my-project
 Updated setup.cfg
 ```
 
-This will add the following to your `setup.cfg`:
+This will add the something like the following to your
+`setup.cfg`:
 
 ```ini
 [pycalver]
-current_version = v201809.0001-dev
 commit = True
 tag = True
 
@@ -272,7 +276,7 @@ patterns =
     img.shields.io/badge/PyCalVer-{calver}{build}--{release}-blue
 ```
 
-You can ommit `patterns` if the default patterns are sufficient.
+You can omit `patterns` if the default patterns are sufficient.
 These are:
 
 ```ini
@@ -297,6 +301,59 @@ patterns =
     [PyCalVer {calver}{build}-{release}]
     img.shields.io/badge/PyCalVer-{calver}{build}--{release}-blue
 ```
+
+### Bump It Up
+
+To increment and publish a new version, you can use the
+`pycalver bump` command:
+
+```shell
+$ pycalver bump
+```
+
+This will do a few things
+
+ 0. Check that you don't have any non-committed local changes.
+ 1. Fetch the most recent global vcs tags from origin.
+ 2. Generate a new version, incremented from on the most recent
+    tag on any branch.
+ 3. Update version strings in all configured files.
+ 4. Commit the updated version strings.
+ 5. Tag the new commit.
+ 6. Push the new commit to origin.
+
+The current version is defined either as
+
+ - The lexically largest git/mercurial tag in the repository.
+ - The value of `pycalver.current_version` in setup.cfg
+
+The git/mercurial tags are used to minimize the chance that the
+same version will be generated for different revisions. As part
+of doing `pycalver bump`, your local repository is updated
+using `git fetch --tags`/`hg pull`, to ensure that all tags are
+known locally
+git push --follow-tags
+
+the version To
+avoid this completely you n
+The value in setup.cfg is only used on projects that don't use
+revision control.
+If your project does not use git or mercurial for version
+control, then the current_version will be set by `pycalver init`.
+
+
+```shell
+$ pycalver show
+Current Version: v201809.0001-beta
+PEP440 Version: 201809.1b0
+
+$ pycalver bump --dry
+TODO: diff output
+Don't forget to do $ git push --tags
+```
+
+TODO: commits and tags
+
 
 ### Pattern Search and Replacement
 
@@ -330,19 +387,6 @@ files, but the `--dry` flag will instead display a diff of the
 changes that would be applied.
 
 
-```shell
-$ pycalver show
-Current Version: v201809.0001-beta
-PEP440 Version: 201809.1b0
-
-$ pycalver bump --dry
-TODO: diff output
-Dont forget to do $ git push --tags
-```
-
-TODO: commits and tags
-
-
 ## Rational
 
 ### Other Versioning Software
@@ -362,7 +406,7 @@ generated automatically, usage is a bit more simple.
  - There should be only one person or system responsible for
    updating the version number at the time of release, otherwise
    the same version number may be generated for different builds.
- - Lexeographical order is
+ - Lexical order is
 
 
 Canonical PyCalVer version strings can be parsed with this
@@ -390,7 +434,7 @@ In [2]: version_dict
 
 
 
-### Realities of Verion Numbers
+### Realities of Version Numbers
 
 Nobody knows what the semantics of a version number are, because
 nobody can guarantee that a given release adheres to whatever
@@ -424,19 +468,19 @@ Quotes from http://sedimental.org/designing_a_version.html
 ### Rational
 
 PyCalVer is opinionated software. This keeps things simple,
-when the opintions match yours, but makes it useless for
+when the opinion match yours, but makes it useless for
 everybody else.
 
-The less machine parsable semantics you put in your version
-string, the better. The ideal would be to only have a single
-semantic: newer == better.
+The less semantics you put in your version string, the better.
+The ideal would be to only have a single semantic: newer ==
+better.
 
 Some projects depend recursively on hundreds of libraries, so
-compatability issues generated by your project can be a heavy
-burdon on thousands of users; users who learn of the existance
-of your library for the first time in the form of a stacktrace.
-PyCalVer is for projects that are comitted to and can maintain
-backward compatability. Newer versions are always better,
+compatibility issues generated by your project can be a heavy
+burden on thousands of users; users who learn of the existence
+of your library for the first time in the form of a stack-trace.
+PyCalVer is for projects that are committed to and can maintain
+backward compatibility. Newer versions are always better,
 updates are always safe, an update won't break things, and if it
 does, the maintainer's hair is on fire and they will publish a
 new release containing a fix ASAP.
@@ -455,7 +499,7 @@ big and exciting 2.0 major releases.
 ### Breaking Things is a Big Deal
 
 Using an increment in a version string to express that a release
-may break client code is not tennable. A developer cannot be
+may break client code is not tenable. A developer cannot be
 expected to think about how their code may or may not break as a
 consequence of your decision to rename some functions. As the
 author of any software, there is a great temptation to move fast
@@ -467,9 +511,9 @@ your software.
 
 The less the users of your library have to know about your
 project, the better. The less they have to deal with issues
-of compatability, the better. SemVer can be overly specifc
+of compatibility, the better. SemVer can be overly specific
 for some kinds of projects. If you are writing a library
-and you have a commitment to backward compatability
+and you have a commitment to backward compatibility
 
 PyCalVer version strings can be parsed according to PEP440
 https://www.python.org/dev/peps/pep-0440/
@@ -485,7 +529,7 @@ for libraries, it pays to keep things as simple as possible for
 your human users.
 
 
-### Commitment to Compatability
+### Commitment to Compatibility
 
 Software projects can depend on many libraries. Consider that one
 package introducing a breaking change is enough to mess up your
@@ -498,12 +542,12 @@ PyCalVer is explicitly non semantic. A PyCalVer version number does
 not express anything about
 
     - Don't ever break things. When users depend on your
-      software, backward compatability matters and the way to
+      software, backward compatibility matters and the way to
       express backward incompatible changes is not to bump a
       version number, but to change the package name. A change
       in the package name clearly communicates that a user must
       change their code so that it will work with the changed
-      API. Everybody who does not have the bandwith for those
+      API. Everybody who does not have the bandwidth for those
       changes, doesn't even have to be aware of your new
       release.
 
@@ -511,19 +555,19 @@ not express anything about
       bug that has to be fixed as quickly as possible in a new
       version. It should always be safe for a user to update
       their dependencies. If something does break, users have to
-      temporarilly pin an older (known good) version, or update
+      temporarily pin an older (known good) version, or update
       to a newer fixed version.
 
     - Version numbers should not require a parser (present
       package excluded of course). A newer version number should
-      always be lexeographically greater than an older one.
+      always be lexically greater than an older one.
       TODO:
       https://setuptools.readthedocs.io/en/latest/setuptools.html#specifying-your-project-s-version
 
 
 The main component of the version number is based on the
 calendar date. This is allows you to show your commitment (or
-lack thereof) to the maintenance of your libarary. It also
+lack thereof) to the maintenance of your library. It also
 allows users to see at a glance that their dependency might be
 out of date. In this versioning scheme it is completely
 reasonable to bump the version number without any changes,
@@ -604,7 +648,7 @@ I have given up on the idea that version numbers express
 anything about changes made between versions. Trying to
 express such information assumes 1. that the author of a package
 is aware of how a given change needs to be reflected in a
-version number and 2. that users and packaging softare correctly
+version number and 2. that users and packaging software correctly
 parse that meaning. When I used semantic versioning, I realized that
 the major version number of my packages would never change,
 because I don't think breaking changes should ever be
