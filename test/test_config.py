@@ -9,16 +9,20 @@ def test_parse_default_config():
         buf.write(line + "\n")
 
     buf.seek(0)
-    cfg = config.parse_buffer(buf)
+    cfg = config._parse_buffer(buf)
 
     assert cfg
     assert cfg.current_version.endswith(".0001-dev")
     assert cfg.tag
     assert cfg.commit
 
+    # NOTE (mb 2018-11-10): These refer to the actual files
+    #   of the pycalver project. A different project would
+    #   have README.rst for example. To fully test this
+    #   we might create temporary projects.
     assert "setup.py" in cfg.file_patterns
     assert "setup.cfg" in cfg.file_patterns
-    assert "README.rst" in cfg.file_patterns
+    assert "README.md" in cfg.file_patterns
 
 
 def test_parse(tmpdir):
