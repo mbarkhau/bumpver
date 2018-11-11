@@ -252,4 +252,4 @@ def bump(
 
     if cfg.tag:
         _vcs.tag(new_version)
-        _vcs.push()
+        _vcs.push(new_version)
