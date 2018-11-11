@@ -15,8 +15,8 @@ import os
 import sys
 import click
 import logging
+import typing as typ
 
-from . import DEBUG
 from . import vcs
 from . import parse
 from . import config
@@ -24,59 +24,89 @@ from . import version
 from . import rewrite
 
 
-log = logging.getLogger("pycalver.__main__")
+_VERBOSE = 0
 
 
-def _init_loggers(verbose: bool) -> None:
-    if DEBUG:
-        log_formatter = logging.Formatter("%(levelname)s - %(name)s - %(message)s")
-        log_level     = logging.DEBUG
-    elif verbose:
-        log_formatter = logging.Formatter("%(levelname)s - %(message)s")
-        log_level     = logging.INFO
+log = logging.getLogger("pycalver.cli")
+
+
+def _init_loggers(verbose: int = 0) -> None:
+    verbose = max(_VERBOSE, verbose)
+
+    if verbose >= 2:
+        log_format = "%(asctime)s.%(msecs)03d %(levelname)-7s %(name)-15s - %(message)s"
+        log_level  = logging.DEBUG
+    elif verbose == 1:
+        log_format = "%(levelname)-7s - %(message)s"
+        log_level  = logging.INFO
     else:
-        log_formatter = logging.Formatter("%(message)s")
-        log_level     = logging.WARNING
+        log_format = "%(message)s"
+        log_level  = logging.WARNING
 
-    loggers = [log, vcs.log, parse.log, config.log, rewrite.log, version.log]
-
-    for logger in loggers:
-        if len(logger.handlers) == 0:
-            ch = logging.StreamHandler(sys.stderr)
-            ch.setFormatter(log_formatter)
-            logger.addHandler(ch)
-            logger.setLevel(log_level)
-
+    logging.basicConfig(level=log_level, format=log_format, datefmt="%Y-%m-%dT%H:%M:%S")
     log.debug("Loggers initialized.")
 
 
 @click.group()
-def cli():
-    """Parse and update project versions."""
+@click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
+def cli(verbose: int = 0):
+    """Automatically update PyCalVer version strings on python projects."""
+    global _VERBOSE
+    _VERBOSE = verbose
+
+
+def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
+    try:
+        _vcs = vcs.get_vcs()
+        log.debug(f"vcs found: {_vcs.name}")
+        if fetch:
+            log.debug(f"fetching from remote")
+            _vcs.fetch()
+
+        version_tags = [tag for tag in _vcs.ls_tags() if parse.PYCALVER_RE.match(tag)]
+        if version_tags:
+            version_tags.sort(reverse=True)
+            log.debug(f"found {len(version_tags)} tags: {version_tags[:2]}")
+            latest_version_tag = version_tags[0]
+            if latest_version_tag > cfg.current_version:
+                log.info(f"Working dir version        : {cfg.current_version}")
+                log.info(f"Latest version from {_vcs.name:>3} tag: {latest_version_tag}")
+                cfg = cfg._replace(current_version=latest_version_tag)
+        else:
+            log.debug("no vcs tags found")
+    except OSError:
+        log.debug("No vcs found")
+
+    return cfg
 
 
 @cli.command()
-def show() -> None:
+@click.option('-v', '--verbose'         , count=True  , help="Control log level. -vv for debug level.")
+@click.option('-f', "--fetch/--no-fetch", is_flag=True, default=True)
+def show(verbose: int = 0, fetch: bool = True) -> None:
     """Show current version."""
-    _init_loggers(verbose=False)
+    _init_loggers(verbose=verbose)
 
     cfg: config.MaybeConfig = config.parse()
     if cfg is None:
         log.error("Could not parse configuration from setup.cfg")
         sys.exit(1)
 
+    cfg = _update_cfg_from_vcs(cfg, fetch=fetch)
+
     print(f"Current Version: {cfg.current_version}")
-    print(f"PEP440 Version: {cfg.pep440_version}")
+    print(f"PEP440 Version : {cfg.pep440_version}")
 
 
 @cli.command()
 @click.argument("old_version")
+@click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 @click.option(
     "--release", default=None, metavar="<name>", help="Override release name of current_version"
 )
-def incr(old_version: str, release: str = None) -> None:
+def incr(old_version: str, verbose: int = 0, release: str = None) -> None:
     """Increment a version number for demo purposes."""
-    _init_loggers(verbose=False)
+    _init_loggers(verbose)
 
     if release and release not in parse.VALID_RELESE_VALUES:
         log.error(f"Invalid argument --release={release}")
@@ -91,12 +121,13 @@ def incr(old_version: str, release: str = None) -> None:
 
 
 @cli.command()
+@click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 @click.option(
     "--dry", default=False, is_flag=True, help="Display diff of changes, don't rewrite files."
 )
-def init(dry: bool) -> None:
+def init(verbose: int = 0, dry: bool = False) -> None:
     """Initialize [pycalver] configuration."""
-    _init_loggers(verbose=False)
+    _init_loggers(verbose)
 
     cfg   : config.MaybeConfig = config.parse()
     if cfg:
@@ -122,16 +153,35 @@ def init(dry: bool) -> None:
         print("Created setup.cfg")
 
 
+def _assert_not_dirty(vcs, filepaths: typ.Set[str], allow_dirty: bool):
+    # TODO (mb 2018-11-11): This is mixing concerns. Move this up into __main__
+    dirty_files = vcs.status()
+
+    if dirty_files:
+        log.warn(f"{vcs.name} working directory is not clean:")
+        for dirty_file in dirty_files:
+            log.warn("    " + dirty_file)
+
+    if not allow_dirty and dirty_files:
+        sys.exit(1)
+
+    dirty_pattern_files = set(dirty_files) & filepaths
+    if dirty_pattern_files:
+        log.error("Not commiting when pattern files are dirty:")
+        for dirty_file in dirty_pattern_files:
+            log.warn("    " + dirty_file)
+        sys.exit(1)
+
+
 @cli.command()
-@click.option(
-    "--release", default=None, metavar="<name>", help="Override release name of current_version"
-)
-@click.option("--verbose", default=False, is_flag=True, help="Log applied changes to stderr")
+@click.option("-v", "--verbose"         , count=True  , help="Control log level. -vv for debug level.")
+@click.option('-f', "--fetch/--no-fetch", is_flag=True, default=True)
 @click.option(
     "--dry", default=False, is_flag=True, help="Display diff of changes, don't rewrite files."
 )
-@click.option("--commit", default=True, is_flag=True, help="Commit after updating version strings.")
-@click.option("--tag"   , default=True, is_flag=True, help="Tag the commit.")
+@click.option(
+    "--release", default=None, metavar="<name>", help="Override release name of current_version"
+)
 @click.option(
     "--allow-dirty",
     default=False,
@@ -143,7 +193,11 @@ def init(dry: bool) -> None:
     ),
 )
 def bump(
-    release: str, verbose: bool, dry: bool, commit: bool, tag: bool, allow_dirty: bool
+    release    : typ.Optional[str] = None,
+    verbose    : int  =     0,
+    dry        : bool = False,
+    allow_dirty: bool = False,
+    fetch      : bool = True,
 ) -> None:
     """Increment the current version string and update project files."""
     _init_loggers(verbose)
@@ -158,6 +212,8 @@ def bump(
     if cfg is None:
         log.error("Could not parse configuration from setup.cfg")
         sys.exit(1)
+
+    cfg = _update_cfg_from_vcs(cfg, fetch=fetch)
 
     old_version = cfg.current_version
     new_version = version.incr(old_version, release=release)
@@ -179,9 +235,9 @@ def bump(
         log.warn("Version Control System not found, aborting commit.")
         return
 
-    _vcs.assert_not_dirty(filepaths, allow_dirty)
+    _assert_not_dirty(_vcs, filepaths, allow_dirty)
 
-    if dry or not commit:
+    if dry or not cfg.commit:
         return
 
     # TODO (mb 2018-09-04): add files and commit
