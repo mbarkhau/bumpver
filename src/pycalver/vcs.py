@@ -69,6 +69,9 @@ class VCS:
                 return False
             raise
 
+    def fetch(self) -> None:
+        self('fetch')
+
     def status(self) -> typ.List[str]:
         status_output = self('status')
         return [
@@ -77,8 +80,12 @@ class VCS:
             if not line.strip().startswith(b"??")
         ]
 
-    def fetch(self) -> None:
-        self('fetch')
+    def ls_tags(self) -> typ.List[str]:
+        ls_tag_lines = self('ls_tags').splitlines()
+        log.debug(f"ls_tags output {ls_tag_lines}")
+        return [
+            line.decode("utf-8").strip() for line in ls_tag_lines if line.strip().startswith(b"v")
+        ]
 
     def add(self, path) -> None:
         log.info(f"{self.name} add {path}")
@@ -104,12 +111,8 @@ class VCS:
     def tag(self, name) -> None:
         self('tag', name=name)
 
-    def ls_tags(self) -> typ.List[str]:
-        ls_tag_lines = self('ls_tags').splitlines()
-        log.debug(f"ls_tags output {ls_tag_lines}")
-        return [
-            line.decode("utf-8").strip() for line in ls_tag_lines if line.strip().startswith(b"v")
-        ]
+    def push(self) -> None:
+        self('push')
 
     def __repr__(self) -> str:
         return f"VCS(name='{self.name}')"

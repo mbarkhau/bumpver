@@ -240,4 +240,11 @@ def bump(
     if dry or not cfg.commit:
         return
 
-    # TODO (mb 2018-09-04): add files and commit
+    for filepath in filepaths:
+        _vcs.add(filepath)
+
+    _vcs.commit(f"bump version to {new_version}")
+
+    if cfg.tag:
+        _vcs.tag(new_version)
+        _vcs.push()

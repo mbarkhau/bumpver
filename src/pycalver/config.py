@@ -119,6 +119,11 @@ def _parse_buffer(cfg_buffer: io.StringIO, config_filename: str = "<pycalver.cfg
     if file_patterns is None:
         return None
 
+    if tag and not commit:
+        log.error(f"Invalid configuration in {config_filename}")
+        log.error("     pycalver.commit = True required if pycalver.tag = True")
+        return None
+
     cfg = Config(current_version, tag, commit, file_patterns)
 
     log.debug(cfg._debug_str())
