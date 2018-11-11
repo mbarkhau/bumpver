@@ -96,7 +96,7 @@ class VCS:
         message_data = message.encode("utf-8")
 
         tmp_file = tempfile.NamedTemporaryFile("wb", delete=False)
-        assert " " not in tmp_file
+        assert " " not in tmp_file.name
 
         with tmp_file as fh:
             fh.write(message_data)
