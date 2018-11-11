@@ -14,6 +14,15 @@ from . import parse
 log = logging.getLogger("pycalver.rewrite")
 
 
+def _detect_line_sep(content: str) -> str:
+    if "\r\n" in content:
+        return "\r\n"
+    elif "\r" in content:
+        return "\r"
+    else:
+        return "\n"
+
+
 def rewrite_lines(
     old_lines: typ.List[str], patterns: typ.List[str], new_version: str
 ) -> typ.List[str]:
@@ -34,16 +43,14 @@ def rewrite_lines(
 
 
 def rewrite(
-    new_version: str, file_patterns: typ.Dict[str, typ.List[str]], dry=False, verbose=False
+    new_version: str, file_patterns: typ.Dict[str, typ.List[str]], dry=False, verbose: int = 0
 ) -> None:
     for filepath, patterns in file_patterns.items():
         with io.open(filepath, mode="rt", encoding="utf-8") as fh:
             content = fh.read()
 
-        # TODO (mb 2018-09-18): Detect line sep
-        line_sep = "\n"
-
-        old_lines = content.splitlines()
+        line_sep  = _detect_line_sep(content)
+        old_lines = content.split(line_sep)
         new_lines = rewrite_lines(old_lines, patterns, new_version)
 
         if dry or verbose:

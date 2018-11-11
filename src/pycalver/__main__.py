@@ -31,8 +31,6 @@ log = logging.getLogger("pycalver.cli")
 
 
 def _init_loggers(verbose: int = 0) -> None:
-    verbose = max(_VERBOSE, verbose)
-
     if verbose >= 2:
         log_format = "%(asctime)s.%(msecs)03d %(levelname)-7s %(name)-15s - %(message)s"
         log_level  = logging.DEBUG
@@ -85,6 +83,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 @click.option('-f', "--fetch/--no-fetch", is_flag=True, default=True)
 def show(verbose: int = 0, fetch: bool = True) -> None:
     """Show current version."""
+    verbose = max(_VERBOSE, verbose)
     _init_loggers(verbose=verbose)
 
     cfg: config.MaybeConfig = config.parse()
@@ -106,6 +105,7 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
 )
 def incr(old_version: str, verbose: int = 0, release: str = None) -> None:
     """Increment a version number for demo purposes."""
+    verbose = max(_VERBOSE, verbose)
     _init_loggers(verbose)
 
     if release and release not in parse.VALID_RELESE_VALUES:
@@ -127,6 +127,7 @@ def incr(old_version: str, verbose: int = 0, release: str = None) -> None:
 )
 def init(verbose: int = 0, dry: bool = False) -> None:
     """Initialize [pycalver] configuration."""
+    verbose = max(_VERBOSE, verbose)
     _init_loggers(verbose)
 
     cfg   : config.MaybeConfig = config.parse()
@@ -200,6 +201,7 @@ def bump(
     fetch      : bool = True,
 ) -> None:
     """Increment the current version string and update project files."""
+    verbose = max(_VERBOSE, verbose)
     _init_loggers(verbose)
 
     if release and release not in parse.VALID_RELESE_VALUES:
@@ -227,19 +229,23 @@ def bump(
     file_patterns = cfg.file_patterns
     filepaths     = set(file_patterns.keys())
 
-    rewrite.rewrite(new_version, file_patterns, dry, verbose)
+    _vcs: typ.Optional[vcs.VCS]
 
     try:
         _vcs = vcs.get_vcs()
     except OSError:
         log.warn("Version Control System not found, aborting commit.")
+        _vcs = None
+
+    # if _vcs:
+    #     _assert_not_dirty(_vcs, filepaths, allow_dirty)
+
+    rewrite.rewrite(new_version, file_patterns, dry=dry, verbose=verbose)
+
+    if dry or _vcs is None or not cfg.commit:
         return
 
-    _assert_not_dirty(_vcs, filepaths, allow_dirty)
-
-    if dry or not cfg.commit:
-        return
-
+    return
     for filepath in filepaths:
         _vcs.add(filepath)
 
