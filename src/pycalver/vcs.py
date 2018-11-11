@@ -89,7 +89,7 @@ class VCS:
 
     def add(self, path) -> None:
         log.info(f"{self.name} add {path}")
-        self('add', path=path)
+        self('add_path', path=path)
 
     def commit(self, message: str) -> None:
         log.info(f"{self.name} commit -m '{message}'")

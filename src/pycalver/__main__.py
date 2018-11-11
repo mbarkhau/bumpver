@@ -245,7 +245,6 @@ def bump(
     if dry or _vcs is None or not cfg.commit:
         return
 
-    return
     for filepath in filepaths:
         _vcs.add(filepath)
 
