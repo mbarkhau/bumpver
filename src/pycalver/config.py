@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2018 Manuel Barkhau (@mbarkhau) - MIT License
 # SPDX-License-Identifier: MIT
-"""Parsing code for setup.cfg or pycalver.cfg"""
+"""Parse setup.cfg or pycalver.cfg files."""
 
 import io
 import os
@@ -18,15 +18,18 @@ from .parse import PYCALVER_RE
 
 log = logging.getLogger("pycalver.config")
 
+PatternsByFilePath = typ.Dict[str, typ.List[str]]
+
 
 class Config(typ.NamedTuple):
+    """Represents a parsed config."""
 
     current_version: str
 
     tag   : bool
     commit: bool
 
-    file_patterns: typ.Dict[str, typ.List[str]]
+    file_patterns: PatternsByFilePath
 
     def _debug_str(self) -> str:
         cfg_str_parts = [
@@ -46,6 +49,12 @@ class Config(typ.NamedTuple):
 
     @property
     def pep440_version(self) -> str:
+        """Derive pep440 compliant version string from PyCalVer version string.
+
+        >>> cfg = Config("v201811.0007-beta", True, True, [])
+        >>> cfg.pep440_version
+        '201811.7b0'
+        """
         return str(pkg_resources.parse_version(self.current_version))
 
 
@@ -131,26 +140,27 @@ def _parse_buffer(cfg_buffer: io.StringIO, config_filename: str = "<pycalver.cfg
     return cfg
 
 
-def parse(config_filename: str = None) -> MaybeConfig:
-    if config_filename is None:
+def parse(config_filepath: str = None) -> MaybeConfig:
+    """Parse config file using configparser."""
+    if config_filepath is None:
         if os.path.exists("pycalver.cfg"):
-            config_filename = "pycalver.cfg"
+            config_filepath = "pycalver.cfg"
         elif os.path.exists("setup.cfg"):
-            config_filename = "setup.cfg"
+            config_filepath = "setup.cfg"
         else:
             log.error("File not found: pycalver.cfg or setup.cfg")
             return None
 
-    if not os.path.exists(config_filename):
-        log.error(f"File not found: {config_filename}")
+    if not os.path.exists(config_filepath):
+        log.error(f"File not found: {config_filepath}")
         return None
 
     cfg_buffer = io.StringIO()
-    with io.open(config_filename, mode="rt", encoding="utf-8") as fh:
+    with io.open(config_filepath, mode="rt", encoding="utf-8") as fh:
         cfg_buffer.write(fh.read())
 
     cfg_buffer.seek(0)
-    return _parse_buffer(cfg_buffer, config_filename)
+    return _parse_buffer(cfg_buffer, config_filepath)
 
 
 DEFAULT_CONFIG_BASE_STR = """
@@ -190,6 +200,7 @@ patterns =
 
 
 def default_config_lines() -> typ.List[str]:
+    """Generate initial default config based on PWD and current date."""
     initial_version = dt.datetime.now().strftime("v%Y%m.0001-dev")
 
     cfg_str = DEFAULT_CONFIG_BASE_STR.format(initial_version=initial_version)

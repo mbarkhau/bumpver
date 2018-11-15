@@ -75,7 +75,7 @@ def test_re_pattern_parts():
 
 def test_parse_version_info():
     version_str = "v201712.0001-alpha"
-    version_nfo = parse.parse_version_info(version_str)
+    version_nfo = parse.VersionInfo.parse(version_str)
 
     assert version_nfo.pep440_version == "201712.1a0"
     assert version_nfo.version        == "v201712.0001-alpha"
@@ -86,7 +86,7 @@ def test_parse_version_info():
     assert version_nfo.release        == "-alpha"
 
     version_str = "v201712.0001"
-    version_nfo = parse.parse_version_info(version_str)
+    version_nfo = parse.VersionInfo.parse(version_str)
 
     assert version_nfo.pep440_version == "201712.1"
     assert version_nfo.version        == "v201712.0001"
@@ -97,23 +97,25 @@ def test_parse_version_info():
     assert version_nfo.release is None
 
 
-def test_default_parse_patterns():
-    lines = [
-        "# setup.py",
-        "import setuptools",
-        "__version__ = 'v201712.0002-alpha'",
-        "setuptools.setup(",
-        "...",
-        "   version='201712.2a0',",
-    ]
+SETUP_PY_FIXTURE = """
+# setup.py
+import setuptools
+__version__ = 'v201712.0002-alpha'
+setuptools.setup(
+...
+   version='201712.2a0',
+"""
 
+
+def test_default_parse_patterns():
+    lines    = SETUP_PY_FIXTURE.splitlines()
     patterns = ["{version}", "{pep440_version}"]
 
-    matches = parse.parse_patterns(lines, patterns)
+    matches = list(parse.PatternMatch.iter_matches(lines, patterns))
     assert len(matches) == 2
 
-    assert matches[0].lineno == 2
-    assert matches[1].lineno == 5
+    assert matches[0].lineno == 3
+    assert matches[1].lineno == 6
 
     assert matches[0].pattern == patterns[0]
     assert matches[1].pattern == patterns[1]
@@ -123,22 +125,15 @@ def test_default_parse_patterns():
 
 
 def test_explicit_parse_patterns():
-    lines = [
-        "# setup.py",
-        "import setuptools",
-        "__version__ = 'v201712.0002-alpha'",
-        "setuptools.setup(",
-        "...",
-        "   version='201712.2a0',",
-    ]
+    lines = SETUP_PY_FIXTURE.splitlines()
 
     patterns = ["__version__ = '{version}'", "version='{pep440_version}'"]
 
-    matches = parse.parse_patterns(lines, patterns)
+    matches = list(parse.PatternMatch.iter_matches(lines, patterns))
     assert len(matches) == 2
 
-    assert matches[0].lineno == 2
-    assert matches[1].lineno == 5
+    assert matches[0].lineno == 3
+    assert matches[1].lineno == 6
 
     assert matches[0].pattern == patterns[0]
     assert matches[1].pattern == patterns[1]
@@ -147,23 +142,25 @@ def test_explicit_parse_patterns():
     assert matches[1].match == "version='201712.2a0'"
 
 
+README_RST_FIXTURE = """
+:alt: PyPI version
+
+.. |version| image:: https://img.shields.io/badge/CalVer-v201809.0002--beta-blue.svg
+:target: https://calver.org/
+:alt: CalVer v201809.0002-beta
+"""
+
+
 def test_badge_parse_patterns():
-    lines = [
-        ":alt: PyPI version",
-        "",
-        ".. |version| image:: https://img.shields.io/badge/CalVer-v201809.0002--beta-blue.svg",
-        ":target: https://calver.org/",
-        ":alt: CalVer v201809.0002-beta",
-        "",
-    ]
+    lines = README_RST_FIXTURE.splitlines()
 
     patterns = ["badge/CalVer-{calver}{build}-{release}-blue.svg", ":alt: CalVer {version}"]
 
-    matches = parse.parse_patterns(lines, patterns)
+    matches = list(parse.PatternMatch.iter_matches(lines, patterns))
     assert len(matches) == 2
 
-    assert matches[0].lineno == 2
-    assert matches[1].lineno == 4
+    assert matches[0].lineno == 3
+    assert matches[1].lineno == 5
 
     assert matches[0].pattern == patterns[0]
     assert matches[1].pattern == patterns[1]
@@ -174,19 +171,19 @@ def test_badge_parse_patterns():
 
 def test_parse_error():
     try:
-        parse.parse_version_info("")
+        parse.VersionInfo.parse("")
         assert False
     except ValueError as err:
         pass
 
     try:
-        parse.parse_version_info("201809.0002")
+        parse.VersionInfo.parse("201809.0002")
         assert False
     except ValueError as err:
         pass
 
     try:
-        parse.parse_version_info("v201809.2b0")
+        parse.VersionInfo.parse("v201809.2b0")
         assert False
     except ValueError as err:
         pass

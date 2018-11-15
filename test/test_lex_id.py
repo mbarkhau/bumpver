@@ -35,7 +35,7 @@ def test_ord_val():
 
 
 def test_main(capsys):
-    lex_id.main()
+    lex_id._main()
     captured = capsys.readouterr()
     assert len(captured.err) == 0
 

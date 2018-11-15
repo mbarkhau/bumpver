@@ -30,7 +30,7 @@ _VERBOSE = 0
 log = logging.getLogger("pycalver.cli")
 
 
-def _init_loggers(verbose: int = 0) -> None:
+def _init_logging(verbose: int = 0) -> None:
     if verbose >= 2:
         log_format = "%(asctime)s.%(msecs)03d %(levelname)-7s %(name)-15s - %(message)s"
         log_level  = logging.DEBUG
@@ -42,7 +42,7 @@ def _init_loggers(verbose: int = 0) -> None:
         log_level  = logging.WARNING
 
     logging.basicConfig(level=log_level, format=log_format, datefmt="%Y-%m-%dT%H:%M:%S")
-    log.debug("Loggers initialized.")
+    log.debug("Logging initialized.")
 
 
 @click.group()
@@ -84,7 +84,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 def show(verbose: int = 0, fetch: bool = True) -> None:
     """Show current version."""
     verbose = max(_VERBOSE, verbose)
-    _init_loggers(verbose=verbose)
+    _init_logging(verbose=verbose)
 
     cfg: config.MaybeConfig = config.parse()
     if cfg is None:
@@ -106,7 +106,7 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
 def incr(old_version: str, verbose: int = 0, release: str = None) -> None:
     """Increment a version number for demo purposes."""
     verbose = max(_VERBOSE, verbose)
-    _init_loggers(verbose)
+    _init_logging(verbose)
 
     if release and release not in parse.VALID_RELESE_VALUES:
         log.error(f"Invalid argument --release={release}")
@@ -114,7 +114,7 @@ def incr(old_version: str, verbose: int = 0, release: str = None) -> None:
         sys.exit(1)
 
     new_version     = version.incr(old_version, release=release)
-    new_version_nfo = parse.parse_version_info(new_version)
+    new_version_nfo = parse.VersionInfo.parse(new_version)
 
     print("PyCalVer Version:", new_version)
     print("PEP440 Version:"  , new_version_nfo.pep440_version)
@@ -128,7 +128,7 @@ def incr(old_version: str, verbose: int = 0, release: str = None) -> None:
 def init(verbose: int = 0, dry: bool = False) -> None:
     """Initialize [pycalver] configuration."""
     verbose = max(_VERBOSE, verbose)
-    _init_loggers(verbose)
+    _init_logging(verbose)
 
     cfg   : config.MaybeConfig = config.parse()
     if cfg:
@@ -174,6 +174,35 @@ def _assert_not_dirty(vcs, filepaths: typ.Set[str], allow_dirty: bool):
         sys.exit(1)
 
 
+def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> None:
+    _vcs: typ.Optional[vcs.VCS]
+
+    try:
+        _vcs = vcs.get_vcs()
+    except OSError:
+        log.warn("Version Control System not found, aborting commit.")
+        _vcs = None
+
+    filepaths = set(cfg.file_patterns.keys())
+
+    if _vcs:
+        _assert_not_dirty(_vcs, filepaths, allow_dirty)
+
+    rewrite.rewrite(new_version, cfg.file_patterns)
+
+    if _vcs is None or not cfg.commit:
+        return
+
+    for filepath in filepaths:
+        _vcs.add(filepath)
+
+    _vcs.commit(f"bump version to {new_version}")
+
+    if cfg.tag:
+        _vcs.tag(new_version)
+        _vcs.push(new_version)
+
+
 @cli.command()
 @click.option("-v", "--verbose"         , count=True  , help="Control log level. -vv for debug level.")
 @click.option('-f', "--fetch/--no-fetch", is_flag=True, default=True)
@@ -202,7 +231,7 @@ def bump(
 ) -> None:
     """Increment the current version string and update project files."""
     verbose = max(_VERBOSE, verbose)
-    _init_loggers(verbose)
+    _init_logging(verbose)
 
     if release and release not in parse.VALID_RELESE_VALUES:
         log.error(f"Invalid argument --release={release}")
@@ -223,33 +252,10 @@ def bump(
     log.info(f"Old Version: {old_version}")
     log.info(f"New Version: {new_version}")
 
+    if dry or verbose:
+        print(rewrite.diff(new_version, cfg.file_patterns))
+
     if dry:
-        log.info("Running with '--dry', showing diffs instead of updating files.")
-
-    file_patterns = cfg.file_patterns
-    filepaths     = set(file_patterns.keys())
-
-    _vcs: typ.Optional[vcs.VCS]
-
-    try:
-        _vcs = vcs.get_vcs()
-    except OSError:
-        log.warn("Version Control System not found, aborting commit.")
-        _vcs = None
-
-    # if _vcs:
-    #     _assert_not_dirty(_vcs, filepaths, allow_dirty)
-
-    rewrite.rewrite(new_version, file_patterns, dry=dry, verbose=verbose)
-
-    if dry or _vcs is None or not cfg.commit:
         return
 
-    for filepath in filepaths:
-        _vcs.add(filepath)
-
-    _vcs.commit(f"bump version to {new_version}")
-
-    if cfg.tag:
-        _vcs.tag(new_version)
-        _vcs.push(new_version)
+    _bump(cfg, new_version, allow_dirty)

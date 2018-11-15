@@ -4,9 +4,7 @@
 # Copyright (c) 2018 Manuel Barkhau (@mbarkhau) - MIT License
 # SPDX-License-Identifier: MIT
 
-"""
-This is a simple scheme for numerical ids which are ordered both
-numerically and lexically.
+"""A scheme for lexically ordered numerical ids.
 
 Throughout the sequence this expression remains true, whether you
 are dealing with integers or strings:
@@ -84,25 +82,56 @@ MINIMUM_ID = "0"
 
 
 def next_id(prev_id: str) -> str:
+    """Generate next lexical id.
+
+    Increments by one and adds padding if required.
+
+    >>> next_id("0098")
+    '0099'
+    >>> next_id("0099")
+    '0100'
+    >>> next_id("0999")
+    '11000'
+    >>> next_id("11000")
+    '11001'
+    """
+
     num_digits = len(prev_id)
+
     if prev_id.count("9") == num_digits:
         raise OverflowError("max lexical version reached: " + prev_id)
 
-    _prev_id = int(prev_id, 10)
-    _next_id = int(_prev_id) + 1
-    next_id  = f"{_next_id:0{num_digits}}"
-    if prev_id[0] != next_id[0]:
-        next_id = str(_next_id * 11)
-    return next_id
+    _prev_id_val = int(prev_id, 10)
+    _next_id_val = int(_prev_id_val) + 1
+    _next_id_str = f"{_next_id_val:0{num_digits}}"
+    if prev_id[0] != _next_id_str[0]:
+        _next_id_str = str(_next_id_val * 11)
+    return _next_id_str
 
 
 def ord_val(lex_id: str) -> int:
+    """Parse the ordinal value of a lexical id.
+
+    The ordinal value is the position in the sequence,
+    from repeated calls to next_id.
+
+    >>> ord_val("0098")
+    98
+    >>> ord_val("0099")
+    99
+    >>> ord_val("0100")
+    100
+    >>> ord_val("11000")
+    1000
+    >>> ord_val("11001")
+    1001
+    """
     if len(lex_id) == 1:
         return int(lex_id, 10)
     return int(lex_id[1:], 10)
 
 
-def main() -> None:
+def _main() -> None:
     _curr_id = "01"
     print(f"{'lexical':<13} {'numerical':>12}")
 
@@ -130,4 +159,4 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    _main()

@@ -17,7 +17,8 @@ ENV CONDA_DIR /opt/conda
 ENV PATH $CONDA_DIR/bin:$PATH
 ENV SHELL /bin/bash
 
-RUN apk add --no-cache bash make sed grep gawk curl git bzip2 unzip
+RUN apk add --no-cache bash make sed grep gawk curl bzip2 unzip
+RUN apk add --no-cache git mercurial
 
 CMD [ "/bin/bash" ]
 

@@ -29,7 +29,7 @@ def incr(old_version: str, *, release: str = None) -> str:
     Old_version is assumed to be a valid calver string,
     already validated in pycalver.config.parse.
     """
-    old_ver = parse.parse_version_info(old_version)
+    old_ver = parse.VersionInfo.parse(old_version)
 
     new_calver = current_calver()
 

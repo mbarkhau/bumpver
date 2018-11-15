@@ -3,6 +3,28 @@
 #
 # Copyright (c) 2018 Manuel Barkhau (@mbarkhau) - MIT License
 # SPDX-License-Identifier: MIT
+"""Parse PyCalVer strings.
+
+>>> version_info = PYCALVER_RE.match("v201712.0123-alpha").groupdict()
+>>> assert version_info == {
+...     "version" : "v201712.0123-alpha",
+...     "calver"  : "v201712",
+...     "year"    : "2017",
+...     "month"   : "12",
+...     "build"   : ".0123",
+...     "release" : "-alpha",
+... }
+>>>
+>>> version_info = PYCALVER_RE.match("v201712.0033").groupdict()
+>>> assert version_info == {
+...     "version" : "v201712.0033",
+...     "calver"  : "v201712",
+...     "year"    : "2017",
+...     "month"   : "12",
+...     "build"   : ".0033",
+...     "release" : None,
+... }
+"""
 
 import re
 import logging
@@ -64,7 +86,49 @@ RE_PATTERN_PARTS = {
 }
 
 
+class VersionInfo(typ.NamedTuple):
+    """Container for parsed version string."""
+
+    version: str
+    calver : str
+    year   : str
+    month  : str
+    build  : str
+    release: typ.Optional[str]
+
+    @property
+    def pep440_version(self) -> str:
+        """Generate pep440 compliant version string.
+
+        >>> vnfo = VersionInfo.parse("v201712.0033-beta")
+        >>> vnfo.pep440_version
+        '201712.33b0'
+        """
+        return str(pkg_resources.parse_version(self.version))
+
+    @staticmethod
+    def parse(version: str) -> 'VersionInfo':
+        """Parse a PyCalVer string.
+
+        >>> vnfo = VersionInfo.parse("v201712.0033-beta")
+        >>> assert vnfo == VersionInfo(
+        ...     version="v201712.0033-beta",
+        ...     calver="v201712",
+        ...     year="2017",
+        ...     month="12",
+        ...     build=".0033",
+        ...     release="-beta",
+        ... )
+        """
+        match = PYCALVER_RE.match(version)
+        if match is None:
+            raise ValueError(f"Invalid pycalver: {version}")
+
+        return VersionInfo(**match.groupdict())
+
+
 class PatternMatch(typ.NamedTuple):
+    """Container to mark a version string in a file."""
 
     lineno : int  # zero based
     line   : str
@@ -72,45 +136,38 @@ class PatternMatch(typ.NamedTuple):
     span   : typ.Tuple[int, int]
     match  : str
 
+    @staticmethod
+    def _iter_for_pattern(lines: typ.List[str], pattern: str) -> typ.Iterable['PatternMatch']:
+        # The pattern is escaped, so that everything besides the format
+        # string variables is treated literally.
 
-class VersionInfo(typ.NamedTuple):
+        pattern_tmpl = pattern
 
-    pep440_version: str
-    version       : str
-    calver        : str
-    year          : str
-    month         : str
-    build         : str
-    release       : typ.Optional[str]
+        for char, escaped in PATTERN_ESCAPES:
+            pattern_tmpl = pattern_tmpl.replace(char, escaped)
 
+        pattern_str = pattern_tmpl.format(**RE_PATTERN_PARTS)
+        pattern_re  = re.compile(pattern_str)
+        for lineno, line in enumerate(lines):
+            match = pattern_re.search(line)
+            if match:
+                yield PatternMatch(lineno, line, pattern, match.span(), match.group(0))
 
-def parse_version_info(version: str) -> VersionInfo:
-    match = PYCALVER_RE.match(version)
-    if match is None:
-        raise ValueError(f"Invalid pycalver: {version}")
-    pep440_version = str(pkg_resources.parse_version(version))
-    return VersionInfo(pep440_version=pep440_version, **match.groupdict())
+    @staticmethod
+    def iter_matches(lines: typ.List[str], patterns: typ.List[str]) -> typ.Iterable['PatternMatch']:
+        """Iterate over all matches of any pattern on any line.
 
-
-def _iter_pattern_matches(lines: typ.List[str], pattern: str) -> typ.Iterable[PatternMatch]:
-    # The pattern is escaped, so that everything besides the format
-    # string variables is treated literally.
-
-    pattern_tmpl = pattern
-
-    for char, escaped in PATTERN_ESCAPES:
-        pattern_tmpl = pattern_tmpl.replace(char, escaped)
-
-    pattern_str = pattern_tmpl.format(**RE_PATTERN_PARTS)
-    pattern_re  = re.compile(pattern_str)
-    for lineno, line in enumerate(lines):
-        match = pattern_re.search(line)
-        if match:
-            yield PatternMatch(lineno, line, pattern, match.span(), match.group(0))
-
-
-def parse_patterns(lines: typ.List[str], patterns: typ.List[str]) -> typ.List[PatternMatch]:
-    all_matches: typ.List[PatternMatch] = []
-    for pattern in patterns:
-        all_matches.extend(_iter_pattern_matches(lines, pattern))
-    return all_matches
+        >>> lines = ["__version__ = 'v201712.0002-alpha'"]
+        >>> patterns = ["{version}", "{pep440_version}"]
+        >>> matches = list(PatternMatch.iter_matches(lines, patterns))
+        >>> assert matches[0] == PatternMatch(
+        ...     lineno = 0,
+        ...     line   = "__version__ = 'v201712.0002-alpha'",
+        ...     pattern= "{version}",
+        ...     span   = (15, 33),
+        ...     match  = "v201712.0002-alpha",
+        ... )
+        """
+        for pattern in patterns:
+            for match in PatternMatch._iter_for_pattern(lines, pattern):
+                yield match

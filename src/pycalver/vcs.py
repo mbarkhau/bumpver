@@ -7,6 +7,12 @@
 # pycalver/vcs.py (this file) is based on code from the
 # bumpversion project: https://github.com/peritus/bumpversion
 # Copyright (c) 2013-2014 Filip Noetzel - MIT License
+"""Minimal Git and Mercirial API.
+
+If terminology for similar concepts differs between git and
+mercurial, then the git terms are used. For example "fetch"
+(git) instead of "pull" (hg) .
+"""
 
 import os
 import logging
@@ -42,7 +48,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
 
 
 class VCS:
-    """Version Control System absraction for git and mercurial"""
+    """VCS absraction for git and mercurial."""
 
     def __init__(self, name: str, subcommands: typ.Dict[str, str] = None):
         self.name = name
@@ -51,13 +57,19 @@ class VCS:
         else:
             self.subcommands = subcommands
 
-    def __call__(self, cmd_name: str, env=None, **kwargs: str) -> bytes:
-        cmd_str   = self.subcommands[cmd_name]
-        cmd_parts = cmd_str.format(**kwargs).split()
-        return sp.check_output(cmd_parts, env=env)
+    def __call__(self, cmd_name: str, env=None, **kwargs: str) -> str:
+        """Invoke subcommand and return output."""
+        cmd_str     = self.subcommands[cmd_name]
+        cmd_parts   = cmd_str.format(**kwargs).split()
+        output_data = sp.check_output(cmd_parts, env=env)
+
+        # TODO (mb 2018-11-15): Detect encoding of output?
+        _encoding = "utf-8"
+        return output_data.decode(_encoding)
 
     @property
     def is_usable(self) -> bool:
+        """Detect availability of subcommand."""
         cmd = self.subcommands['is_usable'].split()
 
         try:
@@ -70,28 +82,31 @@ class VCS:
             raise
 
     def fetch(self) -> None:
+        """Fetch updates from remote origin."""
         self('fetch')
 
     def status(self) -> typ.List[str]:
+        """Get status lines."""
         status_output = self('status')
         return [
-            line.decode("utf-8")[2:].strip()
+            line[2:].strip()
             for line in status_output.splitlines()
-            if not line.strip().startswith(b"??")
+            if not line.strip().startswith("??")
         ]
 
     def ls_tags(self) -> typ.List[str]:
+        """List vcs tags on all branches."""
         ls_tag_lines = self('ls_tags').splitlines()
         log.debug(f"ls_tags output {ls_tag_lines}")
-        return [
-            line.decode("utf-8").strip() for line in ls_tag_lines if line.strip().startswith(b"v")
-        ]
+        return [line.strip() for line in ls_tag_lines if line.strip().startswith("v")]
 
-    def add(self, path) -> None:
+    def add(self, path: str) -> None:
+        """Add updates to be included in next commit."""
         log.info(f"{self.name} add {path}")
         self('add_path', path=path)
 
     def commit(self, message: str) -> None:
+        """Commit added files."""
         log.info(f"{self.name} commit -m '{message}'")
         message_data = message.encode("utf-8")
 
@@ -108,17 +123,24 @@ class VCS:
         self('commit', env=env, path=tmp_file.name)
         os.unlink(tmp_file.name)
 
-    def tag(self, tag_name) -> None:
+    def tag(self, tag_name: str) -> None:
+        """Create an annotated tag."""
         self('tag', tag=tag_name)
 
-    def push(self, tag_name) -> None:
+    def push(self, tag_name: str) -> None:
+        """Push changes to origin."""
         self('push_tag', tag=tag_name)
 
     def __repr__(self) -> str:
+        """Generate string representation."""
         return f"VCS(name='{self.name}')"
 
 
 def get_vcs() -> VCS:
+    """Detect the appropriate VCS for a repository.
+
+    raises OSError if the directory doesn't use a supported VCS.
+    """
     for vcs_name in VCS_SUBCOMMANDS_BY_NAME.keys():
         vcs = VCS(name=vcs_name)
         if vcs.is_usable:

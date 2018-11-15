@@ -84,7 +84,7 @@ regular expression:
 import re
 
 # https://regex101.com/r/fnj60p/10
-pycalver_re = re.compile(r"""
+PYCALVER_PATTERN = r"""
 \b
 (?P<version>
     (?P<calver>
@@ -101,10 +101,11 @@ pycalver_re = re.compile(r"""
         (?:alpha|beta|dev|rc|post)
     )?
 )(?:\s|$)
-""", flags=re.VERBOSE)
+"""
+PYCALVER_RE = re.compile(PYCALVER_PATTERN, flags=re.VERBOSE)
 
 version_str = "v201712.0001-alpha"
-version_info = pycalver_re.match(version_str).groupdict()
+version_info = PYCALVER_RE.match(version_str).groupdict()
 
 assert version_info == {
     "version" : "v201712.0001-alpha",
@@ -116,7 +117,7 @@ assert version_info == {
 }
 
 version_str = "v201712.0033"
-version_info = pycalver_re.match(version_str).groupdict()
+version_info = PYCALVER_RE.match(version_str).groupdict()
 
 assert version_info == {
     "version" : "v201712.0033",
