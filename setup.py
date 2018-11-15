@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: MIT
 
 import os
-import sys
 import setuptools
 
 
@@ -25,12 +24,6 @@ install_requires = [
     if line.strip() and not line.startswith("#")
 ]
 
-package_dir = {"": "src"}
-
-if any(arg.startswith("bdist") for arg in sys.argv):
-    import lib3to6
-    package_dir = lib3to6.fix(package_dir)
-
 
 long_description = "\n\n".join((read("README.md"), read("CONTRIBUTING.md"), read("CHANGELOG.md")))
 
@@ -48,9 +41,8 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=["pycalver"],
-    package_dir=package_dir,
+    package_dir={"": "src"},
     install_requires=install_requires,
-    setup_requires=["lib3to6"],
     entry_points="""
         [console_scripts]
         pycalver=pycalver.__main__:cli
