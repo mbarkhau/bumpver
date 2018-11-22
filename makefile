@@ -294,6 +294,7 @@ test:
 	@rm -rf "src/__pycache__";
 	@rm -rf "test/__pycache__";
 
+ifndef FILTER
 	ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
 		$(DEV_ENV_PY) -m pytest -v \
 		--doctest-modules \
@@ -301,6 +302,16 @@ test:
 		--cov-report term \
 		$(shell ls -1 src/ | awk '{ print "--cov "$$1 }') \
 		test/ src/;
+else
+	ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+		$(DEV_ENV_PY) -m pytest -v \
+		--doctest-modules \
+		--cov-report html \
+		--cov-report term \
+		$(shell ls -1 src/ | awk '{ print "--cov "$$1 }') \
+		-k $(FILTER) \
+		test/ src/;
+endif
 
 	@rm -rf ".pytest_cache";
 	@rm -rf "src/__pycache__";
@@ -320,7 +331,11 @@ check:  fmt lint mypy test
 env:
 	@bash --init-file <(echo '\
 		source $$HOME/.bashrc; \
+<<<<<<< HEAD
 		source $(CONDA_ROOT)/etc/profile.d/conda.sh \
+=======
+		source $(CONDA_ROOT)/etc/profile.d/conda.sh; \
+>>>>>>> fix make/bash escape issue
 		export ENV=$${ENV-dev}; \
 		export PYTHONPATH="src/:vendor/:$$PYTHONPATH"; \
 		conda activate $(DEV_ENV_NAME) \
