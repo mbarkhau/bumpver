@@ -294,7 +294,7 @@ test:
 	@rm -rf "src/__pycache__";
 	@rm -rf "test/__pycache__";
 
-	ENV=${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+	ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
 		$(DEV_ENV_PY) -m pytest -v \
 		--doctest-modules \
 		--cov-report html \
@@ -321,7 +321,7 @@ env:
 	@bash --init-file <(echo '\
 		source $$HOME/.bashrc; \
 		source $(CONDA_ROOT)/etc/profile.d/conda.sh \
-		export ENV=${ENV-dev}; \
+		export ENV=$${ENV-dev}; \
 		export PYTHONPATH="src/:vendor/:$$PYTHONPATH"; \
 		conda activate $(DEV_ENV_NAME) \
 	')
@@ -330,7 +330,7 @@ env:
 ## Drop into an ipython shell with correct env variables set
 .PHONY: ipy
 ipy:
-	@PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+	@ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
 		$(DEV_ENV)/bin/ipython
 
 
@@ -343,7 +343,7 @@ devtest:
 
 
 ifndef FILTER
-	ENV=${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+	ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
 		$(DEV_ENV_PY) -m pytest -v \
 		--doctest-modules \
 		--no-cov \
@@ -352,7 +352,7 @@ ifndef FILTER
 		--exitfirst \
 		test/ src/;
 else
-	ENV=${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+	ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
 		$(DEV_ENV_PY) -m pytest -v \
 		--doctest-modules \
 		--no-cov \
