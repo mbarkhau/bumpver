@@ -14,8 +14,6 @@ unit:
   artifacts:
     paths:
       - htmlcov/
-  tags:
-    - docker
   allow_failure: false
 
 
@@ -27,7 +25,5 @@ pages:
   artifacts:
     paths:
       - public
-  tags:
-    - docker
   only:
   - master
