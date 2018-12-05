@@ -1,0 +1,7 @@
+# This is a convenience for development purposes,
+# for deployments you should set the appropriate
+# environment variables explicitly and use fully
+# qualified paths to the interpreter, as is done
+# for example in the Dockerfile
+
+source <(make activate;);

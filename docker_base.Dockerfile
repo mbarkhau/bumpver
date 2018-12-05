@@ -1,13 +1,13 @@
 # Stages:
-#   alpine_base : Common base image, both for the builder and for the final image.
-#                 This contains only minimal dependencies required in both cases
-#                 for miniconda and the makefile.
-#   builder     : stage in which the conda envrionment is created
-#                 and dependencies are installed
-#   final       : the final image containing only the required environment files,
-#                 and none of the infrastructure required to generate them.
+#   base_image : Common base image, both for the builder and for the final image.
+#                This contains only minimal dependencies required in both cases
+#                for miniconda and the makefile.
+#   builder    : stage in which the conda envrionment is created
+#                and dependencies are installed
+#   final      : the final image containing only the required environment files,
+#                and none of the infrastructure required to generate them.
 
-FROM frolvlad/alpine-glibc AS alpine_base
+FROM debian:stable-slim AS base_image
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -17,14 +17,27 @@ ENV CONDA_DIR /opt/conda
 ENV PATH $CONDA_DIR/bin:$PATH
 ENV SHELL /bin/bash
 
-RUN apk add --no-cache bash make sed grep gawk curl bzip2 unzip
-RUN apk add --no-cache git mercurial
+RUN if [ $(which apk) ]; then \
+        apk add --no-cache bash make sed grep gawk curl git bzip2 unzip; \
+    elif [ $(which apt-get) ]; then \
+        apt-get update && apt-get install --yes bash make sed grep gawk curl git bzip2 unzip; \
+    else \
+        echo "Invalid Distro: $(uname -a)"; \
+        exit 1; \
+    fi
 
 CMD [ "/bin/bash" ]
 
-FROM alpine_base AS builder
+FROM base_image AS builder
 
-RUN apk add --no-cache ca-certificates openssh-client openssh-keygen
+RUN if [ $(which apk) ]; then \
+        apk add --no-cache ca-certificates openssh-client openssh-keygen; \
+    elif [ $(which apt-get) ]; then \
+        apt-get --yes install ca-certificates openssh-client; \
+    else \
+        echo "Invalid Distro: $(uname -a)"; \
+        exit 1; \
+    fi
 
 ENV MINICONDA_VER latest
 ENV MINICONDA Miniconda3-$MINICONDA_VER-Linux-x86_64.sh
@@ -90,7 +103,7 @@ RUN conda clean --all --yes && \
     rm -rf /opt/conda/pkgs/
 
 
-FROM alpine_base
+FROM base_image
 
 COPY --from=builder /opt/conda/ /opt/conda/
 COPY --from=builder /vendor/ /vendor

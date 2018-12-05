@@ -34,4 +34,3 @@ snakeviz
 # add one after you've tested it and found it to be actually useful.
 
 ipython     # nuff said
-

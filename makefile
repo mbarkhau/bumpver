@@ -14,10 +14,6 @@ SHELL := /bin/bash
 
 PROJECT_DIR := $(notdir $(abspath .))
 
-ifndef MODULE_SRC_PATH
-	MODULE_SRC_PATH := $(notdir $(abspath .))
-endif
-
 ifndef DEVELOPMENT_PYTHON_VERSION
 	DEVELOPMENT_PYTHON_VERSION := python=3.6
 endif
@@ -27,7 +23,6 @@ ifndef SUPPORTED_PYTHON_VERSIONS
 endif
 
 PKG_NAME := $(PACKAGE_NAME)
-MODULE_SRC_PATH = src/$(PKG_NAME)/
 
 # TODO (mb 2018-09-23): Support for bash on windows
 #    perhaps we need to install conda using this
@@ -35,7 +30,7 @@ MODULE_SRC_PATH = src/$(PKG_NAME)/
 PLATFORM = $(shell uname -s)
 
 # miniconda is shared between projects
-CONDA_ROOT := $(shell if [[ -d /opt/conda ]]; then echo "/opt/conda"; else echo "$$HOME/miniconda3"; fi;)
+CONDA_ROOT := $(shell if [[ -d /opt/conda/envs ]]; then echo "/opt/conda"; else echo "$$HOME/miniconda3"; fi;)
 CONDA_BIN := $(CONDA_ROOT)/bin/conda
 
 ENV_PREFIX := $(CONDA_ROOT)/envs
@@ -49,6 +44,15 @@ CONDA_ENV_NAMES := \
 CONDA_ENV_PATHS := \
 	$(subst py,${ENV_PREFIX}/$(PKG_NAME)_py,$(subst .,,$(subst =,,$(subst thon,,$(SUPPORTED_PYTHON_VERSIONS)))))
 
+literal_space := $() $()
+
+BDIST_WHEEL_PYTHON_TAG := \
+	$(subst python,py,$(subst $(literal_space),.,$(subst .,,$(subst =,,$(SUPPORTED_PYTHON_VERSIONS)))))
+
+SDIST_FILE_CMD = ls -1t dist/*.tar.gz | head -n 1
+
+BDIST_WHEEL_FILE_CMD = ls -1t dist/*.whl | head -n 1
+
 
 # default version for development
 DEV_ENV := $(ENV_PREFIX)/$(DEV_ENV_NAME)
@@ -56,6 +60,7 @@ DEV_ENV_PY := $(DEV_ENV)/bin/python
 
 RSA_KEY_PATH := ${HOME}/.ssh/${PKG_NAME}_gitlab_runner_id_rsa
 
+DOCKER_BASE_IMAGE := registry.gitlab.com/mbarkhau/pycalver/base:latest
 
 build/envs.txt: requirements/conda.txt
 	@mkdir -p build/;
@@ -130,11 +135,9 @@ build/deps.txt: build/envs.txt requirements/*.txt
 	@mv build/deps.txt.tmp build/deps.txt
 
 
-## This help message
+## Short help message for each task.
 .PHONY: help
 help:
-	@printf "Available make targets for \033[97m$(PKG_NAME)\033[0m:\n";
-
 	@awk '{ \
 			if ($$0 ~ /^.PHONY: [a-zA-Z\-\_0-9]+$$/) { \
 				helpCommand = substr($$0, index($$0, ":") + 2); \
@@ -143,15 +146,20 @@ help:
 						helpCommand, helpMessage; \
 					helpMessage = ""; \
 				} \
-			} else if ($$0 ~ /^##/) { \
+			} else if ($$0 ~ /^[a-zA-Z\-\_0-9.]+:/) { \
+				helpCommand = substr($$0, 0, index($$0, ":")); \
 				if (helpMessage) { \
-					helpMessage = helpMessage"\n                     "substr($$0, 3); \
-				} else { \
+					printf "\033[36m%-20s\033[0m %s\n", \
+						helpCommand, helpMessage; \
+					helpMessage = ""; \
+				} \
+			} else if ($$0 ~ /^##/) { \
+				if (! (helpMessage)) { \
 					helpMessage = substr($$0, 3); \
 				} \
 			} else { \
 				if (helpMessage) { \
-					print "\n                     "helpMessage"\n" \
+					print "                     "helpMessage \
 				} \
 				helpMessage = ""; \
 			} \
@@ -175,6 +183,42 @@ help:
 	echo ""; \
 	exit 0; \
 	fi
+
+
+## Full help message for each task.
+.PHONY: fullhelp
+fullhelp:
+	@printf "Available make targets for \033[97m$(PKG_NAME)\033[0m:\n";
+
+	@awk '{ \
+			if ($$0 ~ /^.PHONY: [a-zA-Z\-\_0-9]+$$/) { \
+				helpCommand = substr($$0, index($$0, ":") + 2); \
+				if (helpMessage) { \
+					printf "\033[36m%-20s\033[0m %s\n", \
+						helpCommand, helpMessage; \
+					helpMessage = ""; \
+				} \
+			} else if ($$0 ~ /^[a-zA-Z\-\_0-9.]+:/) { \
+				helpCommand = substr($$0, 0, index($$0, ":")); \
+				if (helpMessage) { \
+					printf "\033[36m%-20s\033[0m %s\n", \
+						helpCommand, helpMessage; \
+					helpMessage = ""; \
+				} \
+			} else if ($$0 ~ /^##/) { \
+				if (helpMessage) { \
+					helpMessage = helpMessage"\n                     "substr($$0, 3); \
+				} else { \
+					helpMessage = substr($$0, 3); \
+				} \
+			} else { \
+				if (helpMessage) { \
+					print "\n                     "helpMessage"\n" \
+				} \
+				helpMessage = ""; \
+			} \
+		}' \
+		$(MAKEFILE_LIST)
 
 
 ## -- Project Setup --
@@ -236,21 +280,7 @@ git_hooks:
 	ln -s "${PWD}/scripts/pre-push-hook.sh" "${PWD}/.git/hooks/pre-push"
 
 
-
-# TODO make target to publish on pypi
-# .PHONY: publish
-# publish:
-#    echo "Not Implemented"
-
-
-## -- Development --
-
-
-## Run code formatter on src/ and test/
-.PHONY: fmt
-fmt:
-	@$(DEV_ENV)/bin/sjfmt --py36 --skip-string-normalization --line-length=100 \
-		 src/ test/
+## -- Integration --
 
 
 ## Run flake8 linter
@@ -294,24 +324,24 @@ test:
 	@rm -rf "src/__pycache__";
 	@rm -rf "test/__pycache__";
 
-ifndef FILTER
+	# First we test the local source tree using the dev environment
 	ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
 		$(DEV_ENV_PY) -m pytest -v \
 		--doctest-modules \
+		--verbose \
 		--cov-report html \
 		--cov-report term \
-		$(shell ls -1 src/ | awk '{ print "--cov "$$1 }') \
+		$(shell cd src/ && ls -1 */__init__.py | awk '{ print "--cov "substr($$1,0,index($$1,"/")-1) }') \
 		test/ src/;
-else
-	ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
-		$(DEV_ENV_PY) -m pytest -v \
-		--doctest-modules \
-		--cov-report html \
-		--cov-report term \
-		$(shell ls -1 src/ | awk '{ print "--cov "$$1 }') \
-		-k $(FILTER) \
-		test/ src/;
-endif
+
+	# Next we install the package and run the test suite against it.
+
+	IFS=' ' read -r -a env_paths <<< "$(CONDA_ENV_PATHS)"; \
+	for i in $${!env_paths[@]}; do \
+		env_py=$${env_paths[i]}/bin/python; \
+		$${env_py} -m pip install --upgrade .; \
+		ENV=$${ENV-dev} $${env_py} -m pytest test/; \
+	done;
 
 	@rm -rf ".pytest_cache";
 	@rm -rf "src/__pycache__";
@@ -321,25 +351,56 @@ endif
 ## -- Helpers --
 
 
+## Run code formatter on src/ and test/
+.PHONY: fmt
+fmt:
+	@$(DEV_ENV)/bin/sjfmt --py36 --skip-string-normalization --line-length=100 \
+		 src/ test/
+
+
 ## Shortcut for make fmt lint pylint test
 .PHONY: check
 check:  fmt lint mypy test
 
 
-## Start shell with environ variables set.
-.PHONY: env
-env:
+## Start subshell with environ variables set.
+.PHONY: env_subshell
+env_subshell:
 	@bash --init-file <(echo '\
 		source $$HOME/.bashrc; \
-<<<<<<< HEAD
-		source $(CONDA_ROOT)/etc/profile.d/conda.sh \
-=======
 		source $(CONDA_ROOT)/etc/profile.d/conda.sh; \
->>>>>>> fix make/bash escape issue
 		export ENV=$${ENV-dev}; \
 		export PYTHONPATH="src/:vendor/:$$PYTHONPATH"; \
 		conda activate $(DEV_ENV_NAME) \
 	')
+
+
+## Usage: "source activate", to deactivate: "deactivate"
+.PHONY: activate
+activate:
+	@echo 'source $(CONDA_ROOT)/etc/profile.d/conda.sh;'
+	@echo 'if [[ -z $$ENV ]]; then'
+	@echo '		export _env_before_activate_$(DEV_ENV_NAME)=$${ENV};'
+	@echo 'fi'
+	@echo 'if [[ -z $$PYTHONPATH ]]; then'
+	@echo '		export _pythonpath_before_activate_$(DEV_ENV_NAME)=$${PYTHONPATH};'
+	@echo 'fi'
+	@echo 'export ENV=$${ENV-dev};'
+	@echo 'export PYTHONPATH="src/:vendor/:$$PYTHONPATH";'
+	@echo 'conda activate $(DEV_ENV_NAME);'
+	@echo 'function deactivate {'
+	@echo '		if [[ -z $${_env_before_activate_$(DEV_ENV_NAME)} ]]; then'
+	@echo '				export ENV=$${_env_before_activate_$(DEV_ENV_NAME)}; '
+	@echo '		else'
+	@echo '				unset ENV;'
+	@echo '		fi'
+	@echo '		if [[ -z $${_pythonpath_before_activate_$(DEV_ENV_NAME)} ]]; then'
+	@echo '				export PYTHONPATH=$${_pythonpath_before_activate_$(DEV_ENV_NAME)}; '
+	@echo '		else'
+	@echo '				unset PYTHONPATH;'
+	@echo '		fi'
+	@echo '		conda deactivate;'
+	@echo '};'
 
 
 ## Drop into an ipython shell with correct env variables set
@@ -356,8 +417,7 @@ devtest:
 	@rm -rf "src/__pycache__";
 	@rm -rf "test/__pycache__";
 
-
-ifndef FILTER
+ifdef FILTER
 	ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
 		$(DEV_ENV_PY) -m pytest -v \
 		--doctest-modules \
@@ -365,6 +425,7 @@ ifndef FILTER
 		--verbose \
 		--capture=no \
 		--exitfirst \
+		-k $(FILTER) \
 		test/ src/;
 else
 	ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
@@ -374,7 +435,6 @@ else
 		--verbose \
 		--capture=no \
 		--exitfirst \
-		-k $(FILTER) \
 		test/ src/;
 endif
 
@@ -386,15 +446,9 @@ endif
 ## -- Build/Deploy --
 
 
-## Generate Documentation
+# Generate Documentation
 # .PHONY: doc
 # doc:
-# 	echo "Not Implemented"
-
-
-## Bump Version number in all files
-# .PHONY: bump_version
-# bump_version:
 # 	echo "Not Implemented"
 
 
@@ -403,17 +457,43 @@ endif
 ##   in order to have reproducable builds, otherwise you
 ##   should minimize the number of pinned versions in
 ##   your requirements.
-# .PHONY: freeze
-# freeze:
-# 	echo "Not Implemented"
+.PHONY: freeze
+freeze:
+	$(DEV_ENV_PY) -m pip freeze \
+		> requirements/$(shell date -u +"%Y%m%dt%H%M%S")_freeze.txt
 
 
-## Create python sdist and bdist_wheel distributions
-.PHONY: build_dist
-build_dist:
-	$(DEV_ENV_PY) setup.py sdist bdist_wheel
-	twine check dist/*
-	echo "To a PUBLIC release on pypi run:\n\t\$(DEV_ENV_PY) setup.py upload"
+## Bump Version number in all files
+.PHONY: bump_version
+bump_version:
+	echo "Not Implemented"
+	# $(DEV_ENV)/bin/pycalver bump;
+
+
+## Create python sdist and bdist_wheel files
+.PHONY: build_dists
+build_dists:
+	$(DEV_ENV_PY) setup.py sdist;
+	$(DEV_ENV_PY) setup.py bdist_wheel --python-tag=$(BDIST_WHEEL_PYTHON_TAG);
+
+
+## Upload sdist and bdist files to pypi
+.PHONY: upload_dists
+upload_dists:
+	@if [[ "1" != "1" ]]; then \
+		echo "FAILSAFE! Not publishing a private package."; \
+		echo "  To avoid this set IS_PUBLIC=1 in bootstrap.sh and run it."; \
+		exit 1; \
+	fi
+
+	$(DEV_ENV)/bin/twine check $$($(SDIST_FILE_CMD));
+	$(DEV_ENV)/bin/twine check $$($(BDIST_WHEEL_FILE_CMD));
+	$(DEV_ENV)/bin/twine upload $$($(SDIST_FILE_CMD)) $$($(BDIST_WHEEL_FILE_CMD));
+
+
+## Publish on pypi
+.PHONY: publish
+publish: bump_version build_dists upload_dists
 
 
 ## Build docker images. Must be run when dependencies are added
@@ -430,16 +510,18 @@ build_docker:
 		docker build \
 			--build-arg SSH_PRIVATE_RSA_KEY="$$(cat '${RSA_KEY_PATH}')" \
 			--file docker_base.Dockerfile \
-			--tag $(DOCKER_REGISTRY_URL)/base:latest \
+			--tag $(DOCKER_BASE_IMAGE) \
 			.; \
 	else \
 		docker build \
 			--file docker_base.Dockerfile \
-			--tag $(DOCKER_REGISTRY_URL)/base:latest \
+			--tag $(DOCKER_BASE_IMAGE) \
 			.; \
 	fi
 
-	docker push $(DOCKER_REGISTRY_URL)/base:latest
+	docker push $(DOCKER_BASE_IMAGE)
 
+
+## -- Extra/Custom/Project Specific Tasks --
 
 -include makefile.extra.make
