@@ -10,7 +10,7 @@ unit:
     - make lint
     - make mypy
     - make test
-  coverage: '/TOTAL.*?(\d+\%)/'
+  coverage: '/^(TOTAL|src).*?(\d+\%)$/'
   artifacts:
     paths:
       - htmlcov/

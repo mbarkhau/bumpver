@@ -10,6 +10,16 @@
 # https://documen.tician.de/pudb/
 pudb
 
+# Quick-and-dirty debugging output for tired programmers
+# https://pypi.org/project/q/
+q
+
+# backtrace manipulates Python tracebacks to make them more
+# readable. It provides different configuration options for
+# coloring and formatting.
+# https://github.com/nir0s/backtrace
+backtrace
+
 # Py-Spy: A sampling profiler for Python programs.
 # https://github.com/benfred/py-spy
 # This is good for coarse grained profiling (even on production)
@@ -24,3 +34,4 @@ snakeviz
 # add one after you've tested it and found it to be actually useful.
 
 ipython     # nuff said
+

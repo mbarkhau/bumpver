@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: MIT
 
 import os
+import sys
 import setuptools
 
 
@@ -25,7 +26,15 @@ install_requires = [
 ]
 
 
-long_description = "\n\n".join((read("README.md"), read("CONTRIBUTING.md"), read("CHANGELOG.md")))
+package_dir = {"": "src"}
+
+
+if any(arg.startswith("bdist") for arg in sys.argv):
+    import lib3to6
+    package_dir = lib3to6.fix(package_dir)
+
+
+long_description = "\n\n".join((read("README.md"), read("CHANGELOG.md")))
 
 
 setuptools.setup(
@@ -41,7 +50,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=["pycalver"],
-    package_dir={"": "src"},
+    package_dir=package_dir,
     install_requires=install_requires,
     entry_points="""
         [console_scripts]
@@ -60,6 +69,9 @@ setuptools.setup(
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS :: MacOS X",
         "Programming Language :: Python",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: Implementation :: CPython",

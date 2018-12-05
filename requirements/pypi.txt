@@ -10,3 +10,4 @@
 pathlib2
 typing
 click
+toml
