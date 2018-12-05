@@ -3,17 +3,6 @@
 set -Ee -o pipefail;
 shopt -s extglob nocasematch;
 
-if [[ -f "$PROJECT_DIR/.git/config" ]]; then
-    OLD_PWD="$PWD"
-    cd "$PROJECT_DIR";
-    if [[ $( git diff -s --exit-code || echo "$?" ) -gt 0 ]]; then
-        echo "ABORTING!: Your repo has local changes which are not comitted."
-        echo "To avoid overwriting these changes, please commit your changes."
-        exit 1;
-    fi
-    cd "$OLD_PWD";
-fi
-
 BOOTSTRAPIT_GIT_URL="https://gitlab.com/mbarkhau/bootstrapit.git/"
 
 BOOTSTRAPIT_GIT_PATH=/tmp/bootstrapit;
@@ -29,20 +18,63 @@ else
     cd "$OLD_PWD";
 fi
 
-md5sum=$(which md5sum || which md5)
+BOOTSTRAPIT_DEBUG=0
 
-old_md5=$( cat "$PROJECT_DIR/scripts/bootstrapit_update.sh" | $md5sum );
-new_md5=$( cat "$BOOTSTRAPIT_GIT_PATH/scripts/bootstrapit_update.sh" | $md5sum );
+if [[ $BOOTSTRAPIT_DEBUG == 0 ]]; then
+    if [[ -f "$PROJECT_DIR/.git/config" ]]; then
+        OLD_PWD="$PWD"
+        cd "$PROJECT_DIR";
+        if [[ $( git diff -s --exit-code || echo "$?" ) -gt 0 ]]; then
+            echo "ABORTING!: Your repo has local changes which are not comitted."
+            echo "To avoid overwriting these changes, please commit your changes."
+            exit 1;
+        fi
+        cd "$OLD_PWD";
+    fi
 
-if [[ "$old_md5" != "$new_md5" ]]; then
-    # Copy the updated file, run it and exit the current execution.
-    cp "${BOOTSTRAPIT_GIT_PATH}/scripts/bootstrapit_update.sh" \
-        "${PROJECT_DIR}/scripts/";
-    git add "${PROJECT_DIR}/scripts/bootstrapit_update.sh";
-    git commit --no-verify -m "auto update of scripts/bootstrapit_update.sh"
-    # shellcheck source=scripts/bootstrapit_update.sh
-    source "${PROJECT_DIR}/scripts/bootstrapit_update.sh";
-    exit 0;
+    md5sum=$(which md5sum || which md5)
+
+    old_md5=$( cat "$PROJECT_DIR/scripts/bootstrapit_update.sh" | $md5sum );
+    new_md5=$( cat "$BOOTSTRAPIT_GIT_PATH/scripts/bootstrapit_update.sh" | $md5sum );
+
+    if [[ "$old_md5" != "$new_md5" ]]; then
+        # Copy the updated file, run it and exit the current execution.
+        cp "${BOOTSTRAPIT_GIT_PATH}/scripts/bootstrapit_update.sh" \
+            "${PROJECT_DIR}/scripts/";
+        git add "${PROJECT_DIR}/scripts/bootstrapit_update.sh";
+        git commit --no-verify -m "auto update of scripts/bootstrapit_update.sh"
+        # shellcheck source=scripts/bootstrapit_update.sh
+        source "${PROJECT_DIR}/scripts/bootstrapit_update.sh";
+        exit 0;
+    fi
+fi
+
+
+# Argument parsing from
+# https://stackoverflow.com/a/14203146/62997
+UPDATE_ALL=0
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -a|--all)
+    UPDATE_ALL=1
+    shift # past argument
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+if [[ -z $AUTHOR_EMAIL && ! -z $AUTHOR_CONTACT ]]; then
+    AUTHOR_EMAIL="${AUTHOR_CONTACT}"
 fi
 
 YEAR=$(date +%Y)
@@ -50,8 +82,9 @@ MONTH=$(date +%m)
 
 declare -a required_config_param_names=(
     "AUTHOR_NAME"
-    "AUTHOR_CONTACT"
+    "AUTHOR_EMAIL"
     "PACKAGE_NAME"
+    "IS_PUBLIC"
     "GIT_REPO_NAMESPACE"
     "GIT_REPO_DOMAIN"
     "DESCRIPTION"
@@ -70,8 +103,16 @@ if [[ -z $MODULE_NAME ]]; then
     MODULE_NAME=${PACKAGE_NAME};
 fi
 
+if [[ -z $PACKAGE_VERSION ]]; then
+    PACKAGE_VERSION="$(date + 'v%Y%m.0001-alpha')"
+fi
+
 if [[ -z $DEFAULT_PYTHON_VERSION ]]; then
     DEFAULT_PYTHON_VERSION="python=3.6";
+fi
+
+if [[ -z $SUPPORTED_PYTHON_VERSIONS ]]; then
+    SUPPORTED_PYTHON_VERSIONS=${DEFAULT_PYTHON_VERSION};
 fi
 
 if [[ -z $SPDX_LICENSE_ID ]]; then
@@ -149,7 +190,7 @@ if [[ -z $LICENSE_CLASSIFIER ]]; then
 fi
 
 if [[ -z "$COPYRIGHT_STRING" ]]; then
-    COPYRIGHT_STRING="Copyright (c) ${YEAR} ${AUTHOR_NAME} (${AUTHOR_CONTACT}) - ${LICENSE_NAME}";
+    COPYRIGHT_STRING="Copyright (c) ${YEAR} ${AUTHOR_NAME} (${AUTHOR_EMAIL}) - ${LICENSE_NAME}";
 fi
 
 if [[ -z "$SETUP_PY_LICENSE" ]]; then
@@ -189,8 +230,16 @@ if [[ -z "$DOCKER_REGISTRY_DOMAIN" ]]; then
     fi
 fi
 
+if [[ -z "$DOCKER_ROOT_IMAGE" ]]; then
+    DOCKER_ROOT_IMAGE=debian:stable-slim
+fi
+
+if [[ -z "$DOCKER_REGISTRY_URL" ]]; then
+    DOCKER_REGISTRY_URL=${DOCKER_REGISTRY_DOMAIN}/${GIT_REPO_NAMESPACE}/${PACKAGE_NAME}
+fi
+
 if [[ -z "$DOCKER_BASE_IMAGE" ]]; then
-    DOCKER_BASE_IMAGE=frolvlad/alpine-glibc
+    DOCKER_BASE_IMAGE=${DOCKER_REGISTRY_URL}/base:latest
 fi
 
 if [[ -z "$MODULE_NAME" ]]; then
@@ -211,8 +260,8 @@ if [[ "$LICENSE_ID" =~ "none" ]]; then
     echo "$COPYRIGHT_STRING" > "$PROJECT_DIR/LICENSE";
 else
     cat "$LICENSE_TXT_FILE" \
-        | sed "s/Copyright (c) <year> <owner>[[:space:]]*/Copyright (c) $YEAR $AUTHOR_NAME ($AUTHOR_CONTACT)/g" \
-        | sed "s/Copyright (c) <year> <copyright holders>[[:space:]]*/Copyright (c) $YEAR $AUTHOR_NAME ($AUTHOR_CONTACT)/g" \
+        | sed "s/Copyright (c) <year> <owner>[[:space:]]*/Copyright (c) $YEAR $AUTHOR_NAME ($AUTHOR_EMAIL)/g" \
+        | sed "s/Copyright (c) <year> <copyright holders>[[:space:]]*/Copyright (c) $YEAR $AUTHOR_NAME ($AUTHOR_EMAIL)/g" \
         > "$PROJECT_DIR/LICENSE";
 fi
 
@@ -225,12 +274,18 @@ function format_template()
         | sed "s;\${GIT_REPO_NAME};${GIT_REPO_NAME};g" \
         | sed "s;\${GIT_REPO_DOMAIN};${GIT_REPO_DOMAIN};g" \
         | sed "s;\${DEFAULT_PYTHON_VERSION};${DEFAULT_PYTHON_VERSION};g" \
+        | sed "s;\${SUPPORTED_PYTHON_VERSIONS};${SUPPORTED_PYTHON_VERSIONS};g" \
         | sed "s;\${DOCKER_REGISTRY_DOMAIN};${DOCKER_REGISTRY_DOMAIN};g" \
+        | sed "s;\${DOCKER_REGISTRY_URL};${DOCKER_REGISTRY_URL};g" \
+        | sed "s;\${DOCKER_ROOT_IMAGE};${DOCKER_ROOT_IMAGE};g" \
         | sed "s;\${DOCKER_BASE_IMAGE};${DOCKER_BASE_IMAGE};g" \
         | sed "s;\${PAGES_DOMAIN};${PAGES_DOMAIN};g" \
         | sed "s;\${PAGES_URL};${PAGES_URL};g" \
         | sed "s;\${AUTHOR_CONTACT};${AUTHOR_CONTACT};g" \
+        | sed "s;\${AUTHOR_EMAIL};${AUTHOR_EMAIL};g" \
         | sed "s;\${AUTHOR_NAME};${AUTHOR_NAME};g" \
+        | sed "s;\${PACKAGE_NAME};${PACKAGE_NAME};g" \
+        | sed "s;\${PACKAGE_VERSION};${PACKAGE_VERSION};g" \
         | sed "s;\${MODULE_NAME};${MODULE_NAME};g" \
         | sed "s;\${DESCRIPTION};${DESCRIPTION};g" \
         | sed "s;\${KEYWORDS};${KEYWORDS};g" \
@@ -240,11 +295,14 @@ function format_template()
         | sed "s;\${COPYRIGHT_STRING};${COPYRIGHT_STRING};g" \
         | sed "s;\${YEAR};${YEAR};g" \
         | sed "s;\${MONTH};${MONTH};g" \
+        | sed "s;\${IS_PUBLIC};${IS_PUBLIC};g" \
         > "$1.tmp";
     mv "$1.tmp" "$1";
 }
 
-if [[ -z "${IGNORE_IF_EXISTS[*]}" ]]; then
+if [[ "${UPDATE_ALL}" -eq "1" ]]; then
+    declare -a IGNORE_IF_EXISTS=()
+elif [[ -z "${IGNORE_IF_EXISTS[*]}" ]]; then
     declare -a IGNORE_IF_EXISTS=(
         "CHANGELOG.md"
         "README.md"
@@ -302,7 +360,9 @@ copy_template setup.cfg;
 copy_template makefile;
 copy_template makefile.config.make;
 copy_template makefile.extra.make;
+copy_template activate;
 copy_template docker_base.Dockerfile;
+copy_template Dockerfile;
 
 copy_template requirements/conda.txt;
 copy_template requirements/pypi.txt;
@@ -352,4 +412,6 @@ for src_file in $src_files; do
     mv "${src_file}.with_header" "$src_file";
 done
 
-rm /tmp/.py_license.header
+rm /tmp/.py_license.header;
+
+git status;
