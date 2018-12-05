@@ -5,14 +5,15 @@
 # Copyright (c) 2018 Manuel Barkhau (@mbarkhau) - MIT License
 # SPDX-License-Identifier: MIT
 """
-CLI module for pycalver.
+CLI module for PyCalVer.
 
-Provided subcommands: show, init, incr, bump
+Provided subcommands: show, incr, init, bump
 """
 
 import io
 import os
 import sys
+import toml
 import click
 import logging
 import typing as typ
@@ -25,6 +26,16 @@ from . import rewrite
 
 
 _VERBOSE = 0
+
+
+try:
+    import backtrace
+
+    # To enable pretty tracebacks:
+    #   echo "export ENABLE_BACKTRACE=1;" >> ~/.bashrc
+    backtrace.hook(align=True, strip_path=True, enable_on_envvar_only=True)
+except ImportError:
+    pass
 
 
 log = logging.getLogger("pycalver.cli")
@@ -53,12 +64,34 @@ def cli(verbose: int = 0):
     _VERBOSE = verbose
 
 
+@cli.command()
+@click.argument("old_version")
+@click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
+@click.option(
+    "--release", default=None, metavar="<name>", help="Override release name of current_version"
+)
+def incr(old_version: str, verbose: int = 0, release: str = None) -> None:
+    """Increment a version number for demo purposes."""
+    _init_logging(verbose=max(_VERBOSE, verbose))
+
+    if release and release not in parse.VALID_RELESE_VALUES:
+        log.error(f"Invalid argument --release={release}")
+        log.error(f"Valid arguments are: {', '.join(parse.VALID_RELESE_VALUES)}")
+        sys.exit(1)
+
+    new_version    = version.incr(old_version, release=release)
+    pep440_version = version.pycalver_to_pep440(new_version)
+
+    print("PyCalVer Version:", new_version)
+    print("PEP440 Version:"  , pep440_version)
+
+
 def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     try:
         _vcs = vcs.get_vcs()
         log.debug(f"vcs found: {_vcs.name}")
         if fetch:
-            log.debug(f"fetching from remote")
+            log.info(f"fetching tags from remote")
             _vcs.fetch()
 
         version_tags = [tag for tag in _vcs.ls_tags() if parse.PYCALVER_RE.match(tag)]
@@ -83,10 +116,11 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 @click.option('-f', "--fetch/--no-fetch", is_flag=True, default=True)
 def show(verbose: int = 0, fetch: bool = True) -> None:
     """Show current version."""
-    verbose = max(_VERBOSE, verbose)
-    _init_logging(verbose=verbose)
+    _init_logging(verbose=max(_VERBOSE, verbose))
 
-    cfg: config.MaybeConfig = config.parse()
+    ctx: config.ProjectContext = config.init_project_ctx(project_path=".")
+    cfg: config.MaybeConfig    = config.parse(ctx)
+
     if cfg is None:
         log.error("Could not parse configuration from setup.cfg")
         sys.exit(1)
@@ -98,60 +132,28 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
 
 
 @cli.command()
-@click.argument("old_version")
-@click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
-@click.option(
-    "--release", default=None, metavar="<name>", help="Override release name of current_version"
-)
-def incr(old_version: str, verbose: int = 0, release: str = None) -> None:
-    """Increment a version number for demo purposes."""
-    verbose = max(_VERBOSE, verbose)
-    _init_logging(verbose)
-
-    if release and release not in parse.VALID_RELESE_VALUES:
-        log.error(f"Invalid argument --release={release}")
-        log.error(f"Valid arguments are: {', '.join(parse.VALID_RELESE_VALUES)}")
-        sys.exit(1)
-
-    new_version     = version.incr(old_version, release=release)
-    new_version_nfo = parse.VersionInfo.parse(new_version)
-
-    print("PyCalVer Version:", new_version)
-    print("PEP440 Version:"  , new_version_nfo.pep440_version)
-
-
-@cli.command()
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 @click.option(
     "--dry", default=False, is_flag=True, help="Display diff of changes, don't rewrite files."
 )
 def init(verbose: int = 0, dry: bool = False) -> None:
     """Initialize [pycalver] configuration."""
-    verbose = max(_VERBOSE, verbose)
-    _init_logging(verbose)
+    _init_logging(verbose=max(_VERBOSE, verbose))
 
-    cfg   : config.MaybeConfig = config.parse()
+    ctx: config.ProjectContext = config.init_project_ctx(project_path=".")
+    cfg: config.MaybeConfig    = config.parse(ctx)
+
     if cfg:
-        log.error("Configuration already initialized in setup.cfg")
+        log.error("Configuration already initialized in {cfg.filename}")
         sys.exit(1)
-
-    cfg_lines = config.default_config_lines()
 
     if dry:
         print("Exiting because of '--dry'. Would have written to setup.cfg:")
+        cfg_lines = config.default_config(output_fmt)
         print("\n    " + "\n    ".join(cfg_lines))
         return
 
-    if os.path.exists("setup.cfg"):
-        cfg_content = "\n" + "\n".join(cfg_lines)
-        with io.open("setup.cfg", mode="at", encoding="utf-8") as fh:
-            fh.write(cfg_content)
-        print("Updated setup.cfg")
-    else:
-        cfg_content = "\n".join(cfg_lines)
-        with io.open("setup.cfg", mode="at", encoding="utf-8") as fh:
-            fh.write(cfg_content)
-        print("Created setup.cfg")
+    config.write_default_config()
 
 
 def _assert_not_dirty(vcs, filepaths: typ.Set[str], allow_dirty: bool):
@@ -238,7 +240,8 @@ def bump(
         log.error(f"Valid arguments are: {', '.join(parse.VALID_RELESE_VALUES)}")
         sys.exit(1)
 
-    cfg: config.MaybeConfig = config.parse()
+    ctx: config.ProjectContext = config.init_project_ctx(project_path=".")
+    cfg: config.MaybeConfig    = config.parse(ctx)
 
     if cfg is None:
         log.error("Could not parse configuration from setup.cfg")

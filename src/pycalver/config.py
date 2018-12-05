@@ -7,55 +7,91 @@
 
 import io
 import os
+import toml
 import configparser
-import pkg_resources
 import typing as typ
+import pathlib2 as pl
 import datetime as dt
 
 import logging
 
 from .parse import PYCALVER_RE
+from . import version
 
 log = logging.getLogger("pycalver.config")
 
 PatternsByFilePath = typ.Dict[str, typ.List[str]]
 
 
+class ProjectContext(typ.NamedTuple):
+    """Container class for project info."""
+
+    path           : pl.Path
+    config_filepath: pl.Path
+    config_format  : str
+    vcs_type       : typ.Optional[str]
+
+
+def init_project_ctx(project_path: typ.Union[str, pl.Path, None] = ".") -> ProjectContext:
+    """Initialize ProjectContext from a path."""
+    if isinstance(project_path, str):
+        path = pl.Path(project_path)
+    else:
+        path = project_path
+
+    if (path / "pyproject.toml").exists():
+        config_filepath = path / "pyproject.toml"
+        config_format   = 'toml'
+    if (path / "setup.cfg").exists():
+        config_filepath = path / "setup.cfg"
+        config_format   = 'cfg'
+    else:
+        config_filepath = path / "pycalver.toml"
+        config_format   = 'toml'
+
+    if (path / ".git").exists():
+        vcs_type = 'git'
+    elif (path / ".hg").exists():
+        vcs_type = 'hg'
+    else:
+        vcs_type = None
+
+    return ProjectContext(path, config_filepath, config_format, vcs_type)
+
+
+RawConfig = typ.Dict[str, typ.Any]
+
+
 class Config(typ.NamedTuple):
-    """Represents a parsed config."""
+    """Container for parameters parsed from a config file."""
 
     current_version: str
+    pep440_version : str
 
     tag   : bool
     commit: bool
+    push: bool
 
     file_patterns: PatternsByFilePath
 
-    def _debug_str(self) -> str:
-        cfg_str_parts = [
-            f"Config Parsed: Config(",
-            f"current_version='{self.current_version}'",
-            f"tag={self.tag}",
-            f"commit={self.commit}",
-            f"file_patterns={{",
-        ]
 
-        for filename, patterns in self.file_patterns.items():
-            for pattern in patterns:
-                cfg_str_parts.append(f"\n    '{filename}': '{pattern}'")
+def _debug_str(cfg: Config) -> str:
+    cfg_str_parts = [
+        f"Config Parsed: Config(",
+        f"current_version='{cfg.current_version}'",
+        f"pep440_version='{cfg.pep440_version}'",
+        f"tag={cfg.tag}",
+        f"commit={cfg.commit}",
+        f"push={cfg.push}",
+        f"file_patterns={{",
+    ]
 
-        cfg_str_parts += ["\n})"]
-        return ", ".join(cfg_str_parts)
+    for filepath, patterns in cfg.file_patterns.items():
+        for pattern in patterns:
+            cfg_str_parts.append(f"\n    '{filepath}': '{pattern}'")
 
-    @property
-    def pep440_version(self) -> str:
-        """Derive pep440 compliant version string from PyCalVer version string.
-
-        >>> cfg = Config("v201811.0007-beta", True, True, [])
-        >>> cfg.pep440_version
-        '201811.7b0'
-        """
-        return str(pkg_resources.parse_version(self.current_version))
+    cfg_str_parts += ["\n})"]
+    return ", ".join(cfg_str_parts)
 
 
 MaybeConfig = typ.Optional[Config]
@@ -63,159 +99,278 @@ MaybeConfig = typ.Optional[Config]
 FilePatterns = typ.Dict[str, typ.List[str]]
 
 
-def _parse_file_patterns(
-    cfg_parser: configparser.RawConfigParser, config_filename: str
-) -> typ.Optional[FilePatterns]:
+def _parse_cfg_file_patterns(
+    cfg_parser: configparser.RawConfigParser,
+) -> FilePatterns:
 
     file_patterns: FilePatterns = {}
 
-    section_name: str
-    for section_name in cfg_parser.sections():
-        if not section_name.startswith("pycalver:file:"):
-            continue
+    for filepath, patterns_str in cfg_parser.items("pycalver:file_patterns"):
+        patterns: typ.List[str] = []
+        for line in patterns_str.splitlines():
+            pattern = line.strip()
+            if pattern:
+                patterns.append(pattern)
 
-        filepath = section_name.split(":", 2)[-1]
-        if not os.path.exists(filepath):
-            log.error(f"No such file: {filepath} from {section_name} in {config_filename}")
-            return None
-
-        section: typ.Dict[str, str] = dict(cfg_parser.items(section_name))
-        patterns = section.get("patterns")
-
-        if patterns is None:
-            file_patterns[filepath] = ["{version}", "{pep440_version}"]
-        else:
-            file_patterns[filepath] = [
-                line.strip() for line in patterns.splitlines() if line.strip()
-            ]
-
-    if not file_patterns:
-        file_patterns[f"{config_filename}"] = ["{version}", "{pep440_version}"]
+        file_patterns[filepath] = patterns
 
     return file_patterns
 
 
-def _parse_buffer(cfg_buffer: io.StringIO, config_filename: str = "<pycalver.cfg>") -> MaybeConfig:
+def _parse_cfg_option(option_name):
+    # preserve uppercase filenames
+    return option_name
+
+
+def _parse_cfg(cfg_buffer: typ.TextIO) -> RawConfig:
     cfg_parser = configparser.RawConfigParser()
+    cfg_parser.optionxform = _parse_cfg_option
 
     if hasattr(cfg_parser, 'read_file'):
         cfg_parser.read_file(cfg_buffer)
     else:
-        cfg_parser.readfp(cfg_buffer)
+        cfg_parser.readfp(cfg_buffer)  # python2 compat
 
     if not cfg_parser.has_section("pycalver"):
-        log.error(f"{config_filename} does not contain a [pycalver] section.")
+        log.error("Missing [pycalver] section.")
         return None
 
-    base_cfg = dict(cfg_parser.items("pycalver"))
+    raw_cfg = dict(cfg_parser.items("pycalver"))
 
-    if "current_version" not in base_cfg:
-        log.error(f"{config_filename} does not have 'pycalver.current_version'")
-        return None
+    raw_cfg['commit'] = raw_cfg.get('commit', False)
+    raw_cfg['tag'   ] = raw_cfg.get('tag'   , None)
+    raw_cfg['push'  ] = raw_cfg.get('push'  , None)
 
-    current_version = base_cfg['current_version']
+    if isinstance(raw_cfg['commit'], str):
+        raw_cfg['commit'] = raw_cfg['commit'].lower() in ("yes", "true", "1", "on")
+    if isinstance(raw_cfg['tag'], str):
+        raw_cfg['tag'] = raw_cfg['tag'].lower() in ("yes", "true", "1", "on")
+    if isinstance(raw_cfg['push'], str):
+        raw_cfg['push'] = raw_cfg['push'].lower() in ("yes", "true", "1", "on")
 
-    if PYCALVER_RE.match(current_version) is None:
-        log.error(f"{config_filename} 'pycalver.current_version is invalid")
-        log.error(f"current_version = {current_version}")
-        return None
+    raw_cfg['file_patterns'] = _parse_cfg_file_patterns(cfg_parser)
 
-    tag    = base_cfg.get("tag"   , "").lower() in ("yes", "true", "1", "on")
-    commit = base_cfg.get("commit", "").lower() in ("yes", "true", "1", "on")
+    return raw_cfg
 
-    file_patterns = _parse_file_patterns(cfg_parser, config_filename)
 
-    if file_patterns is None:
-        return None
+def _parse_toml(cfg_buffer: typ.TextIO) -> RawConfig:
+    raw_full_cfg = toml.load(cfg_buffer)
+    raw_cfg = raw_full_cfg.get('pycalver', {})
+
+    raw_cfg['commit'] = raw_cfg.get('commit', False)
+    raw_cfg['tag'   ] = raw_cfg.get('tag'   , None)
+    raw_cfg['push'  ] = raw_cfg.get('push'  , None)
+
+    return raw_cfg
+
+
+def _parse_config(raw_cfg: RawConfig) -> Config:
+    if 'current_version' not in raw_cfg:
+        raise ValueError("Missing 'pycalver.current_version'")
+
+    version_str = raw_cfg['current_version']
+    version_str = raw_cfg['current_version'] = version_str.strip("'\" ")
+
+    if PYCALVER_RE.match(version_str) is None:
+        raise ValueError(f"Invalid current_version = {version_str}")
+
+    pep440_version = version.pycalver_to_pep440(version_str)
+
+    commit = raw_cfg['commit']
+    tag    = raw_cfg['tag']
+    push   = raw_cfg['push']
+
+    if tag is None:
+        tag = raw_cfg['tag'] = False
+    if push is None:
+        push = raw_cfg['push'] = False
 
     if tag and not commit:
-        log.error(f"Invalid configuration in {config_filename}")
-        log.error("     pycalver.commit = True required if pycalver.tag = True")
-        return None
+        raise ValueError("pycalver.commit = true required if pycalver.tag = true")
 
-    cfg = Config(current_version, tag, commit, file_patterns)
+    if push and not commit:
+        raise ValueError("pycalver.commit = true required if pycalver.push = true")
 
-    log.debug(cfg._debug_str())
+    file_patterns = raw_cfg['file_patterns']
 
+    for filepath in file_patterns.keys():
+        if not os.path.exists(filepath):
+            log.warning(f"Invalid configuration, no such file: {filepath}")
+
+    cfg = Config(version_str, pep440_version, tag, commit, push, file_patterns)
+    log.debug(_debug_str(cfg))
     return cfg
 
 
-def parse(config_filepath: str = None) -> MaybeConfig:
-    """Parse config file using configparser."""
-    if config_filepath is None:
-        if os.path.exists("pycalver.cfg"):
-            config_filepath = "pycalver.cfg"
-        elif os.path.exists("setup.cfg"):
-            config_filepath = "setup.cfg"
-        else:
-            log.error("File not found: pycalver.cfg or setup.cfg")
-            return None
-
-    if not os.path.exists(config_filepath):
-        log.error(f"File not found: {config_filepath}")
+def parse(ctx: ProjectContext) -> MaybeConfig:
+    """Parse config file if available."""
+    if not ctx.config_filepath.exists():
+        log.error(f"File not found: {ctx.config_filepath}")
         return None
 
-    cfg_buffer = io.StringIO()
-    with io.open(config_filepath, mode="rt", encoding="utf-8") as fh:
-        cfg_buffer.write(fh.read())
+    raw_cfg: typ.Optional[RawConfig]
 
-    cfg_buffer.seek(0)
-    return _parse_buffer(cfg_buffer, config_filepath)
+    try:
+        with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fh:
+            if ctx.config_format == 'toml':
+                raw_cfg = _parse_toml(fh)
+            elif ctx.config_format == 'cfg':
+                raw_cfg = _parse_cfg(fh)
+            else:
+                return None
+
+        return _parse_config(raw_cfg)
+    except ValueError as ex:
+        log.error(f"Error parsing {ctx.config_filepath}: {str(ex)}")
+        return None
 
 
-DEFAULT_CONFIG_BASE_STR = """
+DEFAULT_CONFIGPARSER_BASE_STR = """
 [pycalver]
-current_version = {initial_version}
+current_version = "{initial_version}"
 commit = True
 tag = True
-
-[pycalver:file:setup.cfg]
-patterns =
-    current_version = {{version}}
+push = True
+[pycalver:file_patterns]
 """
 
 
-DEFAULT_CONFIG_SETUP_PY_STR = """
-[pycalver:file:setup.py]
-patterns =
+DEFAULT_CONFIGPARSER_SETUP_CFG_STR = """
+setup.cfg =
+    current_version = "{{version}}"
+"""
+
+
+DEFAULT_CONFIGPARSER_SETUP_PY_STR = """
+setup.py =
     "{version}"
     "{pep440_version}"
 """
 
 
-DEFAULT_CONFIG_README_RST_STR = """
-[pycalver:file:README.rst]
-patterns =
-    {version}
-    {pep440_version}
+DEFAULT_CONFIGPARSER_README_RST_STR = """
+README.rst =
+    "{version}"
+    "{pep440_version}"
 """
 
 
-DEFAULT_CONFIG_README_MD_STR = """
-[pycalver:file:README.md]
-patterns =
-    {version}
-    {pep440_version}
+DEFAULT_CONFIGPARSER_README_MD_STR = """
+README.md =
+    "{version}"
+    "{pep440_version}"
 """
 
 
-def default_config_lines() -> typ.List[str]:
-    """Generate initial default config based on PWD and current date."""
+DEFAULT_TOML_BASE_STR = """
+[pycalver]
+current_version = "{initial_version}"
+commit = true
+tag = true
+push = true
+[pycalver.file_patterns]
+"""
+
+
+DEFAULT_TOML_PYCALVER_STR = """
+"pycalver.toml" = [
+    'current_version = "{{version}}"',
+]
+"""
+
+
+DEFAULT_TOML_PYPROJECT_STR = """
+"pyproject.toml" = [
+    'current_version = "{{version}}"',
+]
+"""
+
+
+DEFAULT_TOML_SETUP_PY_STR = """
+"setup.py" = [
+    "{version}",
+    "{pep440_version}",
+]
+"""
+
+
+DEFAULT_TOML_README_RST_STR = """
+"README.rst" = [
+    "{version}",
+    "{pep440_version}",
+]
+"""
+
+
+DEFAULT_TOML_README_MD_STR = """
+"README.md" = [
+    "{version}",
+    "{pep440_version}",
+]
+"""
+
+
+def default_config(ctx: ProjectContext) -> str:
+    """Generate initial default config."""
+    if ctx.config_format == 'cfg':
+        base_str = DEFAULT_CONFIGPARSER_BASE_STR
+
+        default_pattern_strs_by_filename = {
+            "setup.cfg" : DEFAULT_CONFIGPARSER_SETUP_CFG_STR,
+            "setup.py"  : DEFAULT_CONFIGPARSER_SETUP_PY_STR,
+            "README.rst": DEFAULT_CONFIGPARSER_README_RST_STR,
+            "README.md" : DEFAULT_CONFIGPARSER_README_MD_STR,
+        }
+    elif ctx.config_format == 'toml':
+        base_str = DEFAULT_TOML_BASE_STR
+
+        default_pattern_strs_by_filename = {
+            "pyproject.toml": DEFAULT_TOML_PYPROJECT_STR,
+            "pycalver.toml" : DEFAULT_TOML_PYCALVER_STR,
+            "setup.py"      : DEFAULT_TOML_SETUP_PY_STR,
+            "README.rst"    : DEFAULT_TOML_README_RST_STR,
+            "README.md"     : DEFAULT_TOML_README_MD_STR,
+        }
+    else:
+        raise ValueError(f"Invalid fmt='{fmt}', must be either 'toml' or 'cfg'.")
+
     initial_version = dt.datetime.now().strftime("v%Y%m.0001-dev")
 
-    cfg_str = DEFAULT_CONFIG_BASE_STR.format(initial_version=initial_version)
+    cfg_str = base_str.format(initial_version=initial_version)
 
-    cfg_lines = cfg_str.splitlines()
+    for filename, default_str in default_pattern_strs_by_filename.items():
+        if (ctx.path / filename).exists():
+            cfg_str += default_str
 
-    if os.path.exists("setup.py"):
-        cfg_lines.extend(DEFAULT_CONFIG_SETUP_PY_STR.splitlines())
+    has_config_file = (
+        (ctx.path / "setup.cfg").exists() or
+        (ctx.path / "pyproject.toml").exists() or
+        (ctx.path / "pycalver.toml").exists()
+    )
 
-    if os.path.exists("README.rst"):
-        cfg_lines.extend(DEFAULT_CONFIG_README_RST_STR.splitlines())
+    if not has_config_file:
+        if ctx.config_format == 'cfg':
+            cfg_str += DEFAULT_CONFIGPARSER_SETUP_CFG_STR
+        if ctx.config_format == 'toml':
+            cfg_str += DEFAULT_TOML_PYCALVER_STR
 
-    if os.path.exists("README.md"):
-        cfg_lines.extend(DEFAULT_CONFIG_README_MD_STR.splitlines())
+    cfg_str += "\n"
 
-    cfg_lines += [""]
+    return cfg_str
 
-    return cfg_lines
+
+def write_content(cfg: Config) -> None:
+    cfg_content = "\n" + "\n".join(cfg_lines)
+    if os.path.exists("pyproject.toml"):
+        with io.open("pyproject.toml", mode="at", encoding="utf-8") as fh:
+            fh.write(cfg_content)
+        print("Updated pyproject.toml")
+    elif os.path.exists("setup.cfg"):
+        with io.open("setup.cfg", mode="at", encoding="utf-8") as fh:
+            fh.write(cfg_content)
+        print("Updated setup.cfg")
+    else:
+        cfg_content = "\n".join(cfg_lines)
+        with io.open("pycalver.toml", mode="at", encoding="utf-8") as fh:
+            fh.write(cfg_content)
+        print("Created pycalver.toml")
