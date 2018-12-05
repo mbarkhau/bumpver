@@ -2,45 +2,127 @@ import io
 
 from pycalver import config
 
+from . import util as test_util
 
-def test_parse_default_config():
+
+PYCALVER_TOML_FIXTURE = """
+[pycalver]
+current_version = "v201808.0123-dev"
+commit = true
+tag = true
+push = true
+
+[pycalver.file_patterns]
+"setup.py" = [
+    "{version}",
+    "{pep440_version}",
+]
+"pycalver.toml" = [
+    'current_version = "{version}"',
+]
+"""
+
+
+SETUP_CFG_FIXTURE = """
+[pycalver]
+current_version = "v201808.0456-dev"
+commit = True
+tag = True
+push = True
+
+[pycalver:file_patterns]
+setup.py =
+    {version}
+    {pep440_version}
+setup.cfg =
+    current_version = "{version}"
+"""
+
+
+def mk_buf(text):
     buf = io.StringIO()
-    for line in config.default_config_lines():
-        buf.write(line + "\n")
-
+    buf.write(text)
     buf.seek(0)
-    cfg = config._parse_buffer(buf)
+    return buf
+
+
+def test_parse_toml():
+    buf = mk_buf(PYCALVER_TOML_FIXTURE)
+
+    raw_cfg = config._parse_toml(buf)
+    cfg     = config._parse_config(raw_cfg)
+
+    assert cfg.current_version == "v201808.0123-dev"
+    assert cfg.commit is True
+    assert cfg.tag    is True
+    assert cfg.push   is True
+
+    assert "pycalver.toml" in cfg.file_patterns
+    assert cfg.file_patterns["setup.py"     ] == ["{version}", "{pep440_version}"]
+    assert cfg.file_patterns["pycalver.toml"] == ['current_version = "{version}"']
+
+
+def test_parse_cfg():
+    buf = mk_buf(SETUP_CFG_FIXTURE)
+
+    raw_cfg = config._parse_cfg(buf)
+    cfg     = config._parse_config(raw_cfg)
+
+    assert cfg.current_version == "v201808.0456-dev"
+    assert cfg.commit is True
+    assert cfg.tag    is True
+    assert cfg.push   is True
+
+    assert "setup.cfg" in cfg.file_patterns
+    assert cfg.file_patterns["setup.py" ] == ["{version}", "{pep440_version}"]
+    assert cfg.file_patterns["setup.cfg"] == ['current_version = "{version}"']
+
+
+def test_parse_default_toml():
+    project_path = test_util.FIXTURES_DIR / "project_a"
+    config_path  = test_util.FIXTURES_DIR / "project_a" / "pycalver.toml"
+
+    ctx = config.ProjectContext(project_path, config_path, "toml", None)
+    buf = mk_buf(config.default_config(ctx))
+
+    raw_cfg = config._parse_toml(buf)
+    cfg     = config._parse_config(raw_cfg)
 
     assert cfg
     assert cfg.current_version.endswith(".0001-dev")
-    assert cfg.tag
-    assert cfg.commit
+    assert cfg.commit is True
+    assert cfg.tag    is True
+    assert cfg.push   is True
 
-    # NOTE (mb 2018-11-10): These refer to the actual files
-    #   of the pycalver project. A different project would
-    #   have README.rst for example. To fully test this
-    #   we might create temporary projects.
     assert "setup.py" in cfg.file_patterns
-    assert "setup.cfg" in cfg.file_patterns
     assert "README.md" in cfg.file_patterns
+    assert "pycalver.toml" in cfg.file_patterns
 
 
-def test_parse(tmpdir):
+def test_parse_default_cfg():
+    project_path = test_util.FIXTURES_DIR / "project_a"
+    config_path  = test_util.FIXTURES_DIR / "project_a" / "setup.cfg"
+
+    ctx = config.ProjectContext(project_path, config_path, "cfg", None)
+    buf = mk_buf(config.default_config(ctx))
+
+    raw_cfg = config._parse_cfg(buf)
+    cfg     = config._parse_config(raw_cfg)
+
+    assert cfg
+    assert cfg.current_version.endswith(".0001-dev")
+    assert cfg.commit is True
+    assert cfg.tag    is True
+    assert cfg.push   is True
+
+    assert "setup.py" in cfg.file_patterns
+    assert "README.md" in cfg.file_patterns
+    assert "setup.cfg" in cfg.file_patterns
+
+
+def test_parse_cfg_file(tmpdir):
     setup_path = tmpdir.mkdir("minimal").join("setup.cfg")
-    setup_path.write(
-        "\n".join(
-            (
-                "[pycalver]",
-                "current_version = v201808.0001-dev",
-                "commit = False",
-                "tag = False",
-                "",
-                "[pycalver:file:setup.cfg]",
-                "patterns = ",
-                "    current_version = {version}",
-            )
-        )
-    )
+    setup_path.write(SETUP_CFG_FIXTURE)
 
     cfg = config.parse(str(setup_path))
 

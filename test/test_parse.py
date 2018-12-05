@@ -75,7 +75,7 @@ def test_re_pattern_parts():
 
 def test_parse_version_info():
     version_str = "v201712.0001-alpha"
-    version_nfo = parse.VersionInfo.parse(version_str)
+    version_nfo = parse.parse_version_info(version_str)
 
     assert version_nfo.pep440_version == "201712.1a0"
     assert version_nfo.version        == "v201712.0001-alpha"
@@ -86,7 +86,7 @@ def test_parse_version_info():
     assert version_nfo.release        == "-alpha"
 
     version_str = "v201712.0001"
-    version_nfo = parse.VersionInfo.parse(version_str)
+    version_nfo = parse.parse_version_info(version_str)
 
     assert version_nfo.pep440_version == "201712.1"
     assert version_nfo.version        == "v201712.0001"
@@ -111,7 +111,7 @@ def test_default_parse_patterns():
     lines    = SETUP_PY_FIXTURE.splitlines()
     patterns = ["{version}", "{pep440_version}"]
 
-    matches = list(parse.PatternMatch.iter_matches(lines, patterns))
+    matches = list(parse.iter_matches(lines, patterns))
     assert len(matches) == 2
 
     assert matches[0].lineno == 3
@@ -129,7 +129,7 @@ def test_explicit_parse_patterns():
 
     patterns = ["__version__ = '{version}'", "version='{pep440_version}'"]
 
-    matches = list(parse.PatternMatch.iter_matches(lines, patterns))
+    matches = list(parse.iter_matches(lines, patterns))
     assert len(matches) == 2
 
     assert matches[0].lineno == 3
@@ -156,7 +156,7 @@ def test_badge_parse_patterns():
 
     patterns = ["badge/CalVer-{calver}{build}-{release}-blue.svg", ":alt: CalVer {version}"]
 
-    matches = list(parse.PatternMatch.iter_matches(lines, patterns))
+    matches = list(parse.iter_matches(lines, patterns))
     assert len(matches) == 2
 
     assert matches[0].lineno == 3

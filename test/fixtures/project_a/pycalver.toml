@@ -1,0 +1,10 @@
+[pycalver]
+current_version = "{initial_version}"
+commit = true
+tag = true
+
+[pycalver.file_patterns]
+"README.md" = [
+    "{version}",
+    "{pep440_version}",
+]
