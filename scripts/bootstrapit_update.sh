@@ -231,7 +231,11 @@ if [[ -z "$DOCKER_REGISTRY_DOMAIN" ]]; then
 fi
 
 if [[ -z "$DOCKER_ROOT_IMAGE" ]]; then
-    DOCKER_ROOT_IMAGE=debian:stable-slim
+    DOCKER_ROOT_IMAGE=registry.gitlab.com/mbarkhau/bootstrapit/root
+fi
+
+if [[ -z "$DOCKER_ENV_BUILDER_IMAGE" ]]; then
+    DOCKER_ENV_BUILDER_IMAGE=registry.gitlab.com/mbarkhau/bootstrapit/env_builder
 fi
 
 if [[ -z "$DOCKER_REGISTRY_URL" ]]; then
@@ -283,6 +287,7 @@ function format_template()
         | sed "s;\${DOCKER_REGISTRY_DOMAIN};${DOCKER_REGISTRY_DOMAIN};g" \
         | sed "s;\${DOCKER_REGISTRY_URL};${DOCKER_REGISTRY_URL};g" \
         | sed "s;\${DOCKER_ROOT_IMAGE};${DOCKER_ROOT_IMAGE};g" \
+        | sed "s;\${DOCKER_ENV_BUILDER_IMAGE};${DOCKER_ENV_BUILDER_IMAGE};g" \
         | sed "s;\${DOCKER_BASE_IMAGE};${DOCKER_BASE_IMAGE};g" \
         | sed "s;\${PAGES_DOMAIN};${PAGES_DOMAIN};g" \
         | sed "s;\${PAGES_URL};${PAGES_URL};g" \
