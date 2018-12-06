@@ -36,13 +36,14 @@ CONDA_BIN := $(CONDA_ROOT)/bin/conda
 ENV_PREFIX := $(CONDA_ROOT)/envs
 
 DEV_ENV_NAME := \
-	$(subst py,$(PKG_NAME)_py,$(subst .,,$(subst =,,$(subst thon,,$(DEVELOPMENT_PYTHON_VERSION)))))
+	$(subst pypy,$(PKG_NAME)_pypy,$(subst python=,$(PKG_NAME)_py,$(subst .,,$(DEVELOPMENT_PYTHON_VERSION))))
 
 CONDA_ENV_NAMES := \
-	$(subst py,$(PKG_NAME)_py,$(subst .,,$(subst =,,$(subst thon,,$(SUPPORTED_PYTHON_VERSIONS)))))
+	$(subst pypy,$(PKG_NAME)_pypy,$(subst python=,$(PKG_NAME)_py,$(subst .,,$(SUPPORTED_PYTHON_VERSIONS))))
 
 CONDA_ENV_PATHS := \
-	$(subst py,${ENV_PREFIX}/$(PKG_NAME)_py,$(subst .,,$(subst =,,$(subst thon,,$(SUPPORTED_PYTHON_VERSIONS)))))
+	$(subst pypy,${ENV_PREFIX}/$(PKG_NAME)_pypy,$(subst python=,${ENV_PREFIX}/$(PKG_NAME)_py,$(subst .,,$(SUPPORTED_PYTHON_VERSIONS))))
+
 
 literal_space := $() $()
 
