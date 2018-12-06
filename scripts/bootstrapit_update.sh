@@ -244,6 +244,7 @@ fi
 
 # strip off ":latest"
 # https://medium.com/@mccode/the-misunderstood-docker-tag-latest-af3babfd6375
+# https://vsupalov.com/docker-latest-tag/
 DOCKER_BASE_IMAGE="$(dirname ${DOCKER_BASE_IMAGE})"/"$(basename ${DOCKER_BASE_IMAGE} ':latest')";
 
 if [[ -z "$MODULE_NAME" ]]; then
