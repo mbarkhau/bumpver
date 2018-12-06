@@ -1,6 +1,5 @@
 
 PACKAGE_NAME := pycalver
-DOCKER_REGISTRY_URL := registry.gitlab.com/mbarkhau/pycalver
 
 # This is the python version that is used for:
 # - `make fmt`
@@ -19,4 +18,4 @@ DEVELOPMENT_PYTHON_VERSION := python=3.6
 # - python=3.7
 # - pypy2.7
 # - pypy3.5
-SUPPORTED_PYTHON_VERSIONS := python=2.7 python=3.4 python=3.6
+SUPPORTED_PYTHON_VERSIONS := python=2.7 python=3.5 python=3.6 python=3.7 pypy2.7 pypy3.5
