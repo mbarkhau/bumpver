@@ -5,7 +5,7 @@ stages:
 
 unit:
   stage: test
-  image: registry.gitlab.com/mbarkhau/pycalver/base:latest
+  image: registry.gitlab.com/mbarkhau/pycalver/base
   script:
     - make lint
     - make mypy

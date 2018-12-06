@@ -60,7 +60,10 @@ DEV_ENV_PY := $(DEV_ENV)/bin/python
 
 RSA_KEY_PATH := ${HOME}/.ssh/${PKG_NAME}_gitlab_runner_id_rsa
 
-DOCKER_BASE_IMAGE := registry.gitlab.com/mbarkhau/pycalver/base:latest
+DOCKER_BASE_IMAGE := registry.gitlab.com/mbarkhau/pycalver/base
+
+DOCKER_IMAGE_VERSION := $(shell date -u +'%Y%m%dt%H%M%S')_$(shell git rev-parse --short HEAD)
+
 
 build/envs.txt: requirements/conda.txt
 	@mkdir -p build/;
@@ -368,7 +371,7 @@ check:  fmt lint mypy test
 env_subshell:
 	@bash --init-file <(echo '\
 		source $$HOME/.bashrc; \
-		source $(CONDA_ROOT)/etc/profile.d/conda.sh; \
+		source $(CONDA_ROOT)/etc/profile.d/conda.sh \
 		export ENV=$${ENV-dev}; \
 		export PYTHONPATH="src/:vendor/:$$PYTHONPATH"; \
 		conda activate $(DEV_ENV_NAME) \
@@ -510,11 +513,13 @@ build_docker:
 		docker build \
 			--build-arg SSH_PRIVATE_RSA_KEY="$$(cat '${RSA_KEY_PATH}')" \
 			--file docker_base.Dockerfile \
+			--tag $(DOCKER_BASE_IMAGE):$(DOCKER_IMAGE_VERSION) \
 			--tag $(DOCKER_BASE_IMAGE) \
 			.; \
 	else \
 		docker build \
 			--file docker_base.Dockerfile \
+			--tag $(DOCKER_BASE_IMAGE):$(DOCKER_IMAGE_VERSION) \
 			--tag $(DOCKER_BASE_IMAGE) \
 			.; \
 	fi
