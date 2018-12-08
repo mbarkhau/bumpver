@@ -363,6 +363,7 @@ copy_template CONTRIBUTING.md;
 copy_template CHANGELOG.md;
 copy_template license.header;
 copy_template stubs/README.md;
+copy_template MANIFEST.in;
 
 copy_template setup.py;
 copy_template setup.cfg;
