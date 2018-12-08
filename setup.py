@@ -56,7 +56,6 @@ setuptools.setup(
         [console_scripts]
         pycalver=pycalver.__main__:cli
     """,
-    python_requires=">=3.6",
     zip_safe=True,
     classifiers=[
         "Development Status :: 4 - Beta",
