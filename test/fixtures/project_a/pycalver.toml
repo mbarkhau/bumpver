@@ -1,10 +1,16 @@
 [pycalver]
-current_version = "{initial_version}"
+current_version = "v201710.0123-alpha"
 commit = true
 tag = true
+push = true
 
 [pycalver.file_patterns]
+"pycalver.toml" = [
+    'current_version = "{version}"',
+]
+
 "README.md" = [
     "{version}",
     "{pep440_version}",
 ]
+
