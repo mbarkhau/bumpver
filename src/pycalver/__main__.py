@@ -10,10 +10,7 @@ CLI module for PyCalVer.
 Provided subcommands: show, incr, init, bump
 """
 
-import io
-import os
 import sys
-import toml
 import click
 import logging
 import typing as typ
@@ -144,16 +141,16 @@ def init(verbose: int = 0, dry: bool = False) -> None:
     cfg: config.MaybeConfig    = config.parse(ctx)
 
     if cfg:
-        log.error("Configuration already initialized in {cfg.filename}")
+        log.error("Configuration already initialized in {ctx.config_filepath}")
         sys.exit(1)
 
     if dry:
         print("Exiting because of '--dry'. Would have written to setup.cfg:")
-        cfg_lines = config.default_config(output_fmt)
+        cfg_lines = config.default_config(ctx)
         print("\n    " + "\n    ".join(cfg_lines))
         return
 
-    config.write_default_config()
+    config.write_content(ctx)
 
 
 def _assert_not_dirty(vcs, filepaths: typ.Set[str], allow_dirty: bool):

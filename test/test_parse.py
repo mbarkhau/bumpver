@@ -169,21 +169,25 @@ def test_badge_parse_patterns():
     assert matches[1].match == ":alt: CalVer v201809.0002-beta"
 
 
-def test_parse_error():
+def test_parse_error_empty():
     try:
-        parse.VersionInfo.parse("")
+        parse.parse_version_info("")
         assert False
     except ValueError as err:
         pass
 
+
+def test_parse_error_noprefix():
     try:
-        parse.VersionInfo.parse("201809.0002")
+        parse.parse_version_info("201809.0002")
         assert False
     except ValueError as err:
         pass
 
+
+def test_parse_error_nopadding():
     try:
-        parse.VersionInfo.parse("v201809.2b0")
+        parse.parse_version_info("v201809.2b0")
         assert False
     except ValueError as err:
         pass

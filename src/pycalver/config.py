@@ -22,6 +22,8 @@ log = logging.getLogger("pycalver.config")
 
 PatternsByFilePath = typ.Dict[str, typ.List[str]]
 
+SUPPORTED_CONFIGS = ["setup.cfg", "pyproject.toml", "pycalver.toml"]
+
 
 class ProjectContext(typ.NamedTuple):
     """Container class for project info."""
@@ -49,6 +51,8 @@ def init_project_ctx(project_path: typ.Union[str, pl.Path, None] = ".") -> Proje
         config_filepath = path / "pycalver.toml"
         config_format   = 'toml'
 
+    vcs_type: typ.Optional[str]
+
     if (path / ".git").exists():
         vcs_type = 'git'
     elif (path / ".hg").exists():
@@ -70,7 +74,7 @@ class Config(typ.NamedTuple):
 
     tag   : bool
     commit: bool
-    push: bool
+    push  : bool
 
     file_patterns: PatternsByFilePath
 
@@ -94,14 +98,13 @@ def _debug_str(cfg: Config) -> str:
     return ", ".join(cfg_str_parts)
 
 
-MaybeConfig = typ.Optional[Config]
+MaybeConfig    = typ.Optional[Config]
+MaybeRawConfig = typ.Optional[RawConfig]
 
 FilePatterns = typ.Dict[str, typ.List[str]]
 
 
-def _parse_cfg_file_patterns(
-    cfg_parser: configparser.RawConfigParser,
-) -> FilePatterns:
+def _parse_cfg_file_patterns(cfg_parser: configparser.RawConfigParser,) -> FilePatterns:
 
     file_patterns: FilePatterns = {}
 
@@ -117,14 +120,26 @@ def _parse_cfg_file_patterns(
     return file_patterns
 
 
-def _parse_cfg_option(option_name):
-    # preserve uppercase filenames
-    return option_name
+class _ConfigParser(configparser.RawConfigParser):
+    """Custom parser, simply to override optionxform behaviour."""
+
+    def optionxform(self, optionstr: str) -> str:
+        """Non-xforming (ie. uppercase preserving) override.
+
+        This is important because our option names are actually
+        filenames, so case sensitivity is relevant. The default
+        behaviour is to do optionstr.lower()
+        """
+        return optionstr
+
+
+OptionVal = typ.Union[str, bool, None]
+
+BOOL_OPTIONS: typ.Mapping[str, OptionVal] = {'commit': False, 'tag': None, 'push': None}
 
 
 def _parse_cfg(cfg_buffer: typ.TextIO) -> RawConfig:
-    cfg_parser = configparser.RawConfigParser()
-    cfg_parser.optionxform = _parse_cfg_option
+    cfg_parser = _ConfigParser()
 
     if hasattr(cfg_parser, 'read_file'):
         cfg_parser.read_file(cfg_buffer)
@@ -132,21 +147,15 @@ def _parse_cfg(cfg_buffer: typ.TextIO) -> RawConfig:
         cfg_parser.readfp(cfg_buffer)  # python2 compat
 
     if not cfg_parser.has_section("pycalver"):
-        log.error("Missing [pycalver] section.")
-        return None
+        raise ValueError("Missing [pycalver] section.")
 
-    raw_cfg = dict(cfg_parser.items("pycalver"))
+    raw_cfg: RawConfig = dict(cfg_parser.items("pycalver"))
 
-    raw_cfg['commit'] = raw_cfg.get('commit', False)
-    raw_cfg['tag'   ] = raw_cfg.get('tag'   , None)
-    raw_cfg['push'  ] = raw_cfg.get('push'  , None)
-
-    if isinstance(raw_cfg['commit'], str):
-        raw_cfg['commit'] = raw_cfg['commit'].lower() in ("yes", "true", "1", "on")
-    if isinstance(raw_cfg['tag'], str):
-        raw_cfg['tag'] = raw_cfg['tag'].lower() in ("yes", "true", "1", "on")
-    if isinstance(raw_cfg['push'], str):
-        raw_cfg['push'] = raw_cfg['push'].lower() in ("yes", "true", "1", "on")
+    for option, default_val in BOOL_OPTIONS.items():
+        val: OptionVal = raw_cfg.get(option, default_val)
+        if isinstance(val, str):
+            val = val.lower() in ("yes", "true", "1", "on")
+        raw_cfg[option] = val
 
     raw_cfg['file_patterns'] = _parse_cfg_file_patterns(cfg_parser)
 
@@ -155,11 +164,10 @@ def _parse_cfg(cfg_buffer: typ.TextIO) -> RawConfig:
 
 def _parse_toml(cfg_buffer: typ.TextIO) -> RawConfig:
     raw_full_cfg = toml.load(cfg_buffer)
-    raw_cfg = raw_full_cfg.get('pycalver', {})
+    raw_cfg      = raw_full_cfg.get('pycalver', {})
 
-    raw_cfg['commit'] = raw_cfg.get('commit', False)
-    raw_cfg['tag'   ] = raw_cfg.get('tag'   , None)
-    raw_cfg['push'  ] = raw_cfg.get('push'  , None)
+    for option, default_val in BOOL_OPTIONS.items():
+        raw_cfg[option] = raw_cfg.get(option, default_val)
 
     return raw_cfg
 
@@ -208,8 +216,6 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
         log.error(f"File not found: {ctx.config_filepath}")
         return None
 
-    raw_cfg: typ.Optional[RawConfig]
-
     try:
         with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fh:
             if ctx.config_format == 'toml':
@@ -231,6 +237,7 @@ current_version = "{initial_version}"
 commit = True
 tag = True
 push = True
+
 [pycalver:file_patterns]
 """
 
@@ -268,6 +275,7 @@ current_version = "{initial_version}"
 commit = true
 tag = true
 push = true
+
 [pycalver.file_patterns]
 """
 
@@ -312,7 +320,8 @@ DEFAULT_TOML_README_MD_STR = """
 
 def default_config(ctx: ProjectContext) -> str:
     """Generate initial default config."""
-    if ctx.config_format == 'cfg':
+    fmt = ctx.config_format
+    if fmt == 'cfg':
         base_str = DEFAULT_CONFIGPARSER_BASE_STR
 
         default_pattern_strs_by_filename = {
@@ -321,7 +330,7 @@ def default_config(ctx: ProjectContext) -> str:
             "README.rst": DEFAULT_CONFIGPARSER_README_RST_STR,
             "README.md" : DEFAULT_CONFIGPARSER_README_MD_STR,
         }
-    elif ctx.config_format == 'toml':
+    elif fmt == 'toml':
         base_str = DEFAULT_TOML_BASE_STR
 
         default_pattern_strs_by_filename = {
@@ -332,7 +341,7 @@ def default_config(ctx: ProjectContext) -> str:
             "README.md"     : DEFAULT_TOML_README_MD_STR,
         }
     else:
-        raise ValueError(f"Invalid fmt='{fmt}', must be either 'toml' or 'cfg'.")
+        raise ValueError(f"Invalid config_format='{fmt}', must be either 'toml' or 'cfg'.")
 
     initial_version = dt.datetime.now().strftime("v%Y%m.0001-dev")
 
@@ -342,11 +351,7 @@ def default_config(ctx: ProjectContext) -> str:
         if (ctx.path / filename).exists():
             cfg_str += default_str
 
-    has_config_file = (
-        (ctx.path / "setup.cfg").exists() or
-        (ctx.path / "pyproject.toml").exists() or
-        (ctx.path / "pycalver.toml").exists()
-    )
+    has_config_file = any((ctx.path / fn).exists() for fn in SUPPORTED_CONFIGS)
 
     if not has_config_file:
         if ctx.config_format == 'cfg':
@@ -359,7 +364,14 @@ def default_config(ctx: ProjectContext) -> str:
     return cfg_str
 
 
-def write_content(cfg: Config) -> None:
+def write_content(ctx: ProjectContext) -> None:
+    """Update project config file with initial default config."""
+    # path           : pl.Path
+    # config_filepath: pl.Path
+    # config_format  : str
+    # vcs_type       : typ.Optional[str]
+
+    cfg_lines   = default_config(ctx)
     cfg_content = "\n" + "\n".join(cfg_lines)
     if os.path.exists("pyproject.toml"):
         with io.open("pyproject.toml", mode="at", encoding="utf-8") as fh:

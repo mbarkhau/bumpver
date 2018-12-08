@@ -152,6 +152,7 @@ def diff(new_version: str, file_patterns: config.PatternsByFilePath) -> str:
             content = fh.read()
 
         rfd = rfd_from_content(patterns, new_version, content)
+        rfd = rfd._replace(path=file_path)
         full_diff += "\n".join(diff_lines(rfd)) + "\n"
 
     full_diff = full_diff.rstrip("\n")
