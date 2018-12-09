@@ -110,7 +110,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 
 @cli.command()
 @click.option('-v', '--verbose'         , count=True  , help="Control log level. -vv for debug level.")
-@click.option('-f', "--fetch/--no-fetch", is_flag=True, default=True)
+@click.option('-f', "--fetch/--no-fetch", is_flag=True, default=True, help="Sync tags from remote origin.")
 def show(verbose: int = 0, fetch: bool = True) -> None:
     """Show current version."""
     _init_logging(verbose=max(_VERBOSE, verbose))
