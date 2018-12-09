@@ -1,6 +1,6 @@
 # Changelog for https://gitlab.com/mbarkhau/pycalver
 
-## v201811.0008-beta
+## v201812.0008-beta
 
  - Add version tags using git/hg.
  - Use git/hg tags as SSOT for most recent version.
