@@ -18,7 +18,7 @@ def test_next_id_overflow():
 
 def test_next_id_random():
     for i in range(1000):
-        prev_id = str(random.randint(1, 100_000))
+        prev_id = str(random.randint(1, 100 * 1000))
         try:
             next_id = lex_id.next_id(prev_id)
             assert prev_id < next_id
