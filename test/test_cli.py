@@ -1,1 +1,1 @@
-from pycalver import __main__
+# import pycalver.__main__ as main

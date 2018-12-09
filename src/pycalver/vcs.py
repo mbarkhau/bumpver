@@ -23,6 +23,7 @@ import subprocess as sp
 
 log = logging.getLogger("pycalver.vcs")
 
+
 VCS_SUBCOMMANDS_BY_NAME = {
     'git': {
         'is_usable': "git rev-parse --git-dir",
@@ -31,8 +32,8 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'status'   : "git status --porcelain",
         'add_path' : "git add --update {path}",
         'commit'   : "git commit --file {path}",
-        'tag'      : "git tag --annotate {tag} --message '{tag}'",
-        'push_tag' : "git push origin '{tag}'",
+        'tag'      : "git tag --annotate {tag} --message {tag}",
+        'push_tag' : "git push origin {tag}",
     },
     'hg': {
         'is_usable': "hg root",
@@ -41,7 +42,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'status'   : "hg status -mard",
         'add_path' : "hg add {path}",
         'commit'   : "hg commit --logfile",
-        'tag'      : "hg tag {tag} --message '{tag}'",
+        'tag'      : "hg tag {tag} --message {tag}",
         'push_tag' : "hg push {tag}",
     },
 }
