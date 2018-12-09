@@ -31,6 +31,7 @@ public/
 .pytest_cache/
 .ipynb_checkpoints/
 package-lock.json
+compat_test/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

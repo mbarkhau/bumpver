@@ -59,5 +59,7 @@ RUN conda clean --all --yes && \
 
 FROM registry.gitlab.com/mbarkhau/bootstrapit/root
 
+RUN apt-get install --yes mercurial;
+
 COPY --from=builder /opt/conda/ /opt/conda/
 COPY --from=builder /vendor/ /vendor

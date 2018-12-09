@@ -7,6 +7,7 @@
 
 import io
 import os
+import six
 import toml
 import configparser
 import typing as typ
@@ -35,10 +36,13 @@ class ProjectContext(typ.NamedTuple):
 
 def init_project_ctx(project_path: typ.Union[str, pl.Path, None] = ".") -> ProjectContext:
     """Initialize ProjectContext from a path."""
-    if isinstance(project_path, str):
-        path = pl.Path(project_path)
-    else:
+    if isinstance(project_path, pl.Path):
         path = project_path
+    elif project_path is None:
+        path = pl.Path(".")
+    else:
+        # assume it's a str/unicode
+        path = pl.Path(project_path)
 
     if (path / "pyproject.toml").exists():
         config_filepath = path / "pyproject.toml"
@@ -86,7 +90,7 @@ def _debug_str(cfg: Config) -> str:
         f"tag={cfg.tag}",
         f"commit={cfg.commit}",
         f"push={cfg.push}",
-        f"file_patterns={{",
+        "file_patterns={",
     ]
 
     for filepath, patterns in cfg.file_patterns.items():
@@ -152,7 +156,7 @@ def _parse_cfg(cfg_buffer: typ.TextIO) -> RawConfig:
 
     for option, default_val in BOOL_OPTIONS.items():
         val: OptionVal = raw_cfg.get(option, default_val)
-        if isinstance(val, str):
+        if isinstance(val, six.text_type):
             val = val.lower() in ("yes", "true", "1", "on")
         raw_cfg[option] = val
 

@@ -323,7 +323,7 @@ pylint:
 
 ## Run pytest unit and integration tests
 .PHONY: test
-test:
+test: $(COMPAT_TEST_FILES)
 	@rm -rf ".pytest_cache";
 	@rm -rf "src/__pycache__";
 	@rm -rf "test/__pycache__";
@@ -346,7 +346,7 @@ test:
 	for i in $${!env_paths[@]}; do \
 		env_py=$${env_paths[i]}/bin/python; \
 		$${env_py} -m pip install --upgrade build/test_wheel/*.whl; \
-		ENV=$${ENV-dev} $${env_py} -m pytest test/; \
+		ENV=$${ENV-dev} $${env_py} -m pytest --verbose compat_test/; \
 	done;
 
 	@rm -rf ".pytest_cache";
