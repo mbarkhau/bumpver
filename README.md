@@ -16,7 +16,7 @@ Project/Repo:
 
 [![MIT License][license_img]][license_ref]
 [![Supported Python Versions][pyversions_img]][pyversions_ref]
-[![PyCalVer v201809.0002-beta][version_img]][version_ref]
+[![PyCalVer v201812.0011-beta][version_img]][version_ref]
 [![PyPI Releases][pypi_img]][pypi_ref]
 [![PyPI Downloads][downloads_img]][downloads_ref]
 
@@ -685,7 +685,7 @@ because I don't think breaking changes should ever be
 [downloads_img]: https://pepy.tech/badge/pycalver
 [downloads_ref]: https://pepy.tech/project/pycalver
 
-[version_img]: https://img.shields.io/badge/PyCalVer-v201809.0002--beta-blue.svg
+[version_img]: https://img.shields.io/badge/PyCalVer-v201812.0011--beta-blue.svg
 [version_ref]: https://pypi.org/project/pycalver/
 
 [pypi_img]: https://img.shields.io/badge/PyPI-wheels-green.svg
