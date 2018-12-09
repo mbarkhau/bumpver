@@ -35,6 +35,9 @@ except ImportError:
     pass
 
 
+click.disable_unicode_literals_warning = True
+
+
 log = logging.getLogger("pycalver.cli")
 
 
