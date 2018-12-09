@@ -2,7 +2,7 @@
 # Bootstrapit Project Configuration
 
 AUTHOR_NAME="Manuel Barkhau"
-AUTHOR_EMAIL="@mbarkhau"
+AUTHOR_EMAIL="mbarkhau@gmail.com"
 
 KEYWORDS="version versioning bumpversion calver"
 DESCRIPTION="CalVer versioning for python libraries."

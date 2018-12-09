@@ -1,7 +1,7 @@
 # This file is part of the pycalver project
 # https://gitlab.com/mbarkhau/pycalver
 #
-# Copyright (c) 2018 Manuel Barkhau (@mbarkhau) - MIT License
+# Copyright (c) 2018 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 
 import os
@@ -41,7 +41,7 @@ setuptools.setup(
     name="pycalver",
     license="MIT",
     author="Manuel Barkhau",
-    author_email="@mbarkhau",
+    author_email="mbarkhau@gmail.com",
     url="https://gitlab.com/mbarkhau/pycalver",
     version="201811.7b0",
 

@@ -28,9 +28,9 @@ Code Quality/CI:
 [![Build Status][build_img]][build_ref]
 
 
-|            Name            |        role       |  since  | until |
-|----------------------------|-------------------|---------|-------|
-| Manuel Barkhau (@mbarkhau) | author/maintainer | 2018-09 | -     |
+|                Name                 |    role           |  since  | until |
+|-------------------------------------|-------------------|---------|-------|
+| Manuel Barkhau (mbarkhau@gmail.com) | author/maintainer | 2018-09 | -     |
 
 
 <!--
