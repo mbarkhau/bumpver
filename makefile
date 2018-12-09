@@ -338,17 +338,6 @@ test: $(COMPAT_TEST_FILES)
 		$(shell cd src/ && ls -1 */__init__.py | awk '{ print "--cov "substr($$1,0,index($$1,"/")-1) }') \
 		test/ src/;
 
-	# Next we install the package and run the test suite against it.
-	mkdir -p build/test_wheel;
-	$(DEV_ENV_PY) setup.py bdist_wheel --dist-dir build/test_wheel;
-
-	IFS=' ' read -r -a env_paths <<< "$(CONDA_ENV_PATHS)"; \
-	for i in $${!env_paths[@]}; do \
-		env_py=$${env_paths[i]}/bin/python; \
-		$${env_py} -m pip install --upgrade build/test_wheel/*.whl; \
-		ENV=$${ENV-dev} $${env_py} -m pytest --verbose compat_test/; \
-	done;
-
 	@rm -rf ".pytest_cache";
 	@rm -rf "src/__pycache__";
 	@rm -rf "test/__pycache__";
