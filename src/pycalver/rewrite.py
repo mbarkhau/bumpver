@@ -51,7 +51,7 @@ def rewrite_lines(
     new_version_nfo        = version.parse_version_info(new_version)
     new_version_fmt_kwargs = new_version_nfo._asdict()
 
-    new_lines = old_lines.copy()
+    new_lines = old_lines[:]
 
     for m in parse.iter_matches(old_lines, patterns):
         replacement = m.pattern.format(**new_version_fmt_kwargs)
