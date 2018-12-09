@@ -12,6 +12,7 @@ import typing as typ
 
 from . import parse
 from . import config
+from . import version
 
 
 log = logging.getLogger("pycalver.rewrite")
@@ -47,7 +48,7 @@ def rewrite_lines(
     >>> new_lines = rewrite_lines(patterns, "v201811.0123-beta", old_lines)
     >>> assert new_lines == ['__version__ = "v201811.0123-beta"']
     """
-    new_version_nfo        = parse.parse_version_info(new_version)
+    new_version_nfo        = version.parse_version_info(new_version)
     new_version_fmt_kwargs = new_version_nfo._asdict()
 
     new_lines = old_lines.copy()

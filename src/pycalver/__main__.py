@@ -71,9 +71,9 @@ def incr(old_version: str, verbose: int = 0, release: str = None) -> None:
     """Increment a version number for demo purposes."""
     _init_logging(verbose=max(_VERBOSE, verbose))
 
-    if release and release not in parse.VALID_RELESE_VALUES:
+    if release and release not in parse.VALID_RELEASE_VALUES:
         log.error(f"Invalid argument --release={release}")
-        log.error(f"Valid arguments are: {', '.join(parse.VALID_RELESE_VALUES)}")
+        log.error(f"Valid arguments are: {', '.join(parse.VALID_RELEASE_VALUES)}")
         sys.exit(1)
 
     new_version    = version.incr(old_version, release=release)
@@ -91,7 +91,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
             log.info(f"fetching tags from remote")
             _vcs.fetch()
 
-        version_tags = [tag for tag in _vcs.ls_tags() if parse.PYCALVER_RE.match(tag)]
+        version_tags = [tag for tag in _vcs.ls_tags() if version.PYCALVER_RE.match(tag)]
         if version_tags:
             version_tags.sort(reverse=True)
             log.debug(f"found {len(version_tags)} tags: {version_tags[:2]}")
@@ -109,8 +109,10 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 
 
 @cli.command()
-@click.option('-v', '--verbose'         , count=True  , help="Control log level. -vv for debug level.")
-@click.option('-f', "--fetch/--no-fetch", is_flag=True, default=True, help="Sync tags from remote origin.")
+@click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
+@click.option(
+    '-f', "--fetch/--no-fetch", is_flag=True, default=True, help="Sync tags from remote origin."
+)
 def show(verbose: int = 0, fetch: bool = True) -> None:
     """Show current version."""
     _init_logging(verbose=max(_VERBOSE, verbose))
@@ -232,9 +234,9 @@ def bump(
     verbose = max(_VERBOSE, verbose)
     _init_logging(verbose)
 
-    if release and release not in parse.VALID_RELESE_VALUES:
+    if release and release not in parse.VALID_RELEASE_VALUES:
         log.error(f"Invalid argument --release={release}")
-        log.error(f"Valid arguments are: {', '.join(parse.VALID_RELESE_VALUES)}")
+        log.error(f"Valid arguments are: {', '.join(parse.VALID_RELEASE_VALUES)}")
         sys.exit(1)
 
     ctx: config.ProjectContext = config.init_project_ctx(project_path=".")

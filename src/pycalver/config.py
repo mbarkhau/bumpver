@@ -15,7 +15,6 @@ import datetime as dt
 
 import logging
 
-from .parse import PYCALVER_RE
 from . import version
 
 log = logging.getLogger("pycalver.config")
@@ -179,7 +178,7 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     version_str = raw_cfg['current_version']
     version_str = raw_cfg['current_version'] = version_str.strip("'\" ")
 
-    if PYCALVER_RE.match(version_str) is None:
+    if version.PYCALVER_RE.match(version_str) is None:
         raise ValueError(f"Invalid current_version = {version_str}")
 
     pep440_version = version.pycalver_to_pep440(version_str)

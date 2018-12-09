@@ -2,34 +2,6 @@ import re
 from pycalver import parse
 
 
-def test_readme_pycalver1():
-    version_str  = "v201712.0001-alpha"
-    version_info = parse.PYCALVER_RE.match(version_str).groupdict()
-
-    assert version_info == {
-        'version': "v201712.0001-alpha",
-        'calver' : "v201712",
-        'year'   : "2017",
-        'month'  : "12",
-        'build'  : ".0001",
-        'release': "-alpha",
-    }
-
-
-def test_readme_pycalver2():
-    version_str  = "v201712.0033"
-    version_info = parse.PYCALVER_RE.match(version_str).groupdict()
-
-    assert version_info == {
-        'version': "v201712.0033",
-        'calver' : "v201712",
-        'year'   : "2017",
-        'month'  : "12",
-        'build'  : ".0033",
-        'release': None,
-    }
-
-
 def test_re_pattern_parts():
     part_re_by_name = {
         part_name: re.compile(part_re_str)
@@ -71,30 +43,6 @@ def test_re_pattern_parts():
         else:
             result_val = result.group(0)
             assert result_val == expected, (part_name, line)
-
-
-def test_parse_version_info():
-    version_str = "v201712.0001-alpha"
-    version_nfo = parse.parse_version_info(version_str)
-
-    assert version_nfo.pep440_version == "201712.1a0"
-    assert version_nfo.version        == "v201712.0001-alpha"
-    assert version_nfo.calver         == "v201712"
-    assert version_nfo.year           == "2017"
-    assert version_nfo.month          == "12"
-    assert version_nfo.build          == ".0001"
-    assert version_nfo.release        == "-alpha"
-
-    version_str = "v201712.0001"
-    version_nfo = parse.parse_version_info(version_str)
-
-    assert version_nfo.pep440_version == "201712.1"
-    assert version_nfo.version        == "v201712.0001"
-    assert version_nfo.calver         == "v201712"
-    assert version_nfo.year           == "2017"
-    assert version_nfo.month          == "12"
-    assert version_nfo.build          == ".0001"
-    assert version_nfo.release is None
 
 
 SETUP_PY_FIXTURE = """
@@ -167,27 +115,3 @@ def test_badge_parse_patterns():
 
     assert matches[0].match == "badge/CalVer-v201809.0002--beta-blue.svg"
     assert matches[1].match == ":alt: CalVer v201809.0002-beta"
-
-
-def test_parse_error_empty():
-    try:
-        parse.parse_version_info("")
-        assert False
-    except ValueError as err:
-        pass
-
-
-def test_parse_error_noprefix():
-    try:
-        parse.parse_version_info("201809.0002")
-        assert False
-    except ValueError as err:
-        pass
-
-
-def test_parse_error_nopadding():
-    try:
-        parse.parse_version_info("v201809.2b0")
-        assert False
-    except ValueError as err:
-        pass
