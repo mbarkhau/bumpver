@@ -323,7 +323,7 @@ pylint:
 
 ## Run pytest unit and integration tests
 .PHONY: test
-test: $(COMPAT_TEST_FILES)
+test:
 	@rm -rf ".pytest_cache";
 	@rm -rf "src/__pycache__";
 	@rm -rf "test/__pycache__";
