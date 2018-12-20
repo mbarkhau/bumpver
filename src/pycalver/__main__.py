@@ -57,7 +57,7 @@ def _init_logging(verbose: int = 0) -> None:
 
 
 @click.group()
-@click.version_option()
+@click.version_option(version="v201812.0010-beta")
 @click.help_option()
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 def cli(verbose: int = 0):

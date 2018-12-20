@@ -21,8 +21,12 @@ PATTERN_ESCAPES = [
     ("."     , "\u005c."),
     ("+"     , "\u005c+"),
     ("*"     , "\u005c*"),
+    ("{"     , "\u005c{{"),
+    ("}"     , "\u005c}}"),
     ("["     , "\u005c["),
+    ("]"     , "\u005c]"),
     ("("     , "\u005c("),
+    (")"     , "\u005c)"),
 ]
 
 # NOTE (mb 2018-09-03): These are matchers for parts, which are
@@ -54,17 +58,25 @@ class PatternMatch(typ.NamedTuple):
 PatternMatches = typ.Iterable[PatternMatch]
 
 
-def _iter_for_pattern(lines: typ.List[str], pattern: str) -> PatternMatches:
-    # The pattern is escaped, so that everything besides the format
-    # string variables is treated literally.
-
+def compile_pattern(pattern: str) -> typ.Pattern[str] :
     pattern_tmpl = pattern
 
     for char, escaped in PATTERN_ESCAPES:
         pattern_tmpl = pattern_tmpl.replace(char, escaped)
 
+    # undo escaping only for valid part names
+    for part_name in RE_PATTERN_PARTS.keys():
+        pattern_tmpl = pattern_tmpl.replace("\u005c{{" + part_name + "\u005c}}", "{" + part_name + "}")
+
     pattern_str = pattern_tmpl.format(**RE_PATTERN_PARTS)
-    pattern_re  = re.compile(pattern_str)
+    return re.compile(pattern_str)
+
+
+def _iter_for_pattern(lines: typ.List[str], pattern: str) -> PatternMatches:
+    # The pattern is escaped, so that everything besides the format
+    # string variables is treated literally.
+    pattern_re = compile_pattern(pattern)
+
     for lineno, line in enumerate(lines):
         match = pattern_re.search(line)
         if match:
