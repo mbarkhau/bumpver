@@ -47,10 +47,10 @@ def _init_logging(verbose: int = 0) -> None:
         log_level  = logging.DEBUG
     elif verbose == 1:
         log_format = "%(levelname)-7s - %(message)s"
-        log_level  = logging.INFO
+        log_level  = logging.DEBUG
     else:
-        log_format = "%(message)s"
-        log_level  = logging.WARNING
+        log_format = "%(levelname)-7s - %(message)s"
+        log_level  = logging.INFO
 
     logging.basicConfig(level=log_level, format=log_format, datefmt="%Y-%m-%dT%H:%M:%S")
     log.debug("Logging initialized.")
@@ -93,7 +93,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
         _vcs = vcs.get_vcs()
         log.debug(f"vcs found: {_vcs.name}")
         if fetch:
-            log.info(f"fetching tags from remote")
+            log.info(f"fetching tags from remote (to turn off use: -n / --no-fetch)")
             _vcs.fetch()
 
         version_tags = [tag for tag in _vcs.ls_tags() if version.PYCALVER_RE.match(tag)]
@@ -116,7 +116,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 @cli.command()
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 @click.option(
-    '-f', "--fetch/--no-fetch", is_flag=True, default=True, help="Sync tags from remote origin."
+    '-f/-n', "--fetch/--no-fetch", is_flag=True, default=True, help="Sync tags from remote origin."
 )
 def show(verbose: int = 0, fetch: bool = True) -> None:
     """Show current version."""
@@ -211,7 +211,7 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
 
 @cli.command()
 @click.option("-v", "--verbose"         , count=True  , help="Control log level. -vv for debug level.")
-@click.option('-f', "--fetch/--no-fetch", is_flag=True, default=True)
+@click.option('-f/-n', "--fetch/--no-fetch", is_flag=True, default=True, help="Sync tags from remote origin.")
 @click.option(
     "--dry", default=False, is_flag=True, help="Display diff of changes, don't rewrite files."
 )
