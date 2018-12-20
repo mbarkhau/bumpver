@@ -216,7 +216,10 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
     "--dry", default=False, is_flag=True, help="Display diff of changes, don't rewrite files."
 )
 @click.option(
-    "--release", default=None, metavar="<name>", help="Override release name of current_version"
+    "--release", default=None, metavar="<name>", help=(
+        f"Override release name of current_version. Valid options are: "
+        f"{', '.join(parse.VALID_RELEASE_VALUES)} and final."
+    )
 )
 @click.option(
     "--allow-dirty",
@@ -239,7 +242,7 @@ def bump(
     verbose = max(_VERBOSE, verbose)
     _init_logging(verbose)
 
-    if release and release not in parse.VALID_RELEASE_VALUES:
+    if release and release != 'final' and release not in parse.VALID_RELEASE_VALUES:
         log.error(f"Invalid argument --release={release}")
         log.error(f"Valid arguments are: {', '.join(parse.VALID_RELEASE_VALUES)}")
         sys.exit(1)
