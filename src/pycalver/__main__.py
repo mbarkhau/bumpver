@@ -7,7 +7,7 @@
 """
 CLI module for PyCalVer.
 
-Provided subcommands: show, incr, init, bump
+Provided subcommands: show, test, init, bump
 """
 
 import sys
@@ -81,7 +81,7 @@ def cli(verbose: int = 0):
 @click.option(
     "--release", default=None, metavar="<name>", help="Override release name of current_version"
 )
-def incr(old_version: str, verbose: int = 0, release: str = None) -> None:
+def test(old_version: str, verbose: int = 0, release: str = None) -> None:
     """Increment a version number for demo purposes."""
     _init_logging(verbose=max(_VERBOSE, verbose))
 

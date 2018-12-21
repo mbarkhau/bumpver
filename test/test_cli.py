@@ -71,7 +71,7 @@ def test_help(runner):
     assert result.exit_code == 0
     assert "PyCalVer" in result.output
     assert "bump " in result.output
-    assert "incr " in result.output
+    assert "test " in result.output
     assert "init " in result.output
     assert "show " in result.output
 
@@ -88,7 +88,7 @@ def test_incr(runner):
     old_version     = "v201701.0999-alpha"
     initial_version = config._initial_version()
 
-    result = runner.invoke(pycalver.cli, ['incr', old_version, "--verbose"])
+    result = runner.invoke(pycalver.cli, ['test', old_version, "--verbose"])
     assert result.exit_code == 0
     new_version = initial_version.replace(".0001-alpha", ".11000-alpha")
     assert f"PyCalVer Version: {new_version}\n" in result.output
@@ -98,7 +98,7 @@ def test_incr_to_beta(runner):
     old_version     = "v201701.0999-alpha"
     initial_version = config._initial_version()
 
-    result = runner.invoke(pycalver.cli, ['incr', old_version, "--verbose", "--release", "beta"])
+    result = runner.invoke(pycalver.cli, ['test', old_version, "--verbose", "--release", "beta"])
     assert result.exit_code == 0
     new_version = initial_version.replace(".0001-alpha", ".11000-beta")
     assert f"PyCalVer Version: {new_version}\n" in result.output
@@ -108,7 +108,7 @@ def test_incr_to_final(runner):
     old_version     = "v201701.0999-alpha"
     initial_version = config._initial_version()
 
-    result = runner.invoke(pycalver.cli, ['incr', old_version, "--verbose", "--release", "final"])
+    result = runner.invoke(pycalver.cli, ['test', old_version, "--verbose", "--release", "final"])
     assert result.exit_code == 0
     new_version = initial_version.replace(".0001-alpha", ".11000")
     assert f"PyCalVer Version: {new_version}\n" in result.output
@@ -117,7 +117,7 @@ def test_incr_to_final(runner):
 def test_incr_invalid(runner, caplog):
     old_version = "v201701.0999-alpha"
 
-    result = runner.invoke(pycalver.cli, ['incr', old_version, "--verbose", "--release", "alfa"])
+    result = runner.invoke(pycalver.cli, ['test', old_version, "--verbose", "--release", "alfa"])
     assert result.exit_code == 1
 
 
