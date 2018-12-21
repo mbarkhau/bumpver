@@ -64,7 +64,7 @@ class VCS:
         """Invoke subcommand and return output."""
         cmd_str     = self.subcommands[cmd_name]
         cmd_parts   = cmd_str.format(**kwargs).split()
-        output_data = sp.check_output(cmd_parts, env=env)
+        output_data = sp.check_output(cmd_parts, env=env, stderr=sp.STDOUT)
 
         # TODO (mb 2018-11-15): Detect encoding of output?
         _encoding = "utf-8"
