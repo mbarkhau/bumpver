@@ -496,7 +496,7 @@ README.md =
 
 Notice that neither the "v" prefix, nor the "." and "-"
 separators are included in the pattern text, as they are
-respectivly part of the `calver`, `build` and `release`
+respectively part of the `calver`, `build` and `release`
 placeholders. Alternatively you can be more explicit.
 
 ```ini
@@ -519,11 +519,12 @@ The current version that will be bumped is defined either as
  - Typically: The lexically largest git/mercurial tag in the
    repository.
 
-As part of doing `pycalver bump`, your local VCS index is
-updated using `git fetch --tags`/`hg pull`, to ensure that all
-tags are known locally and the same version is not generated for
-different commits. This is mitigates a rare corner case where
-`pycalver bump` is invoked on different machines.
+As part of doing `pycalver bump`, your local VCS index is updated
+using `git fetch --tags`/`hg pull`. This ensures that all tags
+are known locally and the same version is not generated for
+different commits, and mitigates the risk of a rare corner case,
+where `p`pycalver bump` is invoked on different machines. If you're
+the only maintainer, you can always use `-n/--no-fetch`.
 
 
 ```shell
@@ -547,6 +548,7 @@ To increment and publish a new version, you can use the
  5. *Tag* the new commit.
  6. *Push* the new commit and tag.
 
+Again, you can inspect the changes first.
 
 ```
 $ pycalver bump --dry
@@ -563,23 +565,35 @@ $ pycalver bump --dry
 ...
 ```
 
+If everything looks OK, you can do `pycalver bump`.
+
+```
+$ pycalver bump --verbose
+INFO    - fetching tags from remote (to turn off use: -n / --no-fetch)
+INFO    - Old Version: v201812.0005-beta
+INFO    - New Version: v201812.0006-beta
+INFO    - git commit --file /tmp/tmpph_npey9
+INFO    - git tag --annotate v201812.0006-beta --message v201812.0006-beta
+INFO    - git push origin v201812.0006-beta
+```
+
 
 ### Version State
 
-The "current version" is considered global state that needs to
-be stored somewhere. Typically this might be stored in a
-`VERSION` file, or some other file which is part of the
-repository. This creates the possibility that different parallel
-branches can have different states, which might lead to the same
-version number being generated for different commits.
+The "current version" is considered global state that needs to be
+stored somewhere. Typically this might be stored in a `VERSION`
+file, or some other file which is part of the repository. This
+creates the risk that parallel branches can have different
+states. If the "current version" were defined only by files in
+the local checkout, the same version might be generated for
+different commits.
 
 To avoid this issue, pycalver treats VCS tags as the canonical /
-(SSOT)[https://en.wikipedia.org/wiki/Single_source_of_truth] for
-the most recent version and attempts to change this state in the
-most atomic way possible. This is why some actions of the
-`pycalver` command can take a while, as it is synchronizing with
-the remote repository to get the most recent versions and to
-push any new version tags as soon as possible.
+[SSOT][ssot_ref] for the most recent version and attempts to
+change this state in the most atomic way possible. This is why
+some actions of the `pycalver` command can take a while, as it is
+synchronizing with the remote repository to get the most recent
+versions and to push any new version tags as soon as possible.
 
 
 ### Lexical Ids
@@ -645,11 +659,12 @@ have no logic to parse version strings, which can nonetheless
 order the version tags correctly.
 
 
-## References
 
 [repo_ref]: https://gitlab.com/mbarkhau/pycalver
 
 [setuptools_ref]: https://setuptools.readthedocs.io/en/latest/setuptools.html#specifying-your-project-s-version
+
+[ssot_ref]: https://en.wikipedia.org/wiki/Single_source_of_truth
 
 [pep_440_ref]: https://www.python.org/dev/peps/pep-0440/
 
