@@ -44,13 +44,17 @@ def init_project_ctx(project_path: typ.Union[str, pl.Path, None] = ".") -> Proje
         # assume it's a str/unicode
         path = pl.Path(project_path)
 
-    if (path / "pyproject.toml").exists():
+    if (path / "pycalver.toml").exists():
+        config_filepath = path / "pycalver.toml"
+        config_format   = 'toml'
+    elif (path / "pyproject.toml").exists():
         config_filepath = path / "pyproject.toml"
         config_format   = 'toml'
-    if (path / "setup.cfg").exists():
+    elif (path / "setup.cfg").exists():
         config_filepath = path / "setup.cfg"
         config_format   = 'cfg'
     else:
+        # fallback to creating a new pycalver.toml
         config_filepath = path / "pycalver.toml"
         config_format   = 'toml'
 
@@ -234,7 +238,7 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
         return None
 
 
-DEFAULT_CONFIGPARSER_BASE_STR = """
+DEFAULT_CONFIGPARSER_BASE_TMPL = """
 [pycalver]
 current_version = "{initial_version}"
 commit = True
@@ -247,7 +251,7 @@ push = True
 
 DEFAULT_CONFIGPARSER_SETUP_CFG_STR = """
 setup.cfg =
-    current_version = "{{version}}"
+    current_version = "{version}"
 """
 
 
@@ -260,19 +264,19 @@ setup.py =
 
 DEFAULT_CONFIGPARSER_README_RST_STR = """
 README.rst =
-    "{version}"
-    "{pep440_version}"
+    {version}
+    {pep440_version}
 """
 
 
 DEFAULT_CONFIGPARSER_README_MD_STR = """
 README.md =
-    "{version}"
-    "{pep440_version}"
+    {version}
+    {pep440_version}
 """
 
 
-DEFAULT_TOML_BASE_STR = """
+DEFAULT_TOML_BASE_TMPL = """
 [pycalver]
 current_version = "{initial_version}"
 commit = true
@@ -285,14 +289,14 @@ push = true
 
 DEFAULT_TOML_PYCALVER_STR = """
 "pycalver.toml" = [
-    'current_version = "{{version}}"',
+    'current_version = "{version}"',
 ]
 """
 
 
 DEFAULT_TOML_PYPROJECT_STR = """
 "pyproject.toml" = [
-    'current_version = "{{version}}"',
+    'current_version = "{version}"',
 ]
 """
 
@@ -321,11 +325,19 @@ DEFAULT_TOML_README_MD_STR = """
 """
 
 
+def _initial_version() -> str:
+    return dt.datetime.now().strftime("v%Y%m.0001-alpha")
+
+
+def _initial_version_pep440() -> str:
+    return dt.datetime.now().strftime("%Y%m.1a0")
+
+
 def default_config(ctx: ProjectContext) -> str:
     """Generate initial default config."""
     fmt = ctx.config_format
     if fmt == 'cfg':
-        base_str = DEFAULT_CONFIGPARSER_BASE_STR
+        base_tmpl = DEFAULT_CONFIGPARSER_BASE_TMPL
 
         default_pattern_strs_by_filename = {
             "setup.cfg" : DEFAULT_CONFIGPARSER_SETUP_CFG_STR,
@@ -334,7 +346,7 @@ def default_config(ctx: ProjectContext) -> str:
             "README.md" : DEFAULT_CONFIGPARSER_README_MD_STR,
         }
     elif fmt == 'toml':
-        base_str = DEFAULT_TOML_BASE_STR
+        base_tmpl = DEFAULT_TOML_BASE_TMPL
 
         default_pattern_strs_by_filename = {
             "pyproject.toml": DEFAULT_TOML_PYPROJECT_STR,
@@ -346,9 +358,7 @@ def default_config(ctx: ProjectContext) -> str:
     else:
         raise ValueError(f"Invalid config_format='{fmt}', must be either 'toml' or 'cfg'.")
 
-    initial_version = dt.datetime.now().strftime("v%Y%m.0001-dev")
-
-    cfg_str = base_str.format(initial_version=initial_version)
+    cfg_str = base_tmpl.format(initial_version=_initial_version())
 
     for filename, default_str in default_pattern_strs_by_filename.items():
         if (ctx.path / filename).exists():
@@ -374,8 +384,7 @@ def write_content(ctx: ProjectContext) -> None:
     # config_format  : str
     # vcs_type       : typ.Optional[str]
 
-    cfg_lines   = default_config(ctx)
-    cfg_content = "\n" + "\n".join(cfg_lines)
+    cfg_content = default_config(ctx)
     if os.path.exists("pyproject.toml"):
         with io.open("pyproject.toml", mode="at", encoding="utf-8") as fh:
             fh.write(cfg_content)
@@ -385,7 +394,6 @@ def write_content(ctx: ProjectContext) -> None:
             fh.write(cfg_content)
         print("Updated setup.cfg")
     else:
-        cfg_content = "\n".join(cfg_lines)
         with io.open("pycalver.toml", mode="at", encoding="utf-8") as fh:
             fh.write(cfg_content)
         print("Created pycalver.toml")
