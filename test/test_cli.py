@@ -33,11 +33,12 @@ requires = ["setuptools", "wheel"]
 
 @pytest.fixture
 def runner(tmpdir):
-    runner   = CliRunner()
+    runner   = CliRunner(env={
+        'GIT_AUTHOR_NAME' : "pycalver_tester",
+        'GIT_AUTHOR_EMAIL': "pycalver_tester@nowhere.com",
+        'HGUSER'          : "pycalver_tester",
+    })
     orig_cwd = os.getcwd()
-    os.environ['GIT_AUTHOR_NAME' ] = "pycalver_tester"
-    os.environ['GIT_AUTHOR_EMAIL'] = "pycalver_tester@nowhere.com"
-    os.environ['HGUSER'          ] = "pycalver_tester"
 
     _debug = 0
     if _debug:
