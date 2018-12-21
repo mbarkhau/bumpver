@@ -1,7 +1,7 @@
 # Changelog for https://gitlab.com/mbarkhau/pycalver
 
 
-## v201812.0012
+## v201812.0016
 
  - Fixed #2 on github. `pycalver init` was broken.
  - Fixed pattern escaping issues.
