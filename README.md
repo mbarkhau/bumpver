@@ -11,7 +11,7 @@ Project/Repo:
 
 [![MIT License][license_img]][license_ref]
 [![Supported Python Versions][pyversions_img]][pyversions_ref]
-[![PyCalVer v201812.0013-beta][version_img]][version_ref]
+[![PyCalVer v201812.0014-beta][version_img]][version_ref]
 [![PyPI Releases][pypi_img]][pypi_ref]
 [![PyPI Downloads][downloads_img]][downloads_ref]
 
@@ -335,9 +335,9 @@ To see how version strings are incremented, we can use
 ```shell
 $ pip install pycalver
 ...
-Successfully installed pycalver-201812.13b0
+Successfully installed pycalver-201812.14b0
 $ pycavler --version
-pycalver, version v201812.0013-beta
+pycalver, version v201812.0014-beta
 $ pycalver test v201801.0033-beta
 PyCalVer Version: v201809.0034-beta
 PEP440 Version  : 201809.34b0
@@ -437,8 +437,8 @@ INFO    - New Version: v201809.0002-rc
 @@ -11,7 +11,7 @@
 
  [![Supported Python Versions][pyversions_img]][pyversions_ref]
--[![PyCalVer v201812.0013-beta][version_img]][version_ref]
-+[![PyCalVer v201812.0013-beta][version_img]][version_ref]
+-[![PyCalVer v201812.0014-beta][version_img]][version_ref]
++[![PyCalVer v201812.0014-beta][version_img]][version_ref]
  [![PyPI Releases][pypi_img]][pypi_ref]
 
 --- myprojcet/__init__.py
@@ -484,7 +484,7 @@ assuming you have the following text in your README.md (note the
 two dashes before alpha):
 
 ```
-https://img.shields.io/badge/PyCalVer-v201812.0013--beta-blue.svg
+https://img.shields.io/badge/PyCalVer-v201812.0014--beta-blue.svg
 ```
 
 An appropriate pattern would be:
@@ -678,7 +678,7 @@ order the version tags correctly.
 [downloads_img]: https://pepy.tech/badge/pycalver/month
 [downloads_ref]: https://pepy.tech/project/pycalver
 
-[version_img]: https://img.shields.io/badge/PyCalVer-v201812.0013--beta-blue.svg
+[version_img]: https://img.shields.io/badge/PyCalVer-v201812.0014--beta-blue.svg
 [version_ref]: https://pypi.org/project/pycalver/
 
 [pypi_img]: https://img.shields.io/badge/PyPI-wheels-green.svg
