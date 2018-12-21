@@ -83,12 +83,14 @@ def test_readme_pycalver1():
     version_info = version.PYCALVER_RE.match(version_str).groupdict()
 
     assert version_info == {
-        'version': "v201712.0001-alpha",
-        'calver' : "v201712",
-        'year'   : "2017",
-        'month'  : "12",
-        'build'  : ".0001",
-        'release': "-alpha",
+        'version'    : "v201712.0001-alpha",
+        'calver'     : "v201712",
+        'year'       : "2017",
+        'month'      : "12",
+        'build'      : ".0001",
+        'build_no'   : "0001",
+        'release'    : "-alpha",
+        'release_tag': "alpha",
     }
 
 
@@ -97,12 +99,14 @@ def test_readme_pycalver2():
     version_info = version.PYCALVER_RE.match(version_str).groupdict()
 
     assert version_info == {
-        'version': "v201712.0033",
-        'calver' : "v201712",
-        'year'   : "2017",
-        'month'  : "12",
-        'build'  : ".0033",
-        'release': None,
+        'version'    : "v201712.0033",
+        'calver'     : "v201712",
+        'year'       : "2017",
+        'month'      : "12",
+        'build'      : ".0033",
+        'build_no'   : "0033",
+        'release'    : None,
+        'release_tag': None,
     }
 
 

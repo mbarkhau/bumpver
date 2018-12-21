@@ -41,7 +41,9 @@ RE_PATTERN_PARTS = {
     'version'       : r"v\d{6}\.\d{4,}(\-(alpha|beta|dev|rc|post))?",
     'calver'        : r"v\d{6}",
     'build'         : r"\.\d{4,}",
+    'build_no'      : r"\d{4,}",
     'release'       : r"(\-(alpha|beta|dev|rc|post))?",
+    'release_tag'   : r"(alpha|beta|dev|rc|post)?",
 }
 
 

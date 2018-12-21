@@ -7,22 +7,26 @@
 
 >>> version_info = PYCALVER_RE.match("v201712.0123-alpha").groupdict()
 >>> assert version_info == {
-...     "version" : "v201712.0123-alpha",
-...     "calver"  : "v201712",
-...     "year"    : "2017",
-...     "month"   : "12",
-...     "build"   : ".0123",
-...     "release" : "-alpha",
+...     "version"     : "v201712.0123-alpha",
+...     "calver"      : "v201712",
+...     "year"        : "2017",
+...     "month"       : "12",
+...     "build"       : ".0123",
+...     "build_no"    : "0123",
+...     "release"     : "-alpha",
+...     "release_tag" : "alpha",
 ... }
 >>>
 >>> version_info = PYCALVER_RE.match("v201712.0033").groupdict()
 >>> assert version_info == {
-...     "version" : "v201712.0033",
-...     "calver"  : "v201712",
-...     "year"    : "2017",
-...     "month"   : "12",
-...     "build"   : ".0033",
-...     "release" : None,
+...     "version"    : "v201712.0033",
+...     "calver"     : "v201712",
+...     "year"       : "2017",
+...     "month"      : "12",
+...     "build"      : ".0033",
+...     "build_no"   : "0033",
+...     "release"    : None,
+...     "release_tag": None,
 ... }
 """
 
@@ -48,11 +52,11 @@ PYCALVER_PATTERN = r"""
     )
     (?P<build>
         \.                      # "." build nr prefix
-        \d{4,}
+        (?P<build_no>\d{4,})
     )
     (?P<release>
         \-                      # "-" release prefix
-        (?:alpha|beta|dev|rc|post)
+        (?P<release_tag>alpha|beta|dev|rc|post)
     )?
 )(?:\s|$)
 """
@@ -69,7 +73,9 @@ class VersionInfo(typ.NamedTuple):
     year          : str
     month         : str
     build         : str
+    build_no      : str
     release       : typ.Optional[str]
+    release_tag   : typ.Optional[str]
 
 
 def parse_version_info(version_str: str) -> VersionInfo:
@@ -77,13 +83,15 @@ def parse_version_info(version_str: str) -> VersionInfo:
 
     >>> vnfo = parse_version_info("v201712.0033-beta")
     >>> assert vnfo == VersionInfo(
-    ...     version="v201712.0033-beta",
+    ...     version       ="v201712.0033-beta",
     ...     pep440_version="201712.33b0",
-    ...     calver="v201712",
-    ...     year="2017",
-    ...     month="12",
-    ...     build=".0033",
-    ...     release="-beta",
+    ...     calver        ="v201712",
+    ...     year          ="2017",
+    ...     month         ="12",
+    ...     build         =".0033",
+    ...     build_no      ="0033",
+    ...     release       ="-beta",
+    ...     release_tag   ="beta",
     ... )
     """
     match = PYCALVER_RE.match(version_str)
