@@ -5,4 +5,4 @@
 # SPDX-License-Identifier: MIT
 """PyCalVer: Automatic CalVer Versioning for Python Packages."""
 
-__version__ = "v201812.0011-beta"
+__version__ = "v201812.0012-beta"
