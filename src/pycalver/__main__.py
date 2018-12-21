@@ -277,7 +277,7 @@ def bump(
     log.info(f"Old Version: {old_version}")
     log.info(f"New Version: {new_version}")
 
-    if dry or verbose:
+    if dry or verbose >= 2:
         print(rewrite.diff(new_version, cfg.file_patterns))
 
     if dry:
