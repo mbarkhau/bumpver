@@ -438,6 +438,13 @@ endif
 	@rm -rf "test/__pycache__";
 
 
+## Run `make lint mypy test` using docker
+.PHONY: citest
+citest:
+	docker build --file Dockerfile --tag tmp_citest_$(PKG_NAME) .
+	docker run --tty tmp_citest_$(PKG_NAME) make lint mypy test
+
+
 ## -- Build/Deploy --
 
 
