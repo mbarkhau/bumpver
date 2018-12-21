@@ -107,11 +107,15 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
         if version_tags:
             version_tags.sort(reverse=True)
             log.debug(f"found {len(version_tags)} tags: {version_tags[:2]}")
-            latest_version_tag = version_tags[0]
+            latest_version_tag    = version_tags[0]
+            latest_version_pep440 = version.pycalver_to_pep440(latest_version_tag)
             if latest_version_tag > cfg.current_version:
                 log.info(f"Working dir version        : {cfg.current_version}")
                 log.info(f"Latest version from {_vcs.name:>3} tag: {latest_version_tag}")
-                cfg = cfg._replace(current_version=latest_version_tag)
+                cfg = cfg._replace(
+                    current_version=latest_version_tag, pep440_version=latest_version_pep440
+                )
+
         else:
             log.debug("no vcs tags found")
     except OSError:
