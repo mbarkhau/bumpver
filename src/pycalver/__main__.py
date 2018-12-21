@@ -56,6 +56,15 @@ def _init_logging(verbose: int = 0) -> None:
     log.debug("Logging initialized.")
 
 
+def _validate_release_tag(release: str) -> None:
+    if release == 'final' or release in parse.VALID_RELEASE_VALUES:
+        return
+
+    log.error(f"Invalid argument --release={release}")
+    log.error(f"Valid arguments are: final, {', '.join(parse.VALID_RELEASE_VALUES)}")
+    sys.exit(1)
+
+
 @click.group()
 @click.version_option(version="v201812.0010-beta")
 @click.help_option()
@@ -76,16 +85,14 @@ def incr(old_version: str, verbose: int = 0, release: str = None) -> None:
     """Increment a version number for demo purposes."""
     _init_logging(verbose=max(_VERBOSE, verbose))
 
-    if release and release not in parse.VALID_RELEASE_VALUES:
-        log.error(f"Invalid argument --release={release}")
-        log.error(f"Valid arguments are: {', '.join(parse.VALID_RELEASE_VALUES)}")
-        sys.exit(1)
+    if release:
+        _validate_release_tag(release)
 
     new_version    = version.incr(old_version, release=release)
     pep440_version = version.pycalver_to_pep440(new_version)
 
     print("PyCalVer Version:", new_version)
-    print("PEP440 Version:"  , pep440_version)
+    print("PEP440 Version  :", pep440_version)
 
 
 def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
@@ -116,7 +123,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 @cli.command()
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 @click.option(
-    '-f/-n', "--fetch/--no-fetch", is_flag=True, default=True, help="Sync tags from remote origin."
+    "-f/-n", "--fetch/--no-fetch", is_flag=True, default=True, help="Sync tags from remote origin."
 )
 def show(verbose: int = 0, fetch: bool = True) -> None:
     """Show current version."""
@@ -126,7 +133,7 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
     cfg: config.MaybeConfig    = config.parse(ctx)
 
     if cfg is None:
-        log.error("Could not parse configuration from setup.cfg")
+        log.error("Could not parse configuration. Perhaps try 'pycalver init'.")
         sys.exit(1)
 
     cfg = _update_cfg_from_vcs(cfg, fetch=fetch)
@@ -161,7 +168,6 @@ def init(verbose: int = 0, dry: bool = False) -> None:
 
 
 def _assert_not_dirty(vcs, filepaths: typ.Set[str], allow_dirty: bool):
-    # TODO (mb 2018-11-11): This is mixing concerns. Move this up into __main__
     dirty_files = vcs.status()
 
     if dirty_files:
@@ -210,16 +216,21 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
 
 
 @cli.command()
-@click.option("-v", "--verbose"         , count=True  , help="Control log level. -vv for debug level.")
-@click.option('-f/-n', "--fetch/--no-fetch", is_flag=True, default=True, help="Sync tags from remote origin.")
+@click.option("-v", "--verbose", count=True, help="Control log level. -vv for debug level.")
+@click.option(
+    "-f/-n", "--fetch/--no-fetch", is_flag=True, default=True, help="Sync tags from remote origin."
+)
 @click.option(
     "--dry", default=False, is_flag=True, help="Display diff of changes, don't rewrite files."
 )
 @click.option(
-    "--release", default=None, metavar="<name>", help=(
+    "--release",
+    default=None,
+    metavar="<name>",
+    help=(
         f"Override release name of current_version. Valid options are: "
         f"{', '.join(parse.VALID_RELEASE_VALUES)} and final."
-    )
+    ),
 )
 @click.option(
     "--allow-dirty",
@@ -233,7 +244,7 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
 )
 def bump(
     release    : typ.Optional[str] = None,
-    verbose    : int  =     0,
+    verbose    : int  = 0,
     dry        : bool = False,
     allow_dirty: bool = False,
     fetch      : bool = True,
@@ -242,16 +253,14 @@ def bump(
     verbose = max(_VERBOSE, verbose)
     _init_logging(verbose)
 
-    if release and release != 'final' and release not in parse.VALID_RELEASE_VALUES:
-        log.error(f"Invalid argument --release={release}")
-        log.error(f"Valid arguments are: {', '.join(parse.VALID_RELEASE_VALUES)}")
-        sys.exit(1)
+    if release:
+        _validate_release_tag(release)
 
     ctx: config.ProjectContext = config.init_project_ctx(project_path=".")
     cfg: config.MaybeConfig    = config.parse(ctx)
 
     if cfg is None:
-        log.error("Could not parse configuration from setup.cfg")
+        log.error("Could not parse configuration. Perhaps try 'pycalver init'.")
         sys.exit(1)
 
     cfg = _update_cfg_from_vcs(cfg, fetch=fetch)

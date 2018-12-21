@@ -216,7 +216,7 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
 def parse(ctx: ProjectContext) -> MaybeConfig:
     """Parse config file if available."""
     if not ctx.config_filepath.exists():
-        log.error(f"File not found: {ctx.config_filepath}")
+        log.warning(f"File not found: {ctx.config_filepath}")
         return None
 
     try:
