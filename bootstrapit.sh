@@ -13,7 +13,7 @@ PACKAGE_NAME="pycalver"
 GIT_REPO_NAMESPACE="mbarkhau"
 GIT_REPO_DOMAIN="gitlab.com"
 
-PACKAGE_VERSION="v201812.0015-beta"
+PACKAGE_VERSION="v201812.0016"
 
 DEFAULT_PYTHON_VERSION="python=3.6"
 SUPPORTED_PYTHON_VERSIONS="python=2.7 python=3.5 python=3.6 python=3.7 pypy2.7 pypy3.5"
