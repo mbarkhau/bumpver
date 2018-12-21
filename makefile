@@ -442,7 +442,7 @@ endif
 .PHONY: citest
 citest:
 	docker build --file Dockerfile --tag tmp_citest_$(PKG_NAME) .
-	docker run --tty tmp_citest_$(PKG_NAME) make lint mypy test
+	docker run --tty tmp_citest_$(PKG_NAME) make lint mypy test test_compat
 
 
 ## -- Build/Deploy --
