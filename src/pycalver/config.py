@@ -79,8 +79,8 @@ class Config(typ.NamedTuple):
     current_version: str
     pep440_version : str
 
-    tag   : bool
     commit: bool
+    tag   : bool
     push  : bool
 
     file_patterns: PatternsByFilePath
@@ -91,8 +91,8 @@ def _debug_str(cfg: Config) -> str:
         f"Config Parsed: Config(",
         f"current_version='{cfg.current_version}'",
         f"pep440_version='{cfg.pep440_version}'",
-        f"tag={cfg.tag}",
         f"commit={cfg.commit}",
+        f"tag={cfg.tag}",
         f"push={cfg.push}",
         "file_patterns={",
     ]

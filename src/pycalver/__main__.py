@@ -214,8 +214,10 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
 
     _vcs.commit(f"bump version to {new_version}")
 
-    if cfg.tag:
+    if cfg.commit and cfg.tag:
         _vcs.tag(new_version)
+
+    if cfg.commit and cfg.tag and cfg.push:
         _vcs.push(new_version)
 
 

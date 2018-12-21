@@ -64,7 +64,10 @@ class VCS:
         """Invoke subcommand and return output."""
         cmd_tmpl = self.subcommands[cmd_name]
         cmd_str  = cmd_tmpl.format(**kwargs)
-        log.debug(cmd_str)
+        if cmd_name in ("commit", "tag", "push_tag"):
+            log.info(cmd_str)
+        else:
+            log.debug(cmd_str)
         output_data = sp.check_output(cmd_str.split(), env=env, stderr=sp.STDOUT)
 
         # TODO (mb 2018-11-15): Detect encoding of output?
@@ -122,7 +125,6 @@ class VCS:
 
     def add(self, path: str) -> None:
         """Add updates to be included in next commit."""
-        log.info(f"{self.name} add {path}")
         try:
             self('add_path', path=path)
         except sp.CalledProcessError as ex:
@@ -134,7 +136,6 @@ class VCS:
 
     def commit(self, message: str) -> None:
         """Commit added files."""
-        log.info(f"{self.name} commit -m '{message}'")
         message_data = message.encode("utf-8")
 
         tmp_file = tempfile.NamedTemporaryFile("wb", delete=False)
