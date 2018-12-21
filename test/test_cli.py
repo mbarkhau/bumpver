@@ -33,8 +33,8 @@ requires = ["setuptools", "wheel"]
 ENV = {
     'GIT_AUTHOR_NAME'    : "pycalver_tester",
     'GIT_COMMITTER_NAME' : "pycalver_tester",
-    'GIT_AUTHOR_EMAIl'   : "pycalver_tester@nowhere.com",
-    'GIT_COMMITTER_EMAIl': "pycalver_tester@nowhere.com",
+    'GIT_AUTHOR_EMAIL'   : "pycalver_tester@nowhere.com",
+    'GIT_COMMITTER_EMAIL': "pycalver_tester@nowhere.com",
     'HGUSER'             : "pycalver_tester",
 }
 
