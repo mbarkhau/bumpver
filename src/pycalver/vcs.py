@@ -42,7 +42,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'ls_tags'     : "hg tags",
         'status'      : "hg status -mard",
         'add_path'    : "hg add {path}",
-        'commit'      : "hg commit --logfile",
+        'commit'      : "hg commit --logfile {path}",
         'tag'         : "hg tag {tag} --message {tag}",
         'push_tag'    : "hg push {tag}",
         'show_remotes': "hg paths",
@@ -122,7 +122,14 @@ class VCS:
     def add(self, path: str) -> None:
         """Add updates to be included in next commit."""
         log.info(f"{self.name} add {path}")
-        self('add_path', path=path)
+        try:
+            self('add_path', path=path)
+        except sp.CalledProcessError as ex:
+            if "already tracked!" in str(ex):
+                # mercurial
+                return
+            else:
+                raise
 
     def commit(self, message: str) -> None:
         """Commit added files."""

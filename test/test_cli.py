@@ -1,5 +1,6 @@
 import os
 import io
+import time
 import shutil
 import pathlib2 as pl
 import subprocess as sp
@@ -34,11 +35,15 @@ requires = ["setuptools", "wheel"]
 def runner(tmpdir):
     runner   = CliRunner()
     orig_cwd = os.getcwd()
+    os.environ['GIT_AUTHOR_NAME' ] = "pycalver_tester"
+    os.environ['GIT_AUTHOR_EMAIL'] = "pycalver_tester@nowhere.com"
+    os.environ['HGUSER'          ] = "pycalver_tester"
 
     _debug = 0
     if _debug:
         tmpdir = pl.Path("..") / "tmp_test_pycalver_project"
         if tmpdir.exists():
+            time.sleep(0.2)
             shutil.rmtree(str(tmpdir))
         tmpdir.mkdir()
 
@@ -294,6 +299,23 @@ def test_novcs_bump(runner):
 def test_git_bump(runner):
     _add_project_files("README.md")
     _vcs_init("git")
+
+    result = runner.invoke(pycalver.cli, ['init', "--verbose"])
+    assert result.exit_code == 0
+
+    result = runner.invoke(pycalver.cli, ['bump', "--verbose"])
+    assert result.exit_code == 0
+
+    calver = config._initial_version()[:7]
+
+    with io.open("README.md") as fh:
+        content = fh.read()
+        assert calver + ".0002-alpha !\n" in content
+
+
+def test_hg_bump(runner):
+    _add_project_files("README.md")
+    _vcs_init("hg")
 
     result = runner.invoke(pycalver.cli, ['init', "--verbose"])
     assert result.exit_code == 0
