@@ -126,7 +126,7 @@ CLI_MAIN_FIXTURE = """
 
 def test_pattern_escapes():
     pattern_re = parse.compile_pattern(r'click.version_option(version="{version}")')
-    match = pattern_re.search(CLI_MAIN_FIXTURE)
+    match      = pattern_re.search(CLI_MAIN_FIXTURE)
     assert match.group(0) == 'click.version_option(version="v201812.0123-beta")'
 
 
@@ -136,7 +136,9 @@ package_metadata = {"name": "mypackage", "version": "v201812.0123-beta"}
 
 
 def test_curly_escapes():
-    pattern = r'package_metadata = {"name": "mypackage", "version": "{version}"}'
+    pattern    = r'package_metadata = {"name": "mypackage", "version": "{version}"}'
     pattern_re = parse.compile_pattern(pattern)
-    match = pattern_re.search(CURLY_BRACE_FIXTURE)
-    assert match.group(0) == 'package_metadata = {"name": "mypackage", "version": "v201812.0123-beta"}'
+    match      = pattern_re.search(CURLY_BRACE_FIXTURE)
+    assert (
+        match.group(0) == 'package_metadata = {"name": "mypackage", "version": "v201812.0123-beta"}'
+    )

@@ -31,6 +31,7 @@ package_dir = {"": "src"}
 
 if any(arg.startswith("bdist") for arg in sys.argv):
     import lib3to6
+
     package_dir = lib3to6.fix(package_dir)
 
 
@@ -44,12 +45,11 @@ setuptools.setup(
     author_email="mbarkhau@gmail.com",
     url="https://gitlab.com/mbarkhau/pycalver",
     version="201812.11b0",
-
     keywords="version versioning bumpversion calver",
     description="CalVer versioning for python libraries.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=["pycalver"],
+    packages=['pycalver'],
     package_dir=package_dir,
     install_requires=install_requires,
     entry_points="""

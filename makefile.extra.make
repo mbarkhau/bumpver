@@ -24,6 +24,7 @@ test_compat: $(COMPAT_TEST_FILES)
 	cp -R test/fixtures compat_test/
 
 	# install the package and run the test suite against it.
+	rm -rf build/test_wheel;
 	mkdir -p build/test_wheel;
 	$(DEV_ENV_PY) setup.py bdist_wheel --dist-dir build/test_wheel;
 

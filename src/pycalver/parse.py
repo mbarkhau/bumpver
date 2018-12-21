@@ -58,7 +58,7 @@ class PatternMatch(typ.NamedTuple):
 PatternMatches = typ.Iterable[PatternMatch]
 
 
-def compile_pattern(pattern: str) -> typ.Pattern[str] :
+def compile_pattern(pattern: str) -> typ.Pattern[str]:
     pattern_tmpl = pattern
 
     for char, escaped in PATTERN_ESCAPES:
@@ -66,7 +66,9 @@ def compile_pattern(pattern: str) -> typ.Pattern[str] :
 
     # undo escaping only for valid part names
     for part_name in RE_PATTERN_PARTS.keys():
-        pattern_tmpl = pattern_tmpl.replace("\u005c{{" + part_name + "\u005c}}", "{" + part_name + "}")
+        pattern_tmpl = pattern_tmpl.replace(
+            "\u005c{{" + part_name + "\u005c}}", "{" + part_name + "}"
+        )
 
     pattern_str = pattern_tmpl.format(**RE_PATTERN_PARTS)
     return re.compile(pattern_str)
