@@ -26,24 +26,26 @@ log = logging.getLogger("pycalver.vcs")
 
 VCS_SUBCOMMANDS_BY_NAME = {
     'git': {
-        'is_usable': "git rev-parse --git-dir",
-        'fetch'    : "git fetch",
-        'ls_tags'  : "git tag --list v*",
-        'status'   : "git status --porcelain",
-        'add_path' : "git add --update {path}",
-        'commit'   : "git commit --file {path}",
-        'tag'      : "git tag --annotate {tag} --message {tag}",
-        'push_tag' : "git push origin {tag}",
+        'is_usable'   : "git rev-parse --git-dir",
+        'fetch'       : "git fetch",
+        'ls_tags'     : "git tag --list v*",
+        'status'      : "git status --porcelain",
+        'add_path'    : "git add --update {path}",
+        'commit'      : "git commit --file {path}",
+        'tag'         : "git tag --annotate {tag} --message {tag}",
+        'push_tag'    : "git push origin {tag}",
+        'show_remotes': "git config --get remote.origin.url",
     },
     'hg': {
-        'is_usable': "hg root",
-        'fetch'    : "hg pull",
-        'ls_tags'  : "hg tags",
-        'status'   : "hg status -mard",
-        'add_path' : "hg add {path}",
-        'commit'   : "hg commit --logfile",
-        'tag'      : "hg tag {tag} --message {tag}",
-        'push_tag' : "hg push {tag}",
+        'is_usable'   : "hg root",
+        'fetch'       : "hg pull",
+        'ls_tags'     : "hg tags",
+        'status'      : "hg status -mard",
+        'add_path'    : "hg add {path}",
+        'commit'      : "hg commit --logfile",
+        'tag'         : "hg tag {tag} --message {tag}",
+        'push_tag'    : "hg push {tag}",
+        'show_remotes': "hg paths",
     },
 }
 
@@ -71,6 +73,9 @@ class VCS:
     @property
     def is_usable(self) -> bool:
         """Detect availability of subcommand."""
+        if not os.path.exists(f".{self.name}"):
+            return False
+
         cmd = self.subcommands['is_usable'].split()
 
         try:
@@ -82,9 +87,20 @@ class VCS:
                 return False
             raise
 
+    @property
+    def has_remote(self) -> bool:
+        try:
+            output = self('show_remotes')
+            if output.strip() == "":
+                return False
+            return True
+        except Exception:
+            return False
+
     def fetch(self) -> None:
         """Fetch updates from remote origin."""
-        self('fetch')
+        if self.has_remote:
+            self('fetch')
 
     def status(self) -> typ.List[str]:
         """Get status lines."""
@@ -130,7 +146,8 @@ class VCS:
 
     def push(self, tag_name: str) -> None:
         """Push changes to origin."""
-        self('push_tag', tag=tag_name)
+        if self.has_remote:
+            self('push_tag', tag=tag_name)
 
     def __repr__(self) -> str:
         """Generate string representation."""
