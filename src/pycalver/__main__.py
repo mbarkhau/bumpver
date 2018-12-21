@@ -47,7 +47,7 @@ def _init_logging(verbose: int = 0) -> None:
         log_level  = logging.DEBUG
     elif verbose == 1:
         log_format = "%(levelname)-7s - %(message)s"
-        log_level  = logging.DEBUG
+        log_level  = logging.INFO
     else:
         log_format = "%(levelname)-7s - %(message)s"
         log_level  = logging.INFO

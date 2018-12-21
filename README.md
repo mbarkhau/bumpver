@@ -527,7 +527,7 @@ different commits. This is mitigates a rare corner case where
 
 
 ```shell
-$ pycalver show
+$ pycalver show --verbose
 INFO    - fetching tags from remote (to turn off use: -n / --no-fetch)
 Current Version: v201812.0005-beta
 PEP440 Version : 201812.5b0
@@ -546,6 +546,7 @@ To increment and publish a new version, you can use the
  4. *Commit* the updated version strings.
  5. *Tag* the new commit.
  6. *Push* the new commit and tag.
+
 
 ```
 $ pycalver bump --dry

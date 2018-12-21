@@ -62,9 +62,10 @@ class VCS:
 
     def __call__(self, cmd_name: str, env=None, **kwargs: str) -> str:
         """Invoke subcommand and return output."""
-        cmd_str     = self.subcommands[cmd_name]
-        cmd_parts   = cmd_str.format(**kwargs).split()
-        output_data = sp.check_output(cmd_parts, env=env, stderr=sp.STDOUT)
+        cmd_tmpl = self.subcommands[cmd_name]
+        cmd_str  = cmd_tmpl.format(**kwargs)
+        log.debug(cmd_str)
+        output_data = sp.check_output(cmd_str.split(), env=env, stderr=sp.STDOUT)
 
         # TODO (mb 2018-11-15): Detect encoding of output?
         _encoding = "utf-8"
