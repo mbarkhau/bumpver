@@ -30,14 +30,22 @@ PYPROJECT_TOML_FIXTURE = """
 requires = ["setuptools", "wheel"]
 """
 
+ENV = {
+    'GIT_AUTHOR_NAME'    : "pycalver_tester",
+    'GIT_COMMITTER_NAME' : "pycalver_tester",
+    'GIT_AUTHOR_EMAIl'   : "pycalver_tester@nowhere.com",
+    'GIT_COMMITTER_EMAIl': "pycalver_tester@nowhere.com",
+    'HGUSER'             : "pycalver_tester",
+}
+
+
+def sh(*cmd):
+    return sp.check_output(cmd, env=ENV)
+
 
 @pytest.fixture
 def runner(tmpdir):
-    runner   = CliRunner(env={
-        'GIT_AUTHOR_NAME' : "pycalver_tester",
-        'GIT_AUTHOR_EMAIL': "pycalver_tester@nowhere.com",
-        'HGUSER'          : "pycalver_tester",
-    })
+    runner   = CliRunner(env=ENV)
     orig_cwd = os.getcwd()
 
     _debug = 0
@@ -199,11 +207,11 @@ def test_novcs_pyproject_init(runner):
 
 def _vcs_init(vcs):
     assert not pl.Path(f".{vcs}").exists()
-    sp.check_output([f"{vcs}", "init"])
+    sh(f"{vcs}", "init")
     assert pl.Path(f".{vcs}").is_dir()
 
-    sp.check_output([f"{vcs}", "add", "README.md"])
-    sp.check_output([f"{vcs}", "commit", "-m", "initial commit"])
+    sh(f"{vcs}", "add", "README.md")
+    sh(f"{vcs}", "commit", "-m", "initial commit")
 
 
 def test_git_init(runner):
@@ -244,9 +252,7 @@ def test_git_tag_eval(runner):
     tag_version        = initial_version.replace(".0001-alpha", ".0123-beta")
     tag_version_pep440 = tag_version[1:7] + ".123b0"
 
-    sp.check_output(
-        ["git", "tag", "--annotate", tag_version, "--message", f"bump version to {tag_version}"]
-    )
+    sh("git", "tag", "--annotate", tag_version, "--message", f"bump version to {tag_version}")
 
     result = runner.invoke(pycalver.cli, ['show', "--verbose"])
     assert result.exit_code == 0
@@ -266,7 +272,7 @@ def test_hg_tag_eval(runner):
     tag_version        = initial_version.replace(".0001-alpha", ".0123-beta")
     tag_version_pep440 = tag_version[1:7] + ".123b0"
 
-    sp.check_output(["hg", "tag", tag_version, "--message", f"bump version to {tag_version}"])
+    sh("hg", "tag", tag_version, "--message", f"bump version to {tag_version}")
 
     result = runner.invoke(pycalver.cli, ['show', "--verbose"])
     assert result.exit_code == 0
