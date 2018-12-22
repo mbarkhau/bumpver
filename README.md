@@ -693,7 +693,7 @@ order the version tags correctly.
 [downloads_img]: https://pepy.tech/badge/pycalver/month
 [downloads_ref]: https://pepy.tech/project/pycalver
 
-[version_img]: https://img.shields.io/badge/PyCalVer-v201812.0016-None-blue.svg
+[version_img]: https://img.shields.io/badge/PyCalVer-v201812.0016-blue.svg
 [version_ref]: https://pypi.org/project/pycalver/
 
 [pypi_img]: https://img.shields.io/badge/PyPI-wheels-green.svg
