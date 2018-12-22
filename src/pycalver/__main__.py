@@ -57,11 +57,11 @@ def _init_logging(verbose: int = 0) -> None:
 
 
 def _validate_release_tag(release: str) -> None:
-    if release == 'final' or release in parse.VALID_RELEASE_VALUES:
+    if release in parse.VALID_RELEASE_VALUES:
         return
 
     log.error(f"Invalid argument --release={release}")
-    log.error(f"Valid arguments are: final, {', '.join(parse.VALID_RELEASE_VALUES)}")
+    log.error(f"Valid arguments are: {', '.join(parse.VALID_RELEASE_VALUES)}")
     sys.exit(1)
 
 
@@ -235,7 +235,7 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
     metavar="<name>",
     help=(
         f"Override release name of current_version. Valid options are: "
-        f"{', '.join(parse.VALID_RELEASE_VALUES)} and final."
+        f"{', '.join(parse.VALID_RELEASE_VALUES)}."
     ),
 )
 @click.option(

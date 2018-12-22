@@ -441,8 +441,8 @@ INFO    - New Version: v201809.0002-rc
 +[![PyCalVer v201812.0017][version_img]][version_ref]
  [![PyPI Releases][pypi_img]][pypi_ref]
 
---- myprojcet/__init__.py
-+++ myprojcet/__init__.py
+--- myproject/__init__.py
++++ myproject/__init__.py
 @@ -1,1 +1,1 @@
 -__version__ = "v201809.0001-beta"
 +__version__ = "v201809.0002-rc"
@@ -478,34 +478,42 @@ use, everything else in a pattern is treated as literal text.
 | `{release_tag}`    | alpha              |
 
 
-Note that the separator/prefix characters can be part of what is
-matched and generated for a given placeholder. In other words,
-assuming you have the following text in your README.md (note the
-two dashes before alpha):
+There are two limitations to keep in mind:
+
+ 1. A version string cannot span multiple lines.
+ 2. There is no way to escape "-", "." characters (yet).
+
+The lack of escaping may for example be an issue with badge URLs.
+You may want to put the following text in your README.md (note the
+two dashes before `beta` are parsed as a literal dash by shields.io):
 
 ```
-https://img.shields.io/badge/PyCalVer-v201812.0016-None-blue.svg
+https://img.shields.io/badge/myproject-v201812.0116--beta-blue.svg
 ```
 
-An appropriate pattern would be:
+While could use the following pattern, which will work for a while:
 
 ```ini
 README.md =
-    /badge/PyCalVer {calver}{build}-{release}-blue.svg
+    /badge/myproject-v{year}{month}.{build_no}--{release_tag}-blue.svg
 ```
 
-Notice that neither the "v" prefix, nor the "." and "-"
-separators are included in the pattern text, as they are
-respectively part of the `calver`, `build` and `release`
-placeholders. Alternatively you can be more explicit.
+This will eventually break though, when you do a `final` release, at
+which point the following will be put in your README.md:
 
-```ini
-README.md =
-    /badge/PyCalVer v{year}{month}.{build_no}--{release_tag}-blue.svg
+```
+https://img.shields.io/badge/myproject-v201812.0117--final-blue.svg
 ```
 
-One limitation to keep in mind is that a version string cannot
-span multiple lines.
+Whereas what you probably wanted was this:
+
+```
+https://img.shields.io/badge/myproject-v201812.0117-blue.svg
+```
+
+I think we can all agree that this is a travesty and the author
+should be ashamed for releasing PyCalVer with such a monumental
+deficiency.
 
 
 ### Bump It Up

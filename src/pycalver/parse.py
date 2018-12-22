@@ -12,7 +12,7 @@ import typing as typ
 log = logging.getLogger("pycalver.parse")
 
 
-VALID_RELEASE_VALUES = ("alpha", "beta", "dev", "rc", "post")
+VALID_RELEASE_VALUES = ("alpha", "beta", "dev", "rc", "post", "final")
 
 
 PATTERN_ESCAPES = [
@@ -38,12 +38,14 @@ PATTERN_ESCAPES = [
 
 RE_PATTERN_PARTS = {
     'pep440_version': r"\d{6}\.[1-9]\d*(a|b|dev|rc|post)?\d*",
-    'version'       : r"v\d{6}\.\d{4,}(\-(alpha|beta|dev|rc|post))?",
+    'version'       : r"v\d{6}\.\d{4,}(\-(alpha|beta|dev|rc|post|final))?",
     'calver'        : r"v\d{6}",
+    'year'          : r"\d{4}",
+    'month'         : r"\d{2}",
     'build'         : r"\.\d{4,}",
     'build_no'      : r"\d{4,}",
-    'release'       : r"(\-(alpha|beta|dev|rc|post))?",
-    'release_tag'   : r"(alpha|beta|dev|rc|post)?",
+    'release'       : r"(\-(alpha|beta|dev|rc|post|final))?",
+    'release_tag'   : r"(alpha|beta|dev|rc|post|final)?",
 }
 
 

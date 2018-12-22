@@ -24,9 +24,13 @@ def test_bump_final():
     calver      = version.current_calver()
     cur_version = calver + ".0001"
     assert cur_version < version.incr(cur_version)
+    assert version.incr(cur_version).endswith(".0002")
     assert version.incr(cur_version, release="alpha").endswith("-alpha")
-    assert version.incr(cur_version, release="final").endswith("0002")
-    assert version.incr(cur_version).endswith("0002")
+
+    assert version.incr(cur_version, release="final").endswith(".0002")
+
+    pre_version = cur_version + "-beta"
+    assert version.incr(pre_version, release="final").endswith(".0002")
 
 
 def test_bump_future():
@@ -65,6 +69,8 @@ def test_parse_version_info():
     assert version_nfo.month          == "12"
     assert version_nfo.build          == ".0001"
     assert version_nfo.release        == "-alpha"
+    assert version_nfo.build_no       == "0001"
+    assert version_nfo.release_tag    == "alpha"
 
     version_str = "v201712.0001"
     version_nfo = version.parse_version_info(version_str)
@@ -75,7 +81,9 @@ def test_parse_version_info():
     assert version_nfo.year           == "2017"
     assert version_nfo.month          == "12"
     assert version_nfo.build          == ".0001"
-    assert version_nfo.release is None
+    assert version_nfo.release        == "-final"
+    assert version_nfo.build_no       == "0001"
+    assert version_nfo.release_tag    == "final"
 
 
 def test_readme_pycalver1():

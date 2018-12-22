@@ -100,6 +100,10 @@ def parse_version_info(version_str: str) -> VersionInfo:
 
     kwargs = match.groupdict()
     kwargs['pep440_version'] = pycalver_to_pep440(kwargs['version'])
+    if kwargs['release'] is None:
+        kwargs['release'] = "-final"
+    if kwargs['release_tag'] is None:
+        kwargs['release_tag'] = "final"
     return VersionInfo(**kwargs)
 
 
@@ -143,6 +147,9 @@ def incr(old_version: str, *, release: str = None) -> str:
         new_release = None
     else:
         new_release = release
+
+    if new_release == 'final':
+        new_release = None
 
     new_version = new_calver + "." + new_build
     if new_release:
