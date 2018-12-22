@@ -11,7 +11,7 @@ Project/Repo:
 
 [![MIT License][license_img]][license_ref]
 [![Supported Python Versions][pyversions_img]][pyversions_ref]
-[![PyCalVer v201812.0017][version_img]][version_ref]
+[![PyCalVer v201812.0018][version_img]][version_ref]
 [![PyPI Releases][pypi_img]][pypi_ref]
 [![PyPI Downloads][downloads_img]][downloads_ref]
 
@@ -335,9 +335,9 @@ To see how version strings are incremented, we can use
 ```shell
 $ pip install pycalver
 ...
-Successfully installed pycalver-201812.17
+Successfully installed pycalver-201812.18
 $ pycavler --version
-pycalver, version v201812.0017
+pycalver, version v201812.0018
 $ pycalver test v201801.0033-beta
 PyCalVer Version: v201809.0034-beta
 PEP440 Version  : 201809.34b0
@@ -437,8 +437,8 @@ INFO    - New Version: v201809.0002-rc
 @@ -11,7 +11,7 @@
 
  [![Supported Python Versions][pyversions_img]][pyversions_ref]
--[![PyCalVer v201812.0017][version_img]][version_ref]
-+[![PyCalVer v201812.0017][version_img]][version_ref]
+-[![PyCalVer v201812.0018][version_img]][version_ref]
++[![PyCalVer v201812.0018][version_img]][version_ref]
  [![PyPI Releases][pypi_img]][pypi_ref]
 
 --- myproject/__init__.py
@@ -701,7 +701,7 @@ order the version tags correctly.
 [downloads_img]: https://pepy.tech/badge/pycalver/month
 [downloads_ref]: https://pepy.tech/project/pycalver
 
-[version_img]: https://img.shields.io/badge/PyCalVer-v201812.0017-blue.svg
+[version_img]: https://img.shields.io/badge/PyCalVer-v201812.0018-blue.svg
 [version_ref]: https://pypi.org/project/pycalver/
 
 [pypi_img]: https://img.shields.io/badge/PyPI-wheels-green.svg
