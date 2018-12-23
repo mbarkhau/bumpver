@@ -23,5 +23,5 @@ twine==1.12.1
 
 md-toc==2.0.1
 straitjacket==201812.7a1
-pycalver
+pycalver==201812.18
 lib3to6
