@@ -10,5 +10,5 @@
 pathlib2
 typing
 click
-toml
+toml==0.10.0
 six
