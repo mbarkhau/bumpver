@@ -8,7 +8,7 @@
 # should see if there is a conda package that suits your needs.
 
 pathlib2
-typing
+typing==3.6.6
 click
 toml
 six
