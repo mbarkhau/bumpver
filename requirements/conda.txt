@@ -35,4 +35,4 @@ ujson
 
 # pytest is required in every environment to run the test suite
 # against the installed modules.
-pytest
+pytest==4.0.2
