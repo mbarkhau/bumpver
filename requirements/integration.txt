@@ -18,7 +18,7 @@ pytest==4.0.2
 pytest-cov==2.6.0
 pylint==2.2.2
 
-readme_renderer[md]
+readme_renderer[md]==24.0
 twine
 
 md-toc
