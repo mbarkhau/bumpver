@@ -12,11 +12,11 @@ flake8-bugbear
 flake8-docstrings
 flake8-builtins
 flake8-comprehensions
-pylint
+pylint==2.2.2
 mypy
 pytest
 pytest-cov
-pylint
+pylint==2.2.2
 
 readme_renderer[md]
 twine
