@@ -23,5 +23,5 @@ twine
 
 md-toc
 straitjacket
-pycalver
+pycalver==201812.18
 lib3to6
