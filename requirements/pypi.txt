@@ -9,6 +9,6 @@
 
 pathlib2
 typing
-click
+click==7.0
 toml
 six
