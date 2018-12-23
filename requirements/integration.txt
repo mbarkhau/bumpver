@@ -13,7 +13,7 @@ flake8-docstrings
 flake8-builtins
 flake8-comprehensions
 pylint
-mypy
+mypy==0.650
 pytest
 pytest-cov
 pylint
