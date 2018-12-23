@@ -18,7 +18,7 @@ q
 # readable. It provides different configuration options for
 # coloring and formatting.
 # https://github.com/nir0s/backtrace
-backtrace
+backtrace==0.2.1
 
 # Py-Spy: A sampling profiler for Python programs.
 # https://github.com/benfred/py-spy
