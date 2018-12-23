@@ -9,6 +9,6 @@
 
 pathlib2==2.3.3
 typing==3.6.6
-click
+click==7.0
 toml
 six
