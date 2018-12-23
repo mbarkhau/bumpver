@@ -11,4 +11,4 @@ pathlib2==2.3.3
 typing==3.6.6
 click==7.0
 toml==0.10.0
-six
+six==1.12.0
