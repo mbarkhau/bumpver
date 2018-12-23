@@ -8,7 +8,7 @@
 
 # PuDB is a full-screen, console-based visual debugger for Python.
 # https://documen.tician.de/pudb/
-pudb
+pudb==2018.1
 
 # Quick-and-dirty debugging output for tired programmers
 # https://pypi.org/project/q/
