@@ -20,7 +20,7 @@
 # https://pypi.org/project/ujson/
 # UltraJSON is an ultra fast JSON encoder and decoder written
 # in pure C with bindings for Python 2.5+ and 3.
-ujson
+# ujson
 
 # The hot new pkdf on the block is argon2, winner of
 # the https://password-hashing.net/ competition.

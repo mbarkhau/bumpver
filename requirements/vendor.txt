@@ -15,8 +15,9 @@
 #
 # This allows us to:
 #
-# 1. Easily navigate to the source of a vendored dependency
-# 2. Use binary versions packages instead of source versions of
+# 1. Enable mypy to check modules of multiple packages.
+# 2. Easily navigate to the source of a vendored dependency
+# 3. Use binary versions packages instead of source versions of
 #    packages, simply by not including the vendor/ directory in
 #    the PYTHONPATH. The version from the virtualenv will then
 #    be loaded instead.
