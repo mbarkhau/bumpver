@@ -10,7 +10,7 @@
 flake8
 flake8-bugbear
 flake8-docstrings
-flake8-builtins
+flake8-builtins==1.4.1
 flake8-comprehensions
 pylint
 mypy
