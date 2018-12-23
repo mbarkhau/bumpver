@@ -8,7 +8,7 @@
 # No dependencies required for production should be listed here.
 
 flake8==3.6.0
-flake8-bugbear
+flake8-bugbear==18.8.0
 flake8-docstrings
 flake8-builtins
 flake8-comprehensions
