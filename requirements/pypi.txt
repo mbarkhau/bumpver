@@ -11,4 +11,4 @@ pathlib2
 typing
 click
 toml
-six
+six==1.12.0
