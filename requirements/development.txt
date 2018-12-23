@@ -23,7 +23,7 @@ backtrace==0.2.1
 # Py-Spy: A sampling profiler for Python programs.
 # https://github.com/benfred/py-spy
 # This is good for coarse grained profiling (even on production)
-py-spy
+py-spy==0.1.10
 
 # SNAKEVIZ : A browser based viewer for the output of Python’s cProfile.
 # https://jiffyclub.github.io/snakeviz/
