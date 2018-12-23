@@ -21,7 +21,7 @@ pylint==2.2.2
 readme_renderer[md]==24.0
 twine==1.12.1
 
-md-toc
+md-toc==2.0.1
 straitjacket
 pycalver
 lib3to6
