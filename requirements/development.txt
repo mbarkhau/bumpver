@@ -12,7 +12,7 @@ pudb
 
 # Quick-and-dirty debugging output for tired programmers
 # https://pypi.org/project/q/
-q
+q==2.6
 
 # backtrace manipulates Python tracebacks to make them more
 # readable. It provides different configuration options for
