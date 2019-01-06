@@ -58,8 +58,8 @@ def test_parse_toml():
     assert cfg.push   is True
 
     assert "pycalver.toml" in cfg.file_patterns
-    assert cfg.file_patterns["README.md"    ] == ["{version}", "{pep440_version}"]
-    assert cfg.file_patterns["pycalver.toml"] == ['current_version = "{version}"']
+    assert cfg.file_patterns["README.md"    ] == ["{pycalver}", "{pep440_pycalver}"]
+    assert cfg.file_patterns["pycalver.toml"] == ['current_version = "{pycalver}"']
 
 
 def test_parse_cfg():
@@ -74,8 +74,8 @@ def test_parse_cfg():
     assert cfg.push   is True
 
     assert "setup.cfg" in cfg.file_patterns
-    assert cfg.file_patterns["setup.py" ] == ["{version}", "{pep440_version}"]
-    assert cfg.file_patterns["setup.cfg"] == ['current_version = "{version}"']
+    assert cfg.file_patterns["setup.py" ] == ["{pycalver}", "{pep440_pycalver}"]
+    assert cfg.file_patterns["setup.cfg"] == ['current_version = "{pycalver}"']
 
 
 def test_parse_default_toml():
@@ -168,8 +168,8 @@ def test_parse_toml_file(tmpdir):
     assert cfg.push   is True
 
     assert cfg.file_patterns == {
-        "README.md"    : ["{version}", "{pep440_version}"],
-        "pycalver.toml": ['current_version = "{version}"'],
+        "README.md"    : ["{pycalver}", "{pep440_pycalver}"],
+        "pycalver.toml": ['current_version = "{pycalver}"'],
     }
 
 
@@ -190,8 +190,8 @@ def test_parse_cfg_file(tmpdir):
     assert cfg.push   is True
 
     assert cfg.file_patterns == {
-        "setup.py" : ["{version}", "{pep440_version}"],
-        "setup.cfg": ['current_version = "{version}"'],
+        "setup.py" : ["{pycalver}", "{pep440_pycalver}"],
+        "setup.cfg": ['current_version = "{pycalver}"'],
     }
 
 

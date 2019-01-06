@@ -16,7 +16,6 @@ import logging
 import typing as typ
 
 from . import vcs
-from . import parse
 from . import config
 from . import version
 from . import rewrite
@@ -25,17 +24,20 @@ from . import rewrite
 _VERBOSE = 0
 
 
-try:
-    import backtrace
+# try:
+#     import backtrace
 
-    # To enable pretty tracebacks:
-    #   echo "export ENABLE_BACKTRACE=1;" >> ~/.bashrc
-    backtrace.hook(align=True, strip_path=True, enable_on_envvar_only=True)
-except ImportError:
-    pass
+#     # To enable pretty tracebacks:
+#     #   echo "export ENABLE_BACKTRACE=1;" >> ~/.bashrc
+#     backtrace.hook(align=True, strip_path=True, enable_on_envvar_only=True)
+# except ImportError:
+#     pass
 
 
 click.disable_unicode_literals_warning = True
+
+
+VALID_RELEASE_VALUES = ("alpha", "beta", "dev", "rc", "post", "final")
 
 
 log = logging.getLogger("pycalver.cli")
@@ -57,11 +59,11 @@ def _init_logging(verbose: int = 0) -> None:
 
 
 def _validate_release_tag(release: str) -> None:
-    if release in parse.VALID_RELEASE_VALUES:
+    if release in VALID_RELEASE_VALUES:
         return
 
     log.error(f"Invalid argument --release={release}")
-    log.error(f"Valid arguments are: {', '.join(parse.VALID_RELEASE_VALUES)}")
+    log.error(f"Valid arguments are: {', '.join(VALID_RELEASE_VALUES)}")
     sys.exit(1)
 
 
@@ -77,22 +79,40 @@ def cli(verbose: int = 0):
 
 @cli.command()
 @click.argument("old_version")
+@click.argument("pattern", default="{pycalver}")
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 @click.option(
     "--release", default=None, metavar="<name>", help="Override release name of current_version"
 )
-def test(old_version: str, verbose: int = 0, release: str = None) -> None:
+@click.option("--major", is_flag=True, default=False, help="Increment major component.")
+@click.option("--minor", is_flag=True, default=False, help="Increment minor component.")
+@click.option("--patch", is_flag=True, default=False, help="Increment patch component.")
+def test(
+    old_version: str,
+    pattern    : str  = "{pycalver}",
+    verbose    : int  = 0,
+    release    : str  = None,
+    major      : bool = False,
+    minor      : bool = False,
+    patch      : bool = False,
+) -> None:
     """Increment a version number for demo purposes."""
     _init_logging(verbose=max(_VERBOSE, verbose))
 
     if release:
         _validate_release_tag(release)
 
-    new_version    = version.incr(old_version, release=release)
-    pep440_version = version.pycalver_to_pep440(new_version)
+    new_version = version.incr(
+        old_version, pattern=pattern, release=release, major=major, minor=minor, patch=patch
+    )
+    if new_version is None:
+        log.error(f"Invalid version '{old_version}' and/or pattern '{pattern}'.")
+        sys.exit(1)
 
-    print("PyCalVer Version:", new_version)
-    print("PEP440 Version  :", pep440_version)
+    pep440_version = version.to_pep440(new_version)
+
+    print("New Version:", new_version)
+    print("PEP440     :", pep440_version)
 
 
 def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
@@ -103,12 +123,12 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
             log.info(f"fetching tags from remote (to turn off use: -n / --no-fetch)")
             _vcs.fetch()
 
-        version_tags = [tag for tag in _vcs.ls_tags() if version.PYCALVER_RE.match(tag)]
+        version_tags = [tag for tag in _vcs.ls_tags() if version.is_valid(tag, cfg.version_pattern)]
         if version_tags:
             version_tags.sort(reverse=True)
             log.debug(f"found {len(version_tags)} tags: {version_tags[:2]}")
             latest_version_tag    = version_tags[0]
-            latest_version_pep440 = version.pycalver_to_pep440(latest_version_tag)
+            latest_version_pep440 = version.to_pep440(latest_version_tag)
             if latest_version_tag > cfg.current_version:
                 log.info(f"Working dir version        : {cfg.current_version}")
                 log.info(f"Latest version from {_vcs.name:>3} tag: {latest_version_tag}")
@@ -143,7 +163,7 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
     cfg = _update_cfg_from_vcs(cfg, fetch=fetch)
 
     print(f"Current Version: {cfg.current_version}")
-    print(f"PEP440 Version : {cfg.pep440_version}")
+    print(f"PEP440         : {cfg.pep440_version}")
 
 
 @cli.command()
@@ -235,7 +255,7 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
     metavar="<name>",
     help=(
         f"Override release name of current_version. Valid options are: "
-        f"{', '.join(parse.VALID_RELEASE_VALUES)}."
+        f"{', '.join(VALID_RELEASE_VALUES)}."
     ),
 )
 @click.option(
@@ -248,12 +268,18 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
         "to files with version strings."
     ),
 )
+@click.option("--major", is_flag=True, default=False, help="Increment major component.")
+@click.option("--minor", is_flag=True, default=False, help="Increment minor component.")
+@click.option("--patch", is_flag=True, default=False, help="Increment patch component.")
 def bump(
     release    : typ.Optional[str] = None,
     verbose    : int  = 0,
     dry        : bool = False,
     allow_dirty: bool = False,
     fetch      : bool = True,
+    major      : bool = False,
+    minor      : bool = False,
+    patch      : bool = False,
 ) -> None:
     """Increment the current version string and update project files."""
     verbose = max(_VERBOSE, verbose)
@@ -272,7 +298,17 @@ def bump(
     cfg = _update_cfg_from_vcs(cfg, fetch=fetch)
 
     old_version = cfg.current_version
-    new_version = version.incr(old_version, release=release)
+    new_version = version.incr(
+        old_version,
+        pattern=cfg.version_pattern,
+        release=release,
+        major=major,
+        minor=minor,
+        patch=patch,
+    )
+    if new_version is None:
+        log.error(f"Invalid version '{old_version}' and/or pattern '{cfg.version_pattern}'.")
+        sys.exit(1)
 
     log.info(f"Old Version: {old_version}")
     log.info(f"New Version: {new_version}")

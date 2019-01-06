@@ -10,7 +10,7 @@ import pytest
 from click.testing import CliRunner
 
 import pycalver.config as config
-import pycalver.version as version
+import pycalver.patterns as patterns
 import pycalver.__main__ as pycalver
 
 
@@ -80,18 +80,52 @@ def test_version(runner):
     result = runner.invoke(pycalver.cli, ['--version', "--verbose"])
     assert result.exit_code == 0
     assert " version v20" in result.output
-    match = version.PYCALVER_RE.search(result.output)
+    match = patterns.PYCALVER_RE.search(result.output)
     assert match
 
 
-def test_incr(runner):
+def test_incr_default(runner):
     old_version     = "v201701.0999-alpha"
     initial_version = config._initial_version()
 
-    result = runner.invoke(pycalver.cli, ['test', old_version, "--verbose"])
+    result = runner.invoke(pycalver.cli, ['test', "--verbose", old_version])
     assert result.exit_code == 0
     new_version = initial_version.replace(".0001-alpha", ".11000-alpha")
-    assert f"PyCalVer Version: {new_version}\n" in result.output
+    assert f"Version: {new_version}\n" in result.output
+
+
+def test_incr_semver(runner):
+    semver_pattern = "{MAJOR}.{MINOR}.{PATCH}"
+    old_version    = "0.1.0"
+    new_version    = "0.1.1"
+
+    result = runner.invoke(pycalver.cli, ['test', "--verbose", "--patch", old_version, "{semver}"])
+    assert result.exit_code == 0
+    assert f"Version: {new_version}\n" in result.output
+
+    result = runner.invoke(
+        pycalver.cli, ['test', "--verbose", "--patch", old_version, semver_pattern]
+    )
+    assert result.exit_code == 0
+    assert f"Version: {new_version}\n" in result.output
+
+    old_version = "0.1.1"
+    new_version = "0.2.0"
+
+    result = runner.invoke(
+        pycalver.cli, ['test', "--verbose", "--minor", old_version, semver_pattern]
+    )
+    assert result.exit_code == 0
+    assert f"Version: {new_version}\n" in result.output
+
+    old_version = "0.1.1"
+    new_version = "1.0.0"
+
+    result = runner.invoke(
+        pycalver.cli, ['test', "--verbose", "--major", old_version, semver_pattern]
+    )
+    assert result.exit_code == 0
+    assert f"Version: {new_version}\n" in result.output
 
 
 def test_incr_to_beta(runner):
@@ -101,7 +135,7 @@ def test_incr_to_beta(runner):
     result = runner.invoke(pycalver.cli, ['test', old_version, "--verbose", "--release", "beta"])
     assert result.exit_code == 0
     new_version = initial_version.replace(".0001-alpha", ".11000-beta")
-    assert f"PyCalVer Version: {new_version}\n" in result.output
+    assert f"Version: {new_version}\n" in result.output
 
 
 def test_incr_to_final(runner):
@@ -111,7 +145,7 @@ def test_incr_to_final(runner):
     result = runner.invoke(pycalver.cli, ['test', old_version, "--verbose", "--release", "final"])
     assert result.exit_code == 0
     new_version = initial_version.replace(".0001-alpha", ".11000")
-    assert f"PyCalVer Version: {new_version}\n" in result.output
+    assert f"Version: {new_version}\n" in result.output
 
 
 def test_incr_invalid(runner, caplog):
@@ -164,7 +198,7 @@ def test_novcs_nocfg_init(runner):
     result = runner.invoke(pycalver.cli, ['show', "--verbose"])
     assert result.exit_code == 0
     assert f"Current Version: {config._initial_version()}\n" in result.output
-    assert f"PEP440 Version : {config._initial_version_pep440()}\n" in result.output
+    assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
 
 
 def test_novcs_setupcfg_init(runner):
@@ -184,7 +218,7 @@ def test_novcs_setupcfg_init(runner):
     result = runner.invoke(pycalver.cli, ['show', "--verbose"])
     assert result.exit_code == 0
     assert f"Current Version: {config._initial_version()}\n" in result.output
-    assert f"PEP440 Version : {config._initial_version_pep440()}\n" in result.output
+    assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
 
 
 def test_novcs_pyproject_init(runner):
@@ -202,7 +236,7 @@ def test_novcs_pyproject_init(runner):
     result = runner.invoke(pycalver.cli, ['show'])
     assert result.exit_code == 0
     assert f"Current Version: {config._initial_version()}\n" in result.output
-    assert f"PEP440 Version : {config._initial_version_pep440()}\n" in result.output
+    assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
 
 
 def _vcs_init(vcs):
@@ -224,7 +258,7 @@ def test_git_init(runner):
     result = runner.invoke(pycalver.cli, ['show'])
     assert result.exit_code == 0
     assert f"Current Version: {config._initial_version()}\n" in result.output
-    assert f"PEP440 Version : {config._initial_version_pep440()}\n" in result.output
+    assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
 
 
 def test_hg_init(runner):
@@ -237,7 +271,7 @@ def test_hg_init(runner):
     result = runner.invoke(pycalver.cli, ['show'])
     assert result.exit_code == 0
     assert f"Current Version: {config._initial_version()}\n" in result.output
-    assert f"PEP440 Version : {config._initial_version_pep440()}\n" in result.output
+    assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
 
 
 def test_git_tag_eval(runner):
@@ -257,7 +291,7 @@ def test_git_tag_eval(runner):
     result = runner.invoke(pycalver.cli, ['show', "--verbose"])
     assert result.exit_code == 0
     assert f"Current Version: {tag_version}\n" in result.output
-    assert f"PEP440 Version : {tag_version_pep440}\n" in result.output
+    assert f"PEP440         : {tag_version_pep440}\n" in result.output
 
 
 def test_hg_tag_eval(runner):
@@ -277,7 +311,7 @@ def test_hg_tag_eval(runner):
     result = runner.invoke(pycalver.cli, ['show', "--verbose"])
     assert result.exit_code == 0
     assert f"Current Version: {tag_version}\n" in result.output
-    assert f"PEP440 Version : {tag_version_pep440}\n" in result.output
+    assert f"PEP440         : {tag_version_pep440}\n" in result.output
 
 
 def test_novcs_bump(runner):

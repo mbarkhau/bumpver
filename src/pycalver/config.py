@@ -77,6 +77,7 @@ class Config(typ.NamedTuple):
     """Container for parameters parsed from a config file."""
 
     current_version: str
+    version_pattern: str
     pep440_version : str
 
     commit: bool
@@ -90,6 +91,7 @@ def _debug_str(cfg: Config) -> str:
     cfg_str_parts = [
         f"Config Parsed: Config(",
         f"current_version='{cfg.current_version}'",
+        f"version_pattern='{{pycalver}}'",
         f"pep440_version='{cfg.pep440_version}'",
         f"commit={cfg.commit}",
         f"tag={cfg.tag}",
@@ -179,17 +181,52 @@ def _parse_toml(cfg_buffer: typ.TextIO) -> RawConfig:
     return raw_cfg
 
 
+def _normalize_file_patterns(raw_cfg: RawConfig) -> FilePatterns:
+    version_str     = raw_cfg['current_version']
+    version_pattern = raw_cfg['version_pattern']
+    pep440_version  = version.to_pep440(version_str)
+    file_patterns   = raw_cfg['file_patterns']
+
+    for filepath, patterns in list(file_patterns.items()):
+        if not os.path.exists(filepath):
+            log.warning(f"Invalid config, no such file: {filepath}")
+
+        normalized_patterns: typ.List[str] = []
+        for pattern in patterns:
+            normalized_pattern = pattern.replace("{version}", version_pattern)
+            if version_pattern == "{pycalver}":
+                normalized_pattern = normalized_pattern.replace(
+                    "{pep440_version}", "{pep440_pycalver}"
+                )
+            elif version_pattern == "{semver}":
+                normalized_pattern = normalized_pattern.replace("{pep440_version}", "{semver}")
+            elif "{pep440_version}" in pattern:
+                log.warning(f"Invalid config, cannot match '{pattern}' for '{filepath}'.")
+                log.warning(f"No mapping of '{version_pattern}' to '{pep440_version}'")
+            normalized_patterns.append(normalized_pattern)
+
+        file_patterns[filepath] = normalized_patterns
+
+    return file_patterns
+
+
 def _parse_config(raw_cfg: RawConfig) -> Config:
+    """Parse configuration which was loaded from an .ini/.cfg or .toml file."""
+
     if 'current_version' not in raw_cfg:
         raise ValueError("Missing 'pycalver.current_version'")
 
     version_str = raw_cfg['current_version']
     version_str = raw_cfg['current_version'] = version_str.strip("'\" ")
 
-    if version.PYCALVER_RE.match(version_str) is None:
-        raise ValueError(f"Invalid current_version = {version_str}")
+    version_pattern = raw_cfg.get('version_pattern', "{pycalver}")
+    version_pattern = raw_cfg['version_pattern'] = version_pattern.strip("'\" ")
 
-    pep440_version = version.pycalver_to_pep440(version_str)
+    # NOTE (mb 2019-01-05): trigger ValueError if version_pattern
+    #   and current_version don't work together.
+    version.parse_version_info(version_str, version_pattern)
+
+    pep440_version = version.to_pep440(version_str)
 
     commit = raw_cfg['commit']
     tag    = raw_cfg['tag']
@@ -206,13 +243,9 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     if push and not commit:
         raise ValueError("pycalver.commit = true required if pycalver.push = true")
 
-    file_patterns = raw_cfg['file_patterns']
+    file_patterns = _normalize_file_patterns(raw_cfg)
 
-    for filepath in file_patterns.keys():
-        if not os.path.exists(filepath):
-            log.warning(f"Invalid configuration, no such file: {filepath}")
-
-    cfg = Config(version_str, pep440_version, tag, commit, push, file_patterns)
+    cfg = Config(version_str, version_pattern, pep440_version, tag, commit, push, file_patterns)
     log.debug(_debug_str(cfg))
     return cfg
 
@@ -241,6 +274,7 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
 DEFAULT_CONFIGPARSER_BASE_TMPL = """
 [pycalver]
 current_version = "{initial_version}"
+version_pattern = "{{pycalver}}"
 commit = True
 tag = True
 push = True
@@ -279,6 +313,7 @@ README.md =
 DEFAULT_TOML_BASE_TMPL = """
 [pycalver]
 current_version = "{initial_version}"
+version_pattern = "{{pycalver}}"
 commit = true
 tag = true
 push = true
