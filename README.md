@@ -3,8 +3,8 @@
 PyCalVer is for projects that only have one semantic: newer ==
 better. PyCalVer version strings are compatible with python
 packaging software [setuptools][setuptools_ref] and
-[PEP440][pep_440_ref], but can in principle be used with any
-project.
+[PEP440][pep_440_ref], but can in principle be used for projects
+of any language.
 
 
 Project/Repo:
@@ -60,7 +60,7 @@ version strings. The version strings have three parts:
 
 ```
 
-    o Year and Month of Build
+    o Year and Month of Release
     |       o Sequential Build Number
     |       |      o Release Tag (optional)
     |       |      |
@@ -100,20 +100,20 @@ If you are familiar with these, feel free to skip ahead to
 
 ## Semantics of PyCalVer
 
-> Disclaimer: This section is aspirational and of course there
-> is nothing to prevent package maintainers from publishing
-> packages with different semantics than what is laid out here.
+> Disclaimer: This section is aspirational. There is nothing to
+> prevent package maintainers from publishing packages with
+> different semantics than what is laid out here.
 
 PyCalVer places a greater burden on package maintainers than
-SemVer. Backward incompatibility is not encoded, because
-maintainers should not make any breaking changes. This is great
-for users of a package, who can worry a bit less about an update
-breaking their project. If they're paranoid, they can of course
-still pin to known good versions, but ideally they don't need
-version specifier in their requirements.txt so they always get
-the latest bug fixes and features. Ideally users can trust the
-promise of a maintainer that the following semantics will always
-be true:
+SemVer. Backward incompatibility is not encoded in the version
+string, because maintainers should not make any breaking changes.
+This is great for users of a package, who can worry a bit less
+about an update breaking their project. If users are paranoid,
+they can of course still pin to known good versions, but ideally
+they don't need version specifier in their requirements.txt so
+they always get the latest bug fixes and features. Ideally users
+can trust the promise of a maintainer that the following
+semantics will always be true:
 
  - Newer is compatible.
  - Newer has fewer bugs.
@@ -121,7 +121,7 @@ be true:
  - Newer has similar or better performance.
 
 The world is not ideal of course, so how do users and
-maintainers deal with changes that might violate these promises?
+maintainers deal with changes that violate these promises?
 
 
 ### Breaking Changes
@@ -129,9 +129,9 @@ maintainers deal with changes that might violate these promises?
 > Namespaces are one honking great idea
 > -- let's do more of those!
 
-If you must make a breaking change to a package, *instead of
-incrementing a number*, the recommended approach with PyCalVer
-is to *create a whole new package*. Put differently, the major
+If you must make a breaking change to a package, **instead of
+incrementing a number**, the recommended approach with PyCalVer
+is to **create a whole new package**. Put differently, the major
 version becomes part of the package/module namespace. Typically
 you might add a numerical suffix, eg. `mypkg -> mypkg2`.
 
@@ -191,20 +191,21 @@ v201901.0670          # final release after testing
 ```
 
 In the absolute worst case, a change is discovered to break
-backward compatibility, but the change is still considered to be
-desirable. At that point, a new release should be made to revert
-the change. This way:
+backward compatibility, but the change is nonetheless considered
+to be desirable. At that point, a new release should be made to
+revert the change. This allows users:
 
- - users who were not exposed to the breaking change will
-   download the the newest release with the reverted changes.
- - users who were exposed to the breaking change can update to
-   the latest release and get the old working code again.
+ - who were exposed to the breaking change to update to the
+   latest release and get the old working code again.
+ - who were not exposed to the breaking change to download the
+   the newest release with the reverted changes and never even
+   know anything was wrong.
 
 Remember that the goal is to always make things easy for users
-who depend on a package. If there is any issue whatsoever, all
-they should have to do is `pip install --update`. If this
-doesn't work, they may have to temporarily pin to a known good
-version of a dependency, at least until a fixed release is
+who have your package as a dependency. If there is any issue
+whatsoever, all they should have to do is `pip install --update`.
+If this doesn't work, they may have to *temporarily* pin to a known
+good version of a dependency, at least until a fixed release is
 uploaded.
 
 After this immediate fire has been put out, if the maintainer
@@ -284,8 +285,8 @@ import re
 # https://regex101.com/r/fnj60p/10
 PYCALVER_PATTERN = r"""
 \b
-(?P<version>
-    (?P<calver>
+(?P<pycalver>
+    (?P<vYYYYMM>
        v                        # "v" version prefix
        (?P<year>\d{4})
        (?P<month>\d{2})
@@ -306,8 +307,8 @@ version_str = "v201712.0001-alpha"
 version_info = PYCALVER_RE.match(version_str).groupdict()
 
 assert version_info == {
-    "version" : "v201712.0001-alpha",
-    "calver"  : "v201712",
+    "pycalver": "v201712.0001-alpha",
+    "vYYYYMM" : "v201712",
     "year"    : "2017",
     "month"   : "12",
     "build"   : ".0001",
@@ -318,8 +319,8 @@ version_str = "v201712.0033"
 version_info = PYCALVER_RE.match(version_str).groupdict()
 
 assert version_info == {
-    "version" : "v201712.0033",
-    "calver"  : "v201712",
+    "pycalver": "v201712.0033",
+    "vYYYYMM" : "v201712",
     "year"    : "2017",
     "month"   : "12",
     "build"   : ".0033",
@@ -336,7 +337,7 @@ To see how version strings are incremented, we can use
 $ pip install pycalver
 ...
 Successfully installed pycalver-201812.18
-$ pycavler --version
+$ pycalver --version
 pycalver, version v201812.0018
 $ pycalver test v201801.0033-beta
 PyCalVer Version: v201809.0034-beta
@@ -385,19 +386,21 @@ This will add the something like the following to your
 
 ```ini
 [pycalver]
+current_version = v201809.0001-beta
+version_pattern = {pycalver}
 commit = True
 tag = True
 push = True
 
 [pycalver:file_patterns]
 setup.cfg =
-    current_version = {version}
+    current_version = {pycalver}
 setup.py =
-    "{version}",
-    "{pep440_version}",
+    "{pycalver}",
+    "{pep440_pycalver}",
 README.md =
-    {version}
-    {pep440_version}
+    {pycalver}
+    {pep440_pycalver}
 ```
 
 This probably won't cover all instances of version numbers across
@@ -407,17 +410,18 @@ additional changes you might need to make.
 ```ini
 [pycalver]
 current_version = v201809.0001-beta
+version_pattern = {pycalver}
 commit = True
 tag = True
 push = True
 
 [pycalver:file_patterns]
 setup.cfg =
-    current_version = {version}
+    current_version = {pycalver}
 setup.py =
-    version="{pep440_version}"
+    version="{pep440_pycalver}"
 myproject/__init__.py =
-    __version__ = "{version}"
+    __version__ = "{pycalver}"
 README.md =
     [PyCalVer {calver}{build}{release}]
     img.shields.io/badge/PyCalVer-{calver}{build}-{release}-blue
@@ -465,47 +469,50 @@ projects files. The following placeholders are available for
 use, everything else in a pattern is treated as literal text.
 
 
-|   placeholder      |      example       |
-|--------------------|--------------------|
-| `{pep440_version}` | 201809.1b0         |
-| `{version}`        | v201809.0001-alpha |
-| `{calver}`         | v201809            |
-| `{year}`           | 2018               |
-| `{month}`          | 09                 |
-| `{build}`          | .0001              |
-| `{build_no}`       | 0001               |
-| `{release}`        | -alpha             |
-| `{release_tag}`    | alpha              |
+|     placeholder     | range / example(s) |
+|---------------------|--------------------|
+| `{pycalver}`        | v201809.0001-beta  |
+| `{semver}`          | 1.2.3              |
+| `{pep440_pycalver}` | 201809.1b0         |
+| `{year}`            | 2018...            |
+| `{month}`           | 09, 10, 11, 12     |
+| `{build}`           | .0123              |
+| `{build_no}`        | 0123, 12345        |
+| `{release}`         | -alpha             |
+| `{release_tag}`     | alpha              |
 
 
-There are two limitations to keep in mind:
+There are some limitations to keep in mind:
 
  1. A version string cannot span multiple lines.
  2. There is no way to escape "-", "." characters (yet).
+ 3. The timezone is always UTC.
 
 The lack of escaping may for example be an issue with badge URLs.
-You may want to put the following text in your README.md (note the
-two dashes before `beta` are parsed as a literal dash by shields.io):
+You may want to put the following text in your README.md (note
+that shields.io parses the two "-" dashes before `beta` as one
+literal "-"):
 
 ```
 https://img.shields.io/badge/myproject-v201812.0116--beta-blue.svg
 ```
 
-While could use the following pattern, which will work for a while:
+While could use the following pattern, which will work fine for a
+while:
 
 ```ini
 README.md =
     /badge/myproject-v{year}{month}.{build_no}--{release_tag}-blue.svg
 ```
 
-This will eventually break though, when you do a `final` release, at
+Eventually thie will break, when you do a `final` release, at
 which point the following will be put in your README.md:
 
 ```
 https://img.shields.io/badge/myproject-v201812.0117--final-blue.svg
 ```
 
-Whereas what you probably wanted was this:
+What you probably wanted was this:
 
 ```
 https://img.shields.io/badge/myproject-v201812.0117-blue.svg
@@ -514,6 +521,34 @@ https://img.shields.io/badge/myproject-v201812.0117-blue.svg
 I think we can all agree that this is a travesty and the author
 should be ashamed for releasing PyCalVer with such a monumental
 deficiency.
+
+
+### Support for Other Versioning Schemes
+
+Besides the default version string pattern, pycalver also supports.
+
+
+| placeholder  |         comment         |   range / example(s)  | padding  | lexical id |
+|--------------|-------------------------|-----------------------|----------|------------|
+| `{year}`     | `strftime %Y`           | 2018...               |          |            |
+| `{yy}`       | `strftime %y`           | 18, 19..99, 01, 02    |          |            |
+| `{quarter}`  |                         | 1, 2, 3, 4            |          |            |
+| `{month}`    | `strftime %m`           | 09, 10, 11, 12        | yes (2)  |            |
+| `{iso_week}` | `strftime %W`           | 00..53                | yes (2)  |            |
+| `{us_week}`  | `strftime %U`           | 00..53                | yes (2)  |            |
+| `{dom}`      | `strftime %d`           | 01..31                | yes (2)  |            |
+| `{doy}`      | `strftime %j`           | 001..366              | yes (3)  |            |
+| `{MAJOR}`    | `bump --major`          | 1..9, 10..99, 100..   | no       |            |
+| `{MINOR}`    | `bump --minor`          | 1..9, 10..99, 100..   | no       | no         |
+| `{MM}`       | `bump --minor`          | 01..08, 09, 10...     | yes (2+) | no         |
+| `{MMM}`      | `bump --minor`          | 001..098, 099, 1100.. | yes (3+) | no         |
+| ...          |                         |                       |          |            |
+| `{PATCH}`    |                         | 1, 10, 101            | no       | no         |
+| `{bid}`      |                         | 0123, 12345           | yes (4+) | yes        |
+| `{BID}`      |                         | 1, 1234               | no       | no         |
+| `{tag}`      |                         | alpha                 |          |            |
+
+
 
 
 ### Bump It Up
@@ -531,15 +566,15 @@ As part of doing `pycalver bump`, your local VCS index is updated
 using `git fetch --tags`/`hg pull`. This ensures that all tags
 are known locally and the same version is not generated for
 different commits, and mitigates the risk of a rare corner case,
-where `p`pycalver bump` is invoked on different machines. If you're
-the only maintainer, you can always use `-n/--no-fetch`.
+where `pycalver bump` is invoked on different machines. If you
+are the sole maintainer, you can always use `-n/--no-fetch`.
 
 
 ```shell
 $ pycalver show --verbose
 INFO    - fetching tags from remote (to turn off use: -n / --no-fetch)
 Current Version: v201812.0005-beta
-PEP440 Version : 201812.5b0
+PEP440         : 201812.5b0
 ```
 
 

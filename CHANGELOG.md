@@ -1,6 +1,11 @@
 # Changelog for https://gitlab.com/mbarkhau/pycalver
 
 
+## v201901.0019-beta
+
+ - Added: Experimental support for many more custom version patterns
+
+
 ## v201812.0018
 
  - Fixed: Better handling of pattern replacements with "-final" releases.
