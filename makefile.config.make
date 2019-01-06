@@ -18,4 +18,4 @@ DEVELOPMENT_PYTHON_VERSION := python=3.6
 # - python=3.7
 # - pypy2.7
 # - pypy3.5
-SUPPORTED_PYTHON_VERSIONS := python=2.7 python=3.5 python=3.6 python=3.7 pypy2.7 pypy3.5
+SUPPORTED_PYTHON_VERSIONS := python=2.7 python=3.4 python=3.6 python=3.7 pypy2.7 pypy3.5

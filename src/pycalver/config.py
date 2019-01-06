@@ -91,7 +91,7 @@ def _debug_str(cfg: Config) -> str:
     cfg_str_parts = [
         f"Config Parsed: Config(",
         f"current_version='{cfg.current_version}'",
-        f"version_pattern='{{pycalver}}'",
+        "version_pattern='{pycalver}'",
         f"pep440_version='{cfg.pep440_version}'",
         f"commit={cfg.commit}",
         f"tag={cfg.tag}",
