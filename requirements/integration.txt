@@ -16,7 +16,6 @@ pylint
 mypy
 pytest
 pytest-cov
-pylint
 
 readme_renderer[md]
 twine

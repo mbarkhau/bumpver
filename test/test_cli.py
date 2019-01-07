@@ -128,6 +128,15 @@ def test_incr_semver(runner):
     assert f"Version: {new_version}\n" in result.output
 
 
+def test_incr_semver_invalid(runner, caplog):
+    result = runner.invoke(pycalver.cli, ['test', "--verbose", "--patch", "0.1.1"])
+    assert result.exit_code == 1
+    assert len(caplog.records) > 0
+    log_record = caplog.records[0]
+    assert "Invalid version string" in log_record.message
+    assert "for pattern '{pycalver}'" in log_record.message
+
+
 def test_incr_to_beta(runner):
     old_version     = "v201701.0999-alpha"
     initial_version = config._initial_version()
@@ -148,7 +157,7 @@ def test_incr_to_final(runner):
     assert f"Version: {new_version}\n" in result.output
 
 
-def test_incr_invalid(runner, caplog):
+def test_incr_invalid(runner):
     old_version = "v201701.0999-alpha"
 
     result = runner.invoke(pycalver.cli, ['test', old_version, "--verbose", "--release", "alfa"])
@@ -183,11 +192,35 @@ def test_nocfg(runner, caplog):
     )
 
 
-def test_novcs_nocfg_init(runner):
+def test_novcs_nocfg_init(runner, caplog, capsys):
     _add_project_files("README.md")
+    # dry mode test
+    result = runner.invoke(pycalver.cli, ['init', "--verbose", "--dry"])
+    assert result.exit_code == 0
+    assert not os.path.exists("pycalver.toml")
+
+    # check logging
+    assert len(caplog.records) == 1
+    log = caplog.records[0]
+    assert log.levelname == 'WARNING'
+    assert "File not found" in log.message
+
+    # print("moep")
+    # captured = capsys.readouterr()
+    # assert not captured.err
+    # assert "Would have written to pycalver.toml:" in captured.out
+
+    # non dry mode
     result = runner.invoke(pycalver.cli, ['init', "--verbose"])
     assert result.exit_code == 0
 
+    # check logging
+    assert len(caplog.records) == 2
+    log = caplog.records[1]
+    assert log.levelname == 'WARNING'
+    assert "File not found" in log.message
+
+    assert os.path.exists("pycalver.toml")
     with io.open("pycalver.toml", mode="r", encoding="utf-8") as fh:
         cfg_content = fh.read()
 
@@ -199,6 +232,15 @@ def test_novcs_nocfg_init(runner):
     assert result.exit_code == 0
     assert f"Current Version: {config._initial_version()}\n" in result.output
     assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
+
+    result = runner.invoke(pycalver.cli, ['init', "--verbose"])
+    assert result.exit_code == 1
+
+    # check logging
+    assert len(caplog.records) == 3
+    log = caplog.records[2]
+    assert log.levelname == 'ERROR'
+    assert "Configuration already initialized" in log.message
 
 
 def test_novcs_setupcfg_init(runner):

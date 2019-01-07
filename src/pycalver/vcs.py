@@ -50,6 +50,9 @@ VCS_SUBCOMMANDS_BY_NAME = {
 }
 
 
+Env = typ.Dict[str, str]
+
+
 class VCS:
     """VCS absraction for git and mercurial."""
 
@@ -60,7 +63,7 @@ class VCS:
         else:
             self.subcommands = subcommands
 
-    def __call__(self, cmd_name: str, env=None, **kwargs: str) -> str:
+    def __call__(self, cmd_name: str, env: Env = None, **kwargs: str) -> str:
         """Invoke subcommand and return output."""
         cmd_tmpl = self.subcommands[cmd_name]
         cmd_str  = cmd_tmpl.format(**kwargs)
@@ -68,7 +71,7 @@ class VCS:
             log.info(cmd_str)
         else:
             log.debug(cmd_str)
-        output_data = sp.check_output(cmd_str.split(), env=env, stderr=sp.STDOUT)
+        output_data: bytes = sp.check_output(cmd_str.split(), env=env, stderr=sp.STDOUT)
 
         # TODO (mb 2018-11-15): Detect encoding of output?
         _encoding = "utf-8"
@@ -141,12 +144,11 @@ class VCS:
         tmp_file = tempfile.NamedTemporaryFile("wb", delete=False)
         assert " " not in tmp_file.name
 
+        fh                 : typ.IO[bytes]
         with tmp_file as fh:
             fh.write(message_data)
 
-        env = os.environ.copy()
-        # TODO (mb 2018-09-04): check that this works on py27,
-        #   might need to be bytes there, idk.
+        env: Env = os.environ.copy()
         env['HGENCODING'] = "utf-8"
         self('commit', env=env, path=tmp_file.name)
         os.unlink(tmp_file.name)

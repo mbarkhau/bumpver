@@ -24,14 +24,14 @@ from . import rewrite
 _VERBOSE = 0
 
 
-# try:
-#     import backtrace
+try:
+    import backtrace
 
-#     # To enable pretty tracebacks:
-#     #   echo "export ENABLE_BACKTRACE=1;" >> ~/.bashrc
-#     backtrace.hook(align=True, strip_path=True, enable_on_envvar_only=True)
-# except ImportError:
-#     pass
+    # To enable pretty tracebacks:
+    #   echo "export ENABLE_BACKTRACE=1;" >> ~/.bashrc
+    backtrace.hook(align=True, strip_path=True, enable_on_envvar_only=True)
+except ImportError:
+    pass
 
 
 click.disable_unicode_literals_warning = True
@@ -183,10 +183,10 @@ def init(verbose: int = 0, dry: bool = False) -> None:
         sys.exit(1)
 
     if dry:
-        print("Exiting because of '--dry'. Would have written to setup.cfg:")
+        print("Exiting because of '--dry'. Would have written to {ctx.config_filepath}:")
         cfg_lines = config.default_config(ctx)
         print("\n    " + "\n    ".join(cfg_lines))
-        return
+        sys.exit(0)
 
     config.write_content(ctx)
 

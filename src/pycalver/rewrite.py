@@ -109,6 +109,8 @@ def iter_rewritten(
     ... ]
     >>>
     '''
+    fh: typ.IO[str]
+
     for filepath, patterns in file_patterns.items():
         with io.open(filepath, mode="rt", encoding="utf-8") as fh:
             content = fh.read()
@@ -151,6 +153,8 @@ def diff(new_version: str, file_patterns: config.PatternsByFilePath) -> str:
 
     full_diff = ""
     file_path: str
+    fh       : typ.IO[str]
+
     for file_path, patterns in sorted(file_patterns.items()):
         with io.open(file_path, mode="rt", encoding="utf-8") as fh:
             content = fh.read()
@@ -165,6 +169,7 @@ def diff(new_version: str, file_patterns: config.PatternsByFilePath) -> str:
 
 def rewrite(new_version: str, file_patterns: config.PatternsByFilePath) -> None:
     """Rewrite project files, updating each with the new version."""
+    fh: typ.IO[str]
 
     for file_data in iter_rewritten(file_patterns, new_version):
         new_content = file_data.line_sep.join(file_data.new_lines)

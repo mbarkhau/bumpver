@@ -5,12 +5,28 @@ from pycalver import config
 from . import util
 
 
-PYCALVER_TOML_FIXTURE = """
+PYCALVER_TOML_FIXTURE_1 = """
 [pycalver]
 current_version = "v201808.0123-alpha"
 commit = true
 tag = true
 push = true
+
+[pycalver.file_patterns]
+"README.md" = [
+    "{version}",
+    "{pep440_version}",
+]
+"pycalver.toml" = [
+    'current_version = "{version}"',
+]
+"""
+
+
+PYCALVER_TOML_FIXTURE_2 = """
+[pycalver]
+current_version = "1.2.3"
+version_pattern = "{semver}"
 
 [pycalver.file_patterns]
 "README.md" = [
@@ -46,13 +62,14 @@ def mk_buf(text):
     return buf
 
 
-def test_parse_toml():
-    buf = mk_buf(PYCALVER_TOML_FIXTURE)
+def test_parse_toml_1():
+    buf = mk_buf(PYCALVER_TOML_FIXTURE_1)
 
     raw_cfg = config._parse_toml(buf)
     cfg     = config._parse_config(raw_cfg)
 
     assert cfg.current_version == "v201808.0123-alpha"
+    assert cfg.version_pattern == "{pycalver}"
     assert cfg.commit is True
     assert cfg.tag    is True
     assert cfg.push   is True
@@ -60,6 +77,23 @@ def test_parse_toml():
     assert "pycalver.toml" in cfg.file_patterns
     assert cfg.file_patterns["README.md"    ] == ["{pycalver}", "{pep440_pycalver}"]
     assert cfg.file_patterns["pycalver.toml"] == ['current_version = "{pycalver}"']
+
+
+def test_parse_toml_2():
+    buf = mk_buf(PYCALVER_TOML_FIXTURE_2)
+
+    raw_cfg = config._parse_toml(buf)
+    cfg     = config._parse_config(raw_cfg)
+
+    assert cfg.current_version == "1.2.3"
+    assert cfg.version_pattern == "{semver}"
+    assert cfg.commit is False
+    assert cfg.tag    is False
+    assert cfg.push   is False
+
+    assert "pycalver.toml" in cfg.file_patterns
+    assert cfg.file_patterns["README.md"    ] == ["{semver}", "{semver}"]
+    assert cfg.file_patterns["pycalver.toml"] == ['current_version = "{semver}"']
 
 
 def test_parse_cfg():
@@ -154,7 +188,7 @@ def test_parse_project_cfg():
 def test_parse_toml_file(tmpdir):
     project_path = tmpdir.mkdir("minimal")
     setup_cfg    = project_path.join("pycalver.toml")
-    setup_cfg.write(PYCALVER_TOML_FIXTURE)
+    setup_cfg.write(PYCALVER_TOML_FIXTURE_1)
 
     ctx = config.init_project_ctx(project_path)
     assert ctx == config.ProjectContext(project_path, setup_cfg, 'toml', None)

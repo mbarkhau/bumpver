@@ -31,7 +31,7 @@ test_compat: $(COMPAT_TEST_FILES)
 	IFS=' ' read -r -a env_paths <<< "$(CONDA_ENV_PATHS)"; \
 	for i in $${!env_paths[@]}; do \
 		env_py=$${env_paths[i]}/bin/python; \
-		$${env_py} -m pip install --upgrade build/test_wheel/*.whl; \
+		$${env_py} -m pip install --upgrade pytest build/test_wheel/*.whl; \
 		PYTHONPATH="" ENV=$${ENV-dev} \
 			$${env_py} -m pytest --verbose compat_test/; \
 	done;

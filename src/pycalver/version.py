@@ -430,7 +430,12 @@ def incr(
 
     'old_version' is assumed to be a string that matches 'pattern'
     """
-    old_ver_nfo = parse_version_info(old_version, pattern)
+    try:
+        old_ver_nfo = parse_version_info(old_version, pattern)
+    except ValueError as ex:
+        log.error(str(ex))
+        return None
+
     cur_ver_nfo = old_ver_nfo
 
     cur_cal_nfo = cal_info()

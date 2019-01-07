@@ -222,8 +222,8 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     version_pattern = raw_cfg.get('version_pattern', "{pycalver}")
     version_pattern = raw_cfg['version_pattern'] = version_pattern.strip("'\" ")
 
-    # NOTE (mb 2019-01-05): trigger ValueError if version_pattern
-    #   and current_version don't work together.
+    # NOTE (mb 2019-01-05): Provoke ValueError if version_pattern
+    #   and current_version are not compatible.
     version.parse_version_info(version_str, version_pattern)
 
     pep440_version = version.to_pep440(version_str)
@@ -245,7 +245,15 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
 
     file_patterns = _normalize_file_patterns(raw_cfg)
 
-    cfg = Config(version_str, version_pattern, pep440_version, tag, commit, push, file_patterns)
+    cfg = Config(
+        current_version=version_str,
+        version_pattern=version_pattern,
+        pep440_version=pep440_version,
+        commit=commit,
+        tag=tag,
+        push=push,
+        file_patterns=file_patterns,
+    )
     log.debug(_debug_str(cfg))
     return cfg
 
@@ -263,7 +271,8 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
             elif ctx.config_format == 'cfg':
                 raw_cfg = _parse_cfg(fh)
             else:
-                return None
+                err_msg = "Invalid config_format='{ctx.config_format}'"
+                raise RuntimeError(err_msg)
 
         return _parse_config(raw_cfg)
     except ValueError as ex:
