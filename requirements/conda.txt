@@ -36,4 +36,4 @@
 # pytest is required in every environment to run the test suite
 # against the installed modules.
 # Unpin when this is released https://github.com/pytest-dev/pytest-cov/pull/240
-pytest==4.0.2
+pytest==4.1.0
