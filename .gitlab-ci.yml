@@ -24,8 +24,8 @@ pages:
   script:
     - mkdir -p public/cov
     - mkdir -p public/mypycov
-    - cp htmlcov/* public/cov/
-    - cp mypycov/* public/mypycov/
+    - cp -r htmlcov/* public/cov/
+    - cp -r mypycov/* public/mypycov/
   artifacts:
     paths:
       - public
