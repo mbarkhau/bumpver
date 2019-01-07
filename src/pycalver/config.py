@@ -147,7 +147,7 @@ OptionVal = typ.Union[str, bool, None]
 BOOL_OPTIONS: typ.Mapping[str, OptionVal] = {'commit': False, 'tag': None, 'push': None}
 
 
-def _parse_cfg(cfg_buffer: typ.TextIO) -> RawConfig:
+def _parse_cfg(cfg_buffer: typ.IO[str]) -> RawConfig:
     cfg_parser = _ConfigParser()
 
     if hasattr(cfg_parser, 'read_file'):
@@ -171,7 +171,7 @@ def _parse_cfg(cfg_buffer: typ.TextIO) -> RawConfig:
     return raw_cfg
 
 
-def _parse_toml(cfg_buffer: typ.TextIO) -> RawConfig:
+def _parse_toml(cfg_buffer: typ.IO[str]) -> RawConfig:
     raw_full_cfg = toml.load(cfg_buffer)
     raw_cfg      = raw_full_cfg.get('pycalver', {})
 
@@ -182,10 +182,11 @@ def _parse_toml(cfg_buffer: typ.TextIO) -> RawConfig:
 
 
 def _normalize_file_patterns(raw_cfg: RawConfig) -> FilePatterns:
-    version_str     = raw_cfg['current_version']
-    version_pattern = raw_cfg['version_pattern']
-    pep440_version  = version.to_pep440(version_str)
-    file_patterns   = raw_cfg['file_patterns']
+    version_str    : str = raw_cfg['current_version']
+    version_pattern: str = raw_cfg['version_pattern']
+    pep440_version : str = version.to_pep440(version_str)
+
+    file_patterns: FilePatterns = raw_cfg['file_patterns']
 
     for filepath, patterns in list(file_patterns.items()):
         if not os.path.exists(filepath):
@@ -216,10 +217,10 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     if 'current_version' not in raw_cfg:
         raise ValueError("Missing 'pycalver.current_version'")
 
-    version_str = raw_cfg['current_version']
+    version_str: str = raw_cfg['current_version']
     version_str = raw_cfg['current_version'] = version_str.strip("'\" ")
 
-    version_pattern = raw_cfg.get('version_pattern', "{pycalver}")
+    version_pattern: str = raw_cfg.get('version_pattern', "{pycalver}")
     version_pattern = raw_cfg['version_pattern'] = version_pattern.strip("'\" ")
 
     # NOTE (mb 2019-01-05): Provoke ValueError if version_pattern
@@ -263,6 +264,8 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
     if not ctx.config_filepath.exists():
         log.warning(f"File not found: {ctx.config_filepath}")
         return None
+
+    fh : typ.IO[str]
 
     try:
         with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fh:
@@ -427,6 +430,8 @@ def write_content(ctx: ProjectContext) -> None:
     # config_filepath: pl.Path
     # config_format  : str
     # vcs_type       : typ.Optional[str]
+
+    fh: typ.IO[str]
 
     cfg_content = default_config(ctx)
     if os.path.exists("pyproject.toml"):
