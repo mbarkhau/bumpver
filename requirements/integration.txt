@@ -15,7 +15,7 @@ flake8-comprehensions
 pylint
 mypy
 pytest
-pytest-cov
+pytest-cov==2.6.1
 pylint
 
 readme_renderer[md]
