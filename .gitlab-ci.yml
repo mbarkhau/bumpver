@@ -15,6 +15,7 @@ unit:
   artifacts:
     paths:
       - htmlcov/
+      - mypycov/
   allow_failure: false
 
 
@@ -22,7 +23,9 @@ pages:
   stage: build
   script:
     - mkdir -p public/cov
+    - mkdir -p public/mypycov
     - cp htmlcov/* public/cov/
+    - cp mypycov/* public/mypycov/
   artifacts:
     paths:
       - public

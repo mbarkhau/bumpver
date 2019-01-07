@@ -301,7 +301,9 @@ mypy:
 	@rm -rf ".mypy_cache";
 
 	@printf "mypy ....\n"
-	@MYPYPATH=stubs/:vendor/ $(DEV_ENV_PY) -m mypy src/
+	@MYPYPATH=stubs/:vendor/ $(DEV_ENV_PY) -m mypy \
+		--html-report mypycov \
+		src/ | sed "/Generated HTML report/d"
 	@printf "\e[1F\e[9C ok\n"
 
 

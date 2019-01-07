@@ -728,7 +728,7 @@ order the version tags correctly.
 [license_ref]: https://gitlab.com/mbarkhau/pycalver/blob/master/LICENSE
 
 [mypy_img]: https://img.shields.io/badge/mypy-checked-green.svg
-[mypy_ref]: http://mypy-lang.org/
+[mypy_ref]: https://mbarkhau.gitlab.io/pycalver/mypycov
 
 [style_img]: https://img.shields.io/badge/code%20style-%20sjfmt-f71.svg
 [style_ref]: https://gitlab.com/mbarkhau/straitjacket/
