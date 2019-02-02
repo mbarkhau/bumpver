@@ -11,7 +11,7 @@ flake8
 flake8-bugbear
 flake8-docstrings
 flake8-builtins
-flake8-comprehensions
+flake8-comprehensions==2.0.0
 pylint
 mypy
 pytest
