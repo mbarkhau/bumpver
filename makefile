@@ -510,8 +510,8 @@ publish: bump_version build_dists upload_dists
 ##   2. Your docker daemon is not running
 ##   3. You're using WSL and docker is not exposed on tcp://localhost:2375
 ##   4. You're using WSL but didn't do export DOCKER_HOST="tcp://localhost:2375"
-.PHONY: build_docker
-build_docker:
+.PHONY: docker_build
+docker_build:
 	@if [[ -f "$(RSA_KEY_PATH)" ]]; then \
 		docker build \
 			--build-arg SSH_PRIVATE_RSA_KEY="$$(cat '$(RSA_KEY_PATH)')" \
