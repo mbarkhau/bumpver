@@ -104,7 +104,7 @@ if [[ -z $MODULE_NAME ]]; then
 fi
 
 if [[ -z $PACKAGE_VERSION ]]; then
-    PACKAGE_VERSION="$(date + 'v%Y%m.0001-alpha')"
+    PACKAGE_VERSION="$(date +'v%Y%m.0001-alpha')"
 fi
 
 if [[ -z $DEFAULT_PYTHON_VERSION ]]; then
