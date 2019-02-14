@@ -1,7 +1,7 @@
 # This file is part of the pycalver project
 # https://gitlab.com/mbarkhau/pycalver
 #
-# Copyright (c) 2018 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# Copyright (c) 2019 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 
 import os
@@ -46,7 +46,7 @@ setuptools.setup(
     url="https://gitlab.com/mbarkhau/pycalver",
     version="201812.18",
     keywords="version versioning bumpversion calver",
-    description="CalVer versioning for python libraries.",
+    description="CalVer for python libraries.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=['pycalver'],

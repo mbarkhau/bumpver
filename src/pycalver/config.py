@@ -265,7 +265,7 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
         log.warning(f"File not found: {ctx.config_filepath}")
         return None
 
-    fh : typ.IO[str]
+    fh: typ.IO[str]
 
     try:
         with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fh:

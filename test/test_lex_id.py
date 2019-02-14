@@ -60,5 +60,5 @@ def test_main(capsys):
         ord_vals.append(int(_ord_val.strip()))
 
     assert len(ids) > 0
-    assert sorted(ids     ) == ids
+    assert sorted(ids) == ids
     assert sorted(ord_vals) == ord_vals

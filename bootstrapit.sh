@@ -5,7 +5,7 @@ AUTHOR_NAME="Manuel Barkhau"
 AUTHOR_EMAIL="mbarkhau@gmail.com"
 
 KEYWORDS="version versioning bumpversion calver"
-DESCRIPTION="CalVer versioning for python libraries."
+DESCRIPTION="CalVer for python libraries."
 
 LICENSE_ID="MIT"
 
