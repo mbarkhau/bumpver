@@ -8,7 +8,7 @@ serve:
 	echo "Not Implemented"
 
 
-COMPAT_TEST_FILES = $(shell ls -1 test/*.py | awk '{ printf " compat_"$$0 }')
+COMPAT_TEST_FILES = $(shell ls -1 test/*.py 2>/dev/null | awk '{ printf " compat_"$$0 }')
 
 compat_test/%.py: test/%.py
 	@mkdir -p compat_test/;
