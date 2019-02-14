@@ -195,9 +195,9 @@ def _assert_not_dirty(vcs, filepaths: typ.Set[str], allow_dirty: bool):
     dirty_files = vcs.status()
 
     if dirty_files:
-        log.warn(f"{vcs.name} working directory is not clean:")
+        log.warning(f"{vcs.name} working directory is not clean:")
         for dirty_file in dirty_files:
-            log.warn("    " + dirty_file)
+            log.warning("    " + dirty_file)
 
     if not allow_dirty and dirty_files:
         sys.exit(1)
@@ -206,7 +206,7 @@ def _assert_not_dirty(vcs, filepaths: typ.Set[str], allow_dirty: bool):
     if dirty_pattern_files:
         log.error("Not commiting when pattern files are dirty:")
         for dirty_file in dirty_pattern_files:
-            log.warn("    " + dirty_file)
+            log.warning("    " + dirty_file)
         sys.exit(1)
 
 
@@ -216,7 +216,7 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
     try:
         _vcs = vcs.get_vcs()
     except OSError:
-        log.warn("Version Control System not found, aborting commit.")
+        log.warning("Version Control System not found, aborting commit.")
         _vcs = None
 
     filepaths = set(cfg.file_patterns.keys())
