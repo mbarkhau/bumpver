@@ -42,10 +42,11 @@ CONDA_ENV_NAMES := \
 	$(subst pypy,$(PKG_NAME)_pypy,$(subst python=,$(PKG_NAME)_py,$(subst .,,$(SUPPORTED_PYTHON_VERSIONS))))
 
 CONDA_ENV_PATHS := \
-	$(subst pypy,${ENV_PREFIX}/$(PKG_NAME)_pypy,$(subst python=,${ENV_PREFIX}/$(PKG_NAME)_py,$(subst .,,$(SUPPORTED_PYTHON_VERSIONS))))
+	$(subst pypy,$(ENV_PREFIX)/$(PKG_NAME)_pypy,$(subst python=,$(ENV_PREFIX)/$(PKG_NAME)_py,$(subst .,,$(SUPPORTED_PYTHON_VERSIONS))))
 
 
-literal_space := $() $()
+empty :=
+literal_space := $(empty) $(empty)
 
 BDIST_WHEEL_PYTHON_TAG := \
 	$(subst python,py,$(subst $(literal_space),.,$(subst .,,$(subst =,,$(SUPPORTED_PYTHON_VERSIONS)))))
@@ -59,11 +60,12 @@ BDIST_WHEEL_FILE_CMD = ls -1t dist/*.whl | head -n 1
 DEV_ENV := $(ENV_PREFIX)/$(DEV_ENV_NAME)
 DEV_ENV_PY := $(DEV_ENV)/bin/python
 
-RSA_KEY_PATH := ${HOME}/.ssh/${PKG_NAME}_gitlab_runner_id_rsa
+RSA_KEY_PATH := $(HOME)/.ssh/$(PKG_NAME)_gitlab_runner_id_rsa
 
 DOCKER_BASE_IMAGE := registry.gitlab.com/mbarkhau/pycalver/base
 
-DOCKER_IMAGE_VERSION := $(shell date -u +'%Y%m%dt%H%M%S')_$(shell git rev-parse --short HEAD)
+GIT_HEAD_REV = $(shell git rev-parse --short HEAD)
+DOCKER_IMAGE_VERSION = $(shell date -u +'%Y%m%dt%H%M%S')_$(GIT_HEAD_REV)
 
 
 build/envs.txt: requirements/conda.txt
@@ -130,8 +132,8 @@ build/deps.txt: build/envs.txt requirements/*.txt
 	@rm -f build/deps.txt.tmp;
 
 	@for env_name in $(CONDA_ENV_NAMES); do \
-		env_py="${ENV_PREFIX}/$${env_name}/bin/python"; \
-		printf "\npip freeze for $${env_name}:\n" >> build/deps.txt.tmp; \
+		env_py="$(ENV_PREFIX)/$${env_name}/bin/python"; \
+		printf "\n# pip freeze for $${env_name}:\n" >> build/deps.txt.tmp; \
 		$${env_py} -m pip freeze >> build/deps.txt.tmp; \
 		printf "\n\n" >> build/deps.txt.tmp; \
 	done
@@ -190,8 +192,8 @@ help:
 
 
 ## Full help message for each task.
-.PHONY: fullhelp
-fullhelp:
+.PHONY: helpverbose
+helpverbose:
 	@printf "Available make targets for \033[97m$(PKG_NAME)\033[0m:\n";
 
 	@awk '{ \
@@ -232,7 +234,7 @@ fullhelp:
 .PHONY: clean
 clean:
 	@for env_name in $(CONDA_ENV_NAMES); do \
-		env_py="${ENV_PREFIX}/$${env_name}/bin/python"; \
+		env_py="$(ENV_PREFIX)/$${env_name}/bin/python"; \
 		if [[ -f $${env_py} ]]; then \
 			$(CONDA_BIN) env remove --name $${env_name} --yes; \
 		fi; \
@@ -280,8 +282,8 @@ update: build/deps.txt
 ## Install git pre-push hooks
 .PHONY: git_hooks
 git_hooks:
-	@rm -f "${PWD}/.git/hooks/pre-push"
-	ln -s "${PWD}/scripts/pre-push-hook.sh" "${PWD}/.git/hooks/pre-push"
+	@rm -f "$(PWD)/.git/hooks/pre-push"
+	ln -s "$(PWD)/scripts/pre-push-hook.sh" "$(PWD)/.git/hooks/pre-push"
 
 
 ## -- Integration --
@@ -355,7 +357,7 @@ fmt:
 		 src/ test/
 
 
-## Shortcut for make fmt lint pylint test
+## Shortcut for make fmt lint mypy test
 .PHONY: check
 check:  fmt lint mypy test
 
@@ -372,27 +374,27 @@ env_subshell:
 	')
 
 
-## Usage: "source activate", to deactivate: "deactivate"
+## Usage: "source ./activate", to deactivate: "deactivate"
 .PHONY: activate
 activate:
 	@echo 'source $(CONDA_ROOT)/etc/profile.d/conda.sh;'
 	@echo 'if [[ -z $$ENV ]]; then'
-	@echo '		export _env_before_activate_$(DEV_ENV_NAME)=$${ENV};'
+	@echo '		export _env_before_activate=$${ENV};'
 	@echo 'fi'
 	@echo 'if [[ -z $$PYTHONPATH ]]; then'
-	@echo '		export _pythonpath_before_activate_$(DEV_ENV_NAME)=$${PYTHONPATH};'
+	@echo '		export _pythonpath_before_activate=$${PYTHONPATH};'
 	@echo 'fi'
 	@echo 'export ENV=$${ENV-dev};'
 	@echo 'export PYTHONPATH="src/:vendor/:$$PYTHONPATH";'
 	@echo 'conda activate $(DEV_ENV_NAME);'
 	@echo 'function deactivate {'
-	@echo '		if [[ -z $${_env_before_activate_$(DEV_ENV_NAME)} ]]; then'
-	@echo '				export ENV=$${_env_before_activate_$(DEV_ENV_NAME)}; '
+	@echo '		if [[ -z $${_env_before_activate} ]]; then'
+	@echo '				export ENV=$${_env_before_activate}; '
 	@echo '		else'
 	@echo '				unset ENV;'
 	@echo '		fi'
-	@echo '		if [[ -z $${_pythonpath_before_activate_$(DEV_ENV_NAME)} ]]; then'
-	@echo '				export PYTHONPATH=$${_pythonpath_before_activate_$(DEV_ENV_NAME)}; '
+	@echo '		if [[ -z $${_pythonpath_before_activate} ]]; then'
+	@echo '				export PYTHONPATH=$${_pythonpath_before_activate}; '
 	@echo '		else'
 	@echo '				unset PYTHONPATH;'
 	@echo '		fi'
@@ -478,6 +480,7 @@ bump_version:
 build_dists:
 	$(DEV_ENV_PY) setup.py sdist;
 	$(DEV_ENV_PY) setup.py bdist_wheel --python-tag=$(BDIST_WHEEL_PYTHON_TAG);
+	@rm -rf src/*.egg-info
 
 
 ## Upload sdist and bdist files to pypi
@@ -494,14 +497,14 @@ upload_dists:
 	$(DEV_ENV)/bin/twine upload $$($(SDIST_FILE_CMD)) $$($(BDIST_WHEEL_FILE_CMD));
 
 
-## Publish on pypi
+## bump_version build_dists upload_dists
 .PHONY: publish
 publish: bump_version build_dists upload_dists
 
 
 ## Build docker images. Must be run when dependencies are added
 ##   or updated. The main reasons this can fail are:
-##   1. No ssh key at $(HOME)/.ssh/${PKG_NAME}_gitlab_runner_id_rsa
+##   1. No ssh key at $(HOME)/.ssh/$(PKG_NAME)_gitlab_runner_id_rsa
 ##      (which is needed to install packages from private repos
 ##      and is copied into a temp container during the build).
 ##   2. Your docker daemon is not running
@@ -509,9 +512,9 @@ publish: bump_version build_dists upload_dists
 ##   4. You're using WSL but didn't do export DOCKER_HOST="tcp://localhost:2375"
 .PHONY: build_docker
 build_docker:
-	@if [[ -f "${RSA_KEY_PATH}" ]]; then \
+	@if [[ -f "$(RSA_KEY_PATH)" ]]; then \
 		docker build \
-			--build-arg SSH_PRIVATE_RSA_KEY="$$(cat '${RSA_KEY_PATH}')" \
+			--build-arg SSH_PRIVATE_RSA_KEY="$$(cat '$(RSA_KEY_PATH)')" \
 			--file docker_base.Dockerfile \
 			--tag $(DOCKER_BASE_IMAGE):$(DOCKER_IMAGE_VERSION) \
 			--tag $(DOCKER_BASE_IMAGE) \

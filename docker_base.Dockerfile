@@ -17,7 +17,7 @@ ARG SSH_PRIVATE_RSA_KEY
 ENV ENV_SSH_PRIVATE_RSA_KEY=${SSH_PRIVATE_RSA_KEY}
 
 # Write private key and generate public key
-RUN if [[ "$ENV_SSH_PRIVATE_RSA_KEY" ]]; then \
+RUN if ! test -z "${ENV_SSH_PRIVATE_RSA_KEY}"; then \
     echo -n "-----BEGIN RSA PRIVATE KEY-----" >> /root/.ssh/id_rsa && \
     echo -n ${ENV_SSH_PRIVATE_RSA_KEY} \
     | sed 's/-----BEGIN RSA PRIVATE KEY-----//' \
@@ -41,7 +41,7 @@ RUN make install
 RUN rm -f /root/.ssh/id_rsa
 
 # Deleting pkgs implies that `conda install`
-# will at have to pull all packages again.
+# will have to pull all packages again.
 RUN conda clean --all --yes
 # Conda docs say that it is not safe to delete pkgs
 # because there may be symbolic links, so we verify

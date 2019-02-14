@@ -136,25 +136,38 @@ You can also activate the default virtual environment as follows.
 
 ```shell
 (myproject_py36) dev@host:~/myproject
-$ conda env activate myproject_py36
+$ source ./activate
+$ which python
 /home/dev/miniconda3/envs/myproject_py36/bin/python
 
 $ ipython
-Python 3.6.6 | packaged by conda-forge | (default, Jul 26 2018, 09:53:17)
+Python 3.6.6 |Anaconda, Inc.| (default, Jun 28 2018, 17:14:51)
 t Type 'copyright', 'credits' or 'license' for more information
 IPython 6.5.0 -- An enhanced Interactive Python. Type '?' for help.
 
-In [1]:
+In [1]: import sys
+
+In [2]: sys.path
+Out[2]:
+['/home/dev/miniconda3/envs/pycalver_py36/bin',
+ '/home/dev/myproject/src',
+ '/home/dev/myproject/vendor',
+ ...
+In [3]: import myproject
+
+In [4]: myproject.__file__
+Out[4]: '/home/dev/myproject/src/myproject/__init__.py'
 ```
 
-
-Note however, that this invocation does not have the correct
-`PYTHONPATH` set up to import modules of the project. You can
-review the definition for ``make ipy`` to see how to set up
-`PYTHONPATH` correctly.
+Note that the `PYTHONPATH` has been set up to import modules
+of the project. You can review the definition for `make ipy` 
+to see how to set up `PYTHONPATH` correctly.
 
 
 ```shell
+$ make ipy --dry-run
+ENV=${ENV-dev} PYTHONPATH=src/:vendor/:$PYTHONPATH \
+    /home/dev/miniconda3/envs/myproject_py36/bin/ipython
 $ make ipy
 Python 3.6.6 |Anaconda, Inc.| (default, Jun 28 2018, 17:14:51)
 Type 'copyright', 'credits' or 'license' for more information
@@ -163,7 +176,7 @@ IPython 6.5.0 -- An enhanced Interactive Python. Type '?' for help.
 In [1]: import myproject
 
 In [2]: myproject.__file__
-Out[2]: '/mnt/c/Users/ManuelBarkhau/myproject/src/myproject/__init__.py'
+Out[2]: '/home/dev/myproject/src/myproject/__init__.py'
 ```
 
 
@@ -199,10 +212,15 @@ projects by reducing the burdon of project setup to a minimum.
 
     README.md          # project overview and status
     CONTRIBUTING.md    # guide for developers
-    CHANGELOG.md       # for public libraries
+    CHANGELOG.md       # short documentation of release history
     LICENSE            # for public libraries (MIT preferred)
 
-    makefile           # main project and environment management file
+    makefile                # main project and environment management file
+    makefile.config.make    # project configuration variables
+    makefile.extra.make     # project specific make targets
+
+    docker_base.Dockerfile  # base image for CI (only conda envs)
+    Dockerfile              # image with source of the project
 
 
 ### Dependency Management
@@ -223,9 +241,9 @@ requirements/development.txt    # useful packgages for development/debugging
 requirements/integration.txt    # used for linting/testing/packaging
 
 # These are the requirements produced for specific builds. They can be
-# used to debug version compatatbility issues . They are generated
-# using pip freeze
-requirements/build-0123.freeze
+# used to debug version compatatbility issues. They are generated
+# using make freeze
+requirements/20190214t212403_freeze.txt
 ```
 
 
@@ -233,14 +251,14 @@ When adding a new dependency please consider:
 
 - Only specify direct dependencies of the project, not transitive
   dependencies of other projects. These are installed via their
-  dependency declarations.
-- The default specifier for a package should be only its name without
-  a version specifier. With this as the default, the project remains
-  up to date in terms of security fixes and other library
-  improvements.
-- Some packages consider some of their dependancies to be optional, in
-  which case you will have to specify their transitive dependencies
-
+  own respective dependency declarations.
+- Whenever possible, the specifier for a package should be only its
+  name without a version specifier. With this as the default, the
+  project remains   up to date in terms of security fixes and other
+  library improvements.
+- Some packages consider some of their dependancies to be optional,
+  in which case you will have to specify their transitive
+  dependencies.
 - Only specify/pin/freeze a specific (older) version if there are
   known issues, or your project requires features from an unstable
   (alpha/beta) version of the package. Each pinned version should
@@ -270,27 +288,28 @@ Further Reading:
 
 Dependencies are installed in this order:
 
- - ``conda.txt``
- - ``pypi.txt``
- - ``vendor.txt``
- - ``development.txt``
- - ``integration.txt``
+ - `conda.txt`
+ - `pypi.txt`
+ - `vendor.txt`
+ - `development.txt`
+ - `integration.txt`
 
-Please review the documentation header at the beginning of each file
-to determine which file is appropriate for the dependency you want to
-add.
+Please review the documentation header at the beginning of each 
+`requirements/*.txt` file to determine which file is appropriate
+for the dependency you want to add.
 
 Choose a file:
 
-- ``conda.txt`` is appropriate for non python packages and packages
-  which would require compilation if they were downloaded from pypi.
-- ``pypi.txt`` is for dependencies on python packages, be they from
+- `conda.txt` is appropriate for non python packages and packages
+  which would require compilation if they were downloaded from pypi
+  or cannot be downloaded from pypi (such as openjdk or node).
+- `pypi.txt` is for dependencies on python packages, be they from
   pypi or git repositories.
-- ``vendor.txt`` is appropriate for pure python libaries which are
+- `vendor.txt` is appropriate for pure python libaries which are
   written using mypy. This allows the mypy type checker to work with
   types defined in other packages
 
-After adding a new dependency, you can run ``make update``
+After adding a new dependency, you can run `make update`
 
 
 ```shell
@@ -303,11 +322,16 @@ requests-2.19.1        | 94 KB  conda-forge
 ...
 ```
 
+Normally make update only does something if you update one of the
+`requirements/*.txt` files has changed. If you know a dependency
+was updated, and `make update` is not having an effect, you can
+force the update using `make force update`.
+
 
 ### Vendoring
 
 Vendored dependencies are usually committed to git, but if you
-trust the package maintainer and the installation via vendor.txt,
+trust the package maintainer and the installation via `vendor.txt`,
 then it's not required.
 
 There are a few reasons to vendor a dependency:
@@ -326,30 +350,57 @@ contribute to the upstream project when possible.
 
 ## Development
 
-TODO: document development tasks like lint, type checking in a
-platform independent way, ideally they work with PyCharm. Until
-then, these are platform agnostic commands that have to be
-entered manually.
+The typical commands used during development are:
+
+- `make install`: Setup virtual environment
+- `source activate`: Activate virtual environment
+- `make help`: Overview of tasks
+- `make fmt`: Format code 
+- `make lint`: Linting
+- `make mypy`: Typecheck
+- `make devtest`: Run unittests with dev interpreter against code from `src/`.
+
+Slightly less common but good to run before doing `git push`.
+
+- `make test`: Run unitests on all supported interpreters after installing
+  using `python setup.py install`. This tests the code as the users of your
+  library will have installed.
+- `make citest`: Run `make test` but inside a docker container, which is as
+  close to the ci environment as possible. This is quite useful if you don't
+  want to trigger dozens of CI builds to debug a tricky issue.
 
 
-### Linting
+### Docker
+
+The base image of the project is `docker_base.Dockerfile` which is
+used to create images that have only the conda virtual environment needed
+to run the project. The CI environment uses the image generated by 
+`make docker_build`. While this means that the CI setup is simpler and faster,
+as you don't have to build the image for the test run in the CI environment, it does mean that you have to run `make docker_build` every time one of your dependencies is updated.
+
+The `docker_base.Dockerfile` uses the multi stage builder pattern, so that 1.
+your private key doesn't end up in the published image 2. the published image
+is as small as possible.
 
 
-```shell
-flake8 src/
-sjfmt --py36 src/
+```
+$ make docker_build
+Sending build context to Docker daemon  7.761MB
+Step 1/20 : FROM registry.gitlab.com/mbarkhau/bootstrapit/env_builder AS builder
+...
+conda create --name myproject_py36 python=3.6 ...
+Solving environment: ...working... done
+...
+conda create --name myproject_py35 python=3.5 ...
+Solving environment: ...working... done
+
+docker push 
 ```
 
-
-### Type Checking
-
-
-TODO: This is left open, until the mypy setup is complete
-
-```shell
-mypy src/
-pytest test/
-```
+As is the case for your local development setup, every version of python
+that you have configured to be supported, is installed in the image. If
+you want to create a minimal image for a production system, you may wish
+to trim this down.
 
 
 ### Documentation
@@ -360,27 +411,12 @@ decent cross platform editor.
 
 TODO: `make doc`
 
-### Setup to run docker
 
+### Editor Setup
 
-TODO:
-
-
-### PyCharm
-
+https://gitlab.com/mbarkhau/straitjacket#editortooling-integration
 
 TODO: Expand how to set editor, possibly by sharing editor config files?
-
-Recoomended plugins:
-
-https://plugins.jetbrains.com/plugin/10563-black-pycharm
-https://plugins.jetbrains.com/plugin/7642-save-actions
-
-
-### Sublime Text
-
-
-https://github.com/jgirardet/sublack
 
 
 ## Best Practices
@@ -409,12 +445,12 @@ Please read, view at your leasure:
 Keep in mind, that all of this is about the form of your code, and
 catching common pitfalls or gotchas. None of this releives you of the
 burdon of thinking about your code. The reason to use linters and type
-checking is not to make the code correct, but to help you make your
-code correct.
+checking is not to have a tool to make your code correct, but to 
+support you to make your code correct.
 
 For now I won't go into the effort of writing yet another style guide.
-Instead, if your code passes `make lint`, then it's acceptable. Every
-time you encounter a linting error, consider it as an opportinity to
-learn a best practice.
+Instead, if your code passes `make fmt lint`, then it's acceptable. 
+Every time you encounter a linting error, consider it as an opportinity
+to learn a best practice and look up the error code.
 
 [^1]: Linux, MacOS and [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)

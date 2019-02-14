@@ -35,7 +35,6 @@
 
 # pytest is required in every environment to run the test suite
 # against the installed modules.
-# Unpin when this is released https://github.com/pytest-dev/pytest-cov/pull/240
 pytest
 
 # needed for mypy coverage report
