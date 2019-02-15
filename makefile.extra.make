@@ -16,14 +16,6 @@ compat_test/%.py: test/%.py
 	mv $@.tmp $@;
 
 
-CONDA_ENV_PYS := \
-	$(shell echo "$(CONDA_ENV_PATHS)" \
-	| sed 's!\(_py[[:digit:]]\+\)!\1/bin/python!g' \
-	| sed 's!\(_pypy2[[:digit:]]\)!\1/bin/pypy!g' \
-	| sed 's!\(_pypy3[[:digit:]]\)!\1/bin/pypy3!g' \
-)
-
-
 ## Run pytest integration tests
 .PHONY: test_compat
 test_compat: $(COMPAT_TEST_FILES)
@@ -36,7 +28,7 @@ test_compat: $(COMPAT_TEST_FILES)
 	mkdir -p build/test_wheel;
 	$(DEV_ENV_PY) setup.py bdist_wheel --dist-dir build/test_wheel;
 
-	IFS=' ' read -r -a env_pys <<< "$(CONDA_ENV_PYS)"; \
+	IFS=' ' read -r -a env_pys <<< "$(CONDA_ENV_BIN_PYTHON_PATHS)"; \
 	for i in $${!env_pys[@]}; do \
 		env_py=$${env_pys[i]}; \
 		$${env_py} -m pip install --upgrade build/test_wheel/*.whl; \

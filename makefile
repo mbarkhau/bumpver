@@ -44,6 +44,14 @@ CONDA_ENV_NAMES := \
 CONDA_ENV_PATHS := \
 	$(subst pypy,$(ENV_PREFIX)/$(PKG_NAME)_pypy,$(subst python=,$(ENV_PREFIX)/$(PKG_NAME)_py,$(subst .,,$(SUPPORTED_PYTHON_VERSIONS))))
 
+CONDA_ENV_BIN_PYTHON_PATHS := \
+	$(shell echo "$(CONDA_ENV_PATHS)" \
+	| sed 's!\(_py[[:digit:]]\+\)!\1/bin/python!g' \
+	| sed 's!\(_pypy2[[:digit:]]\)!\1/bin/pypy!g' \
+	| sed 's!\(_pypy3[[:digit:]]\)!\1/bin/pypy3!g' \
+)
+
+
 
 empty :=
 literal_space := $(empty) $(empty)
@@ -92,6 +100,7 @@ build/envs.txt: requirements/conda.txt
 	@SUPPORTED_PYTHON_VERSIONS="$(SUPPORTED_PYTHON_VERSIONS)" \
 		CONDA_ENV_NAMES="$(CONDA_ENV_NAMES)" \
 		CONDA_ENV_PATHS="$(CONDA_ENV_PATHS)" \
+		CONDA_ENV_BIN_PYTHON_PATHS="$(CONDA_ENV_BIN_PYTHON_PATHS)" \
 		CONDA_BIN="$(CONDA_BIN)" \
 		bash scripts/setup_conda_envs.sh;
 
@@ -109,6 +118,7 @@ build/deps.txt: build/envs.txt requirements/*.txt
 	@SUPPORTED_PYTHON_VERSIONS="$(SUPPORTED_PYTHON_VERSIONS)" \
 		CONDA_ENV_NAMES="$(CONDA_ENV_NAMES)" \
 		CONDA_ENV_PATHS="$(CONDA_ENV_PATHS)" \
+		CONDA_ENV_BIN_PYTHON_PATHS="$(CONDA_ENV_BIN_PYTHON_PATHS)" \
 		CONDA_BIN="$(CONDA_BIN)" \
 		bash scripts/update_conda_env_deps.sh;
 
@@ -131,9 +141,8 @@ build/deps.txt: build/envs.txt requirements/*.txt
 
 	@rm -f build/deps.txt.tmp;
 
-	@for env_name in $(CONDA_ENV_NAMES); do \
-		env_py="$(ENV_PREFIX)/$${env_name}/bin/python"; \
-		printf "\n# pip freeze for $${env_name}:\n" >> build/deps.txt.tmp; \
+	@for env_py in $(CONDA_ENV_BIN_PYTHON_PATHS); do \
+		printf "\n# pip freeze for $${env_py}:\n" >> build/deps.txt.tmp; \
 		$${env_py} -m pip freeze >> build/deps.txt.tmp; \
 		printf "\n\n" >> build/deps.txt.tmp; \
 	done

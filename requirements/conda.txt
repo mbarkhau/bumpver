@@ -33,9 +33,5 @@
 # speed, security, and simplicity.
 # pyblake2
 
-# pytest is required in every environment to run the test suite
-# against the installed modules.
-pytest
-
 # needed for mypy coverage report
 lxml
