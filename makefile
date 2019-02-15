@@ -44,13 +44,15 @@ CONDA_ENV_NAMES := \
 CONDA_ENV_PATHS := \
 	$(subst pypy,$(ENV_PREFIX)/$(PKG_NAME)_pypy,$(subst python=,$(ENV_PREFIX)/$(PKG_NAME)_py,$(subst .,,$(SUPPORTED_PYTHON_VERSIONS))))
 
+# envname/bin/python is unfortunately not always the correct
+# interpreter. In the case of pypy it is either envname/bin/pypy or
+# envname/bin/pypy3
 CONDA_ENV_BIN_PYTHON_PATHS := \
 	$(shell echo "$(CONDA_ENV_PATHS)" \
 	| sed 's!\(_py[[:digit:]]\+\)!\1/bin/python!g' \
 	| sed 's!\(_pypy2[[:digit:]]\)!\1/bin/pypy!g' \
 	| sed 's!\(_pypy3[[:digit:]]\)!\1/bin/pypy3!g' \
 )
-
 
 
 empty :=
