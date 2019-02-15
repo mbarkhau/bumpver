@@ -179,13 +179,13 @@ def init(verbose: int = 0, dry: bool = False) -> None:
     cfg: config.MaybeConfig    = config.parse(ctx)
 
     if cfg:
-        log.error("Configuration already initialized in {ctx.config_filepath}")
+        log.error(f"Configuration already initialized in {ctx.config_filepath}")
         sys.exit(1)
 
     if dry:
-        print("Exiting because of '--dry'. Would have written to {ctx.config_filepath}:")
-        cfg_lines = config.default_config(ctx)
-        print("\n    " + "\n    ".join(cfg_lines))
+        print(f"Exiting because of '--dry'. Would have written to {ctx.config_filepath}:")
+        cfg_text: str = config.default_config(ctx)
+        print("\n    " + "\n    ".join(cfg_text.splitlines()))
         sys.exit(0)
 
     config.write_content(ctx)
