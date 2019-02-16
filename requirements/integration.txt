@@ -18,7 +18,7 @@ pytest
 pytest-cov
 
 readme_renderer[md]
-twine
+twine==1.13.0
 
 md-toc
 straitjacket
