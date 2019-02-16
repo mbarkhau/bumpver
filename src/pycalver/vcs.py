@@ -28,7 +28,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
     'git': {
         'is_usable'   : "git rev-parse --git-dir",
         'fetch'       : "git fetch",
-        'ls_tags'     : "git tag --list v*",
+        'ls_tags'     : "git tag --list",
         'status'      : "git status --porcelain",
         'add_path'    : "git add --update {path}",
         'commit'      : "git commit --file {path}",
@@ -123,7 +123,7 @@ class VCS:
         ls_tag_lines = self('ls_tags').splitlines()
         log.debug(f"ls_tags output {ls_tag_lines}")
         return [
-            line.strip().split(" ", 1)[0] for line in ls_tag_lines if line.strip().startswith("v")
+            line.strip().split(" ", 1)[0] for line in ls_tag_lines
         ]
 
     def add(self, path: str) -> None:
