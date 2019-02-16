@@ -51,9 +51,10 @@ Code Quality/CI:
     - [Lexical Ids](#lexical-ids)
 - [Semantics of PyCalVer](#semantics-of-pycalver)
     - [Intentional Breaking Changes](#intentional-breaking-changes)
+    - [Costs and Benefits](#costs-and-benefits)
     - [Unintentional Breaking Changes](#unintentional-breaking-changes)
-    - [The Panacea of Pinning](#the-panacea-of-pinning)
-    - [Zeno's 1.0 and the Eternal Beta](#zeno-s-1-0-and-the-eternal-beta)
+    - [Pinning is not a Panacea](#pinning-is-not-a-panacea)
+    - [Zeno's 1.0 and The Eternal Beta](#zeno-s-1-0-and-the-eternal-beta)
 
 [](TOC)
 
