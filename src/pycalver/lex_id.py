@@ -101,11 +101,17 @@ def next_id(prev_id: str) -> str:
     if prev_id.count("9") == num_digits:
         raise OverflowError("max lexical version reached: " + prev_id)
 
-    _prev_id_val = int(prev_id, 10)
-    _next_id_val = int(_prev_id_val) + 1
-    _next_id_str = f"{_next_id_val:0{num_digits}}"
-    if prev_id[0] != _next_id_str[0]:
-        _next_id_str = str(_next_id_val * 11)
+    _prev_id_val       = int(prev_id, 10)
+    _maybe_next_id_val = int(_prev_id_val) + 1
+    _maybe_next_id_str = f"{_maybe_next_id_val:0{num_digits}}"
+
+    _is_padding_ok = prev_id[0] != _maybe_next_id_str[0]
+    _next_id_str: str
+
+    if _is_padding_ok:
+        _next_id_str = _maybe_next_id_str
+    else:
+        _next_id_str = str(_maybe_next_id_val * 11)
     return _next_id_str
 
 
@@ -128,7 +134,8 @@ def ord_val(lex_id: str) -> int:
     """
     if len(lex_id) == 1:
         return int(lex_id, 10)
-    return int(lex_id[1:], 10)
+    else:
+        return int(lex_id[1:], 10)
 
 
 def _main() -> None:
