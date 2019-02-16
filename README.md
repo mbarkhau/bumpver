@@ -18,10 +18,10 @@ Project/Repo:
 
 Code Quality/CI:
 
-[![Type Checked with mypy][mypy_img]][mypy_ref]
-[![Code Style: sjfmt][style_img]][style_ref]
-[![Code Coverage][codecov_img]][codecov_ref]
 [![Build Status][build_img]][build_ref]
+[![Type Checked with mypy][mypy_img]][mypy_ref]
+[![Code Coverage][codecov_img]][codecov_ref]
+[![Code Style: sjfmt][style_img]][style_ref]
 
 
 |                Name                 |    role           |  since  | until |
