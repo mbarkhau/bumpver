@@ -122,9 +122,7 @@ class VCS:
         """List vcs tags on all branches."""
         ls_tag_lines = self('ls_tags').splitlines()
         log.debug(f"ls_tags output {ls_tag_lines}")
-        return [
-            line.strip().split(" ", 1)[0] for line in ls_tag_lines
-        ]
+        return [line.strip().split(" ", 1)[0] for line in ls_tag_lines]
 
     def add(self, path: str) -> None:
         """Add updates to be included in next commit."""
