@@ -279,7 +279,7 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
 
         return _parse_config(raw_cfg)
     except ValueError as ex:
-        log.error(f"Error parsing {ctx.config_filepath}: {str(ex)}")
+        log.warn(f"Couldn't parse {ctx.config_filepath}: {str(ex)}")
         return None
 
 
@@ -292,34 +292,34 @@ tag = True
 push = True
 
 [pycalver:file_patterns]
-"""
+""".lstrip()
 
 
 DEFAULT_CONFIGPARSER_SETUP_CFG_STR = """
 setup.cfg =
     current_version = "{version}"
-"""
+""".lstrip()
 
 
 DEFAULT_CONFIGPARSER_SETUP_PY_STR = """
 setup.py =
     "{version}"
     "{pep440_version}"
-"""
+""".lstrip()
 
 
 DEFAULT_CONFIGPARSER_README_RST_STR = """
 README.rst =
     {version}
     {pep440_version}
-"""
+""".lstrip()
 
 
 DEFAULT_CONFIGPARSER_README_MD_STR = """
 README.md =
     {version}
     {pep440_version}
-"""
+""".lstrip()
 
 
 DEFAULT_TOML_BASE_TMPL = """
@@ -331,21 +331,21 @@ tag = true
 push = true
 
 [pycalver.file_patterns]
-"""
+""".lstrip()
 
 
 DEFAULT_TOML_PYCALVER_STR = """
 "pycalver.toml" = [
     'current_version = "{version}"',
 ]
-"""
+""".lstrip()
 
 
 DEFAULT_TOML_PYPROJECT_STR = """
 "pyproject.toml" = [
     'current_version = "{version}"',
 ]
-"""
+""".lstrip()
 
 
 DEFAULT_TOML_SETUP_PY_STR = """
@@ -353,7 +353,7 @@ DEFAULT_TOML_SETUP_PY_STR = """
     "{version}",
     "{pep440_version}",
 ]
-"""
+""".lstrip()
 
 
 DEFAULT_TOML_README_RST_STR = """
@@ -361,7 +361,7 @@ DEFAULT_TOML_README_RST_STR = """
     "{version}",
     "{pep440_version}",
 ]
-"""
+""".lstrip()
 
 
 DEFAULT_TOML_README_MD_STR = """
@@ -369,7 +369,7 @@ DEFAULT_TOML_README_MD_STR = """
     "{version}",
     "{pep440_version}",
 ]
-"""
+""".lstrip()
 
 
 def _initial_version() -> str:
