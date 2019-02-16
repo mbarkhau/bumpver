@@ -11,7 +11,8 @@ for i in ${!env_py_paths[@]}; do
 
     if [[ ! -f ${env_path_python} ]]; then
         echo "conda create --name ${env_name} ${py_version} ...";
-        ${CONDA_BIN} create --name ${env_name} --channel conda-forge ${py_version} --yes --quiet;
+        ${CONDA_BIN} create --name ${env_name} --yes;
+        ${CONDA_BIN} install --name ${env_name} --yes --channel conda-forge ${py_version};
     fi;
 
     echo "updating ${env_name} conda deps ...";
