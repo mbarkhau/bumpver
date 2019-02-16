@@ -162,8 +162,8 @@ INFO    - New Version: v201902.0002-beta
 @@ -11,7 +11,7 @@
 
  [![Supported Python Versions][pyversions_img]][pyversions_ref]
--[![PyCalVer v201901.0001][version_img]][version_ref]
-+[![PyCalVer v201902.0002][version_img]][version_ref]
+-[![Version v201901.0001][version_img]][version_ref]
++[![Version v201902.0002][version_img]][version_ref]
  [![PyPI Releases][pypi_img]][pypi_ref]
 
 --- myproject/__init__.py
