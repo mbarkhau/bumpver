@@ -105,7 +105,7 @@ def next_id(prev_id: str) -> str:
     _maybe_next_id_val = int(_prev_id_val) + 1
     _maybe_next_id_str = f"{_maybe_next_id_val:0{num_digits}}"
 
-    _is_padding_ok = prev_id[0] != _maybe_next_id_str[0]
+    _is_padding_ok = prev_id[0] == _maybe_next_id_str[0]
     _next_id_str: str
 
     if _is_padding_ok:
