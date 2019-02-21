@@ -284,7 +284,7 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
 
         return _parse_config(raw_cfg)
     except ValueError as ex:
-        log.warn(f"Couldn't parse {ctx.config_filepath}: {str(ex)}")
+        log.warning(f"Couldn't parse {ctx.config_filepath}: {str(ex)}")
         return None
 
 
