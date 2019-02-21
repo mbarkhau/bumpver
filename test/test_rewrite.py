@@ -1,3 +1,5 @@
+import copy
+
 from pycalver import config
 from pycalver import rewrite
 
@@ -67,3 +69,34 @@ def test_iter_file_globs():
         "src/module_v1/__init__.py",
         "src/module_v2/__init__.py",
     }
+
+
+def test_error_bad_path():
+    with util.Project(project="b") as project:
+        ctx = config.init_project_ctx(project.dir)
+        cfg = config.parse(ctx)
+        assert cfg
+
+        (project.dir / "setup.py").unlink()
+        try:
+            list(rewrite._iter_file_paths(cfg.file_patterns))
+            assert False, "expected ValueError"
+        except ValueError as ex:
+            assert "setup.py" in str(ex)
+
+
+def test_error_bad_pattern():
+    with util.Project(project="b") as project:
+        ctx = config.init_project_ctx(project.dir)
+        cfg = config.parse(ctx)
+        assert cfg
+
+        patterns = copy.deepcopy(cfg.file_patterns)
+        print(patterns)
+        patterns["setup.py"] = patterns["setup.py"][0] + "invalid"
+
+        try:
+            list(rewrite.diff("v201809.1234", patterns))
+            assert False, "expected ValueError"
+        except ValueError as ex:
+            assert "setup.py" in str(ex)
