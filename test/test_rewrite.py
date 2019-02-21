@@ -92,7 +92,6 @@ def test_error_bad_pattern():
         assert cfg
 
         patterns = copy.deepcopy(cfg.file_patterns)
-        print(patterns)
         patterns["setup.py"] = patterns["setup.py"][0] + "invalid"
 
         try:
