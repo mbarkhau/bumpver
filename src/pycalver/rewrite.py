@@ -6,9 +6,11 @@
 """Rewrite files, updating occurences of version strings."""
 
 import io
+import glob
 import difflib
 import logging
 import typing as typ
+import pathlib2 as pl
 
 from . import parse
 from . import config
@@ -88,8 +90,17 @@ def rfd_from_content(patterns: typ.List[str], new_version: str, content: str) ->
     return RewrittenFileData("<path>", line_sep, old_lines, new_lines)
 
 
+def _iter_file_paths(
+    file_patterns: config.PatternsByGlob
+) -> typ.Iterable[typ.Tuple[pl.Path, config.Patterns]]:
+    for globstr, patterns in file_patterns.items():
+        for file_path_str in glob.glob(globstr):
+            file_path = pl.Path(file_path_str)
+            yield (file_path, patterns)
+
+
 def iter_rewritten(
-    file_patterns: config.PatternsByFilePath, new_version: str
+    file_patterns: config.PatternsByGlob, new_version: str
 ) -> typ.Iterable[RewrittenFileData]:
     r'''Iterate over files with version string replaced.
 
@@ -111,12 +122,12 @@ def iter_rewritten(
     '''
     fh: typ.IO[str]
 
-    for filepath, patterns in file_patterns.items():
-        with io.open(filepath, mode="rt", encoding="utf-8") as fh:
+    for file_path, patterns in _iter_file_paths(file_patterns):
+        with file_path.open(mode="rt", encoding="utf-8") as fh:
             content = fh.read()
 
         rfd = rfd_from_content(patterns, new_version, content)
-        yield rfd._replace(path=filepath)
+        yield rfd._replace(path=str(file_path))
 
 
 def diff_lines(rfd: RewrittenFileData) -> typ.List[str]:
@@ -137,7 +148,7 @@ def diff_lines(rfd: RewrittenFileData) -> typ.List[str]:
     return list(lines)
 
 
-def diff(new_version: str, file_patterns: config.PatternsByFilePath) -> str:
+def diff(new_version: str, file_patterns: config.PatternsByGlob) -> str:
     r"""Generate diffs of rewritten files.
 
     >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "{pycalver}"']}
@@ -152,22 +163,21 @@ def diff(new_version: str, file_patterns: config.PatternsByFilePath) -> str:
     """
 
     full_diff = ""
-    file_path: str
-    fh       : typ.IO[str]
+    fh: typ.IO[str]
 
-    for file_path, patterns in sorted(file_patterns.items()):
-        with io.open(file_path, mode="rt", encoding="utf-8") as fh:
+    for file_path, patterns in sorted(_iter_file_paths(file_patterns)):
+        with file_path.open(mode="rt", encoding="utf-8") as fh:
             content = fh.read()
 
         rfd = rfd_from_content(patterns, new_version, content)
-        rfd = rfd._replace(path=file_path)
+        rfd = rfd._replace(path=str(file_path))
         full_diff += "\n".join(diff_lines(rfd)) + "\n"
 
     full_diff = full_diff.rstrip("\n")
     return full_diff
 
 
-def rewrite(new_version: str, file_patterns: config.PatternsByFilePath) -> None:
+def rewrite(new_version: str, file_patterns: config.PatternsByGlob) -> None:
     """Rewrite project files, updating each with the new version."""
     fh: typ.IO[str]
 

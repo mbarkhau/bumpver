@@ -143,7 +143,7 @@ setup.cfg =
     current_version = {pycalver}
 setup.py =
     version="{pep440_pycalver}"
-myproject/__init__.py =
+src/myproject_v*/__init__.py =
     __version__ = "{pycalver}"
 README.md =
     [PyCalVer {calver}{build}{release}]
@@ -167,8 +167,14 @@ INFO    - New Version: v201902.0002-beta
 +[![Version v201902.0002][version_img]][version_ref]
  [![PyPI Releases][pypi_img]][pypi_ref]
 
---- myproject/__init__.py
-+++ myproject/__init__.py
+--- src/myproject_v1/__init__.py
++++ src/myproject_v1/__init__.py
+@@ -1,1 +1,1 @@
+-__version__ = "v201901.0001-beta"
++__version__ = "v201902.0002-beta"
+
+--- src/myproject_v2/__init__.py
++++ src/myproject_v2/__init__.py
 @@ -1,1 +1,1 @@
 -__version__ = "v201901.0001-beta"
 +__version__ = "v201902.0002-beta"

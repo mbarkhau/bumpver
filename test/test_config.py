@@ -182,7 +182,12 @@ def test_parse_project_cfg():
     assert cfg.tag    is True
     assert cfg.push   is True
 
-    assert set(cfg.file_patterns.keys()) == {"setup.py", "README.rst", "setup.cfg"}
+    assert set(cfg.file_patterns.keys()) == {
+        "setup.py",
+        "README.rst",
+        "setup.cfg",
+        "src/module_v*/__init__.py",
+    }
 
 
 def test_parse_toml_file(tmpdir):

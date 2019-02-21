@@ -20,7 +20,8 @@ from . import version
 
 log = logging.getLogger("pycalver.config")
 
-PatternsByFilePath = typ.Dict[str, typ.List[str]]
+Patterns = typ.List[str]
+PatternsByGlob = typ.Dict[str, Patterns]
 
 SUPPORTED_CONFIGS = ["setup.cfg", "pyproject.toml", "pycalver.toml"]
 
@@ -84,7 +85,7 @@ class Config(typ.NamedTuple):
     tag   : bool
     push  : bool
 
-    file_patterns: PatternsByFilePath
+    file_patterns: PatternsByGlob
 
 
 def _debug_str(cfg: Config) -> str:
@@ -182,6 +183,10 @@ def _parse_toml(cfg_buffer: typ.IO[str]) -> RawConfig:
 
 
 def _normalize_file_patterns(raw_cfg: RawConfig) -> FilePatterns:
+    """Create consistent representation of file_patterns.
+
+    The result the same, regardless of the config format.
+    """
     version_str    : str = raw_cfg['current_version']
     version_pattern: str = raw_cfg['version_pattern']
     pep440_version : str = version.to_pep440(version_str)

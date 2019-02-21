@@ -1,4 +1,7 @@
+from pycalver import config
 from pycalver import rewrite
+
+from . import util
 
 
 REWRITE_FIXTURE = """
@@ -29,3 +32,38 @@ def test_rewrite_final():
     assert "v201911.0003" not in "\n".join(old_lines)
     assert "None" not in "\n".join(new_lines)
     assert "v201911.0003-final" in "\n".join(new_lines)
+
+
+def test_iter_file_paths():
+    with util.Project(project="a") as project:
+        ctx = config.init_project_ctx(project.dir)
+        cfg = config.parse(ctx)
+        assert cfg
+
+        file_paths = {
+            str(file_path) for file_path, patterns in rewrite._iter_file_paths(cfg.file_patterns)
+        }
+
+    assert file_paths == {
+        "pycalver.toml",
+        "README.md",
+    }
+
+
+def test_iter_file_globs():
+    with util.Project(project="b") as project:
+        ctx = config.init_project_ctx(project.dir)
+        cfg = config.parse(ctx)
+        assert cfg
+
+        file_paths = {
+            str(file_path) for file_path, patterns in rewrite._iter_file_paths(cfg.file_patterns)
+        }
+
+    assert file_paths == {
+        "setup.cfg",
+        "setup.py",
+        "README.rst",
+        "src/module_v1/__init__.py",
+        "src/module_v2/__init__.py",
+    }

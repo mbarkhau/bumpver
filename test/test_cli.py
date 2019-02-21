@@ -1,5 +1,4 @@
 import os
-import io
 import time
 import shutil
 import pathlib2 as pl
@@ -166,19 +165,19 @@ def test_incr_invalid(runner):
 
 def _add_project_files(*files):
     if "README.md" in files:
-        with io.open("README.md", mode="wt", encoding="utf-8") as fh:
+        with pl.Path("README.md").open(mode="wt", encoding="utf-8") as fh:
             fh.write("Hello World v201701.0002-alpha !\n")
 
     if "setup.cfg" in files:
-        with io.open("setup.cfg", mode="wt", encoding="utf-8") as fh:
+        with pl.Path("setup.cfg").open(mode="wt", encoding="utf-8") as fh:
             fh.write(SETUP_CFG_FIXTURE)
 
     if "pycalver.toml" in files:
-        with io.open("pycalver.toml", mode="wt", encoding="utf-8") as fh:
+        with pl.Path("pycalver.toml").open(mode="wt", encoding="utf-8") as fh:
             fh.write(PYCALVER_TOML_FIXTURE)
 
     if "pyproject.toml" in files:
-        with io.open("pyproject.toml", mode="wt", encoding="utf-8") as fh:
+        with pl.Path("pyproject.toml").open(mode="wt", encoding="utf-8") as fh:
             fh.write(PYPROJECT_TOML_FIXTURE)
 
 
@@ -221,7 +220,7 @@ def test_novcs_nocfg_init(runner, caplog, capsys):
     assert "File not found" in log.message
 
     assert os.path.exists("pycalver.toml")
-    with io.open("pycalver.toml", mode="r", encoding="utf-8") as fh:
+    with pl.Path("pycalver.toml").open(mode="r", encoding="utf-8") as fh:
         cfg_content = fh.read()
 
     base_str = config.DEFAULT_TOML_BASE_TMPL.format(initial_version=config._initial_version())
@@ -248,7 +247,7 @@ def test_novcs_setupcfg_init(runner):
     result = runner.invoke(pycalver.cli, ['init', "--verbose"])
     assert result.exit_code == 0
 
-    with io.open("setup.cfg", mode="r", encoding="utf-8") as fh:
+    with pl.Path("setup.cfg").open(mode="r", encoding="utf-8") as fh:
         cfg_content = fh.read()
 
     base_str = config.DEFAULT_CONFIGPARSER_BASE_TMPL.format(
@@ -268,7 +267,7 @@ def test_novcs_pyproject_init(runner):
     result = runner.invoke(pycalver.cli, ['init', "--verbose"])
     assert result.exit_code == 0
 
-    with io.open("pyproject.toml", mode="r", encoding="utf-8") as fh:
+    with pl.Path("pyproject.toml").open(mode="r", encoding="utf-8") as fh:
         cfg_content = fh.read()
 
     base_str = config.DEFAULT_TOML_BASE_TMPL.format(initial_version=config._initial_version())
@@ -367,14 +366,14 @@ def test_novcs_bump(runner):
 
     calver = config._initial_version()[:7]
 
-    with io.open("README.md") as fh:
+    with pl.Path("README.md").open() as fh:
         content = fh.read()
         assert calver + ".0002-alpha !\n" in content
 
     result = runner.invoke(pycalver.cli, ['bump', "--verbose", "--release", "beta"])
     assert result.exit_code == 0
 
-    with io.open("README.md") as fh:
+    with pl.Path("README.md").open() as fh:
         content = fh.read()
         assert calver + ".0003-beta !\n" in content
 
@@ -391,7 +390,7 @@ def test_git_bump(runner):
 
     calver = config._initial_version()[:7]
 
-    with io.open("README.md") as fh:
+    with pl.Path("README.md").open() as fh:
         content = fh.read()
         assert calver + ".0002-alpha !\n" in content
 
@@ -408,6 +407,6 @@ def test_hg_bump(runner):
 
     calver = config._initial_version()[:7]
 
-    with io.open("README.md") as fh:
+    with pl.Path("README.md").open() as fh:
         content = fh.read()
         assert calver + ".0002-alpha !\n" in content
