@@ -224,7 +224,11 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
     if _vcs:
         _assert_not_dirty(_vcs, filepaths, allow_dirty)
 
-    rewrite.rewrite(new_version, cfg.file_patterns)
+    try:
+        rewrite.rewrite(new_version, cfg.file_patterns)
+    except ValueError as ex:
+        log.error(str(ex))
+        sys.exit(1)
 
     if _vcs is None or not cfg.commit:
         return
@@ -314,7 +318,11 @@ def bump(
     log.info(f"New Version: {new_version}")
 
     if dry or verbose >= 2:
-        print(rewrite.diff(new_version, cfg.file_patterns))
+        try:
+            print(rewrite.diff(new_version, cfg.file_patterns))
+        except ValueError as ex:
+            log.error(str(ex))
+            sys.exit(1)
 
     if dry:
         return

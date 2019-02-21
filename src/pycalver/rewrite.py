@@ -94,7 +94,11 @@ def _iter_file_paths(
     file_patterns: config.PatternsByGlob
 ) -> typ.Iterable[typ.Tuple[pl.Path, config.Patterns]]:
     for globstr, patterns in file_patterns.items():
-        for file_path_str in glob.glob(globstr):
+        file_paths = glob.glob(globstr)
+        if not any(file_paths):
+            errmsg = f"No files found for path/glob '{globstr}'"
+            raise ValueError(errmsg)
+        for file_path_str in file_paths:
             file_path = pl.Path(file_path_str)
             yield (file_path, patterns)
 
@@ -171,7 +175,12 @@ def diff(new_version: str, file_patterns: config.PatternsByGlob) -> str:
 
         rfd = rfd_from_content(patterns, new_version, content)
         rfd = rfd._replace(path=str(file_path))
-        full_diff += "\n".join(diff_lines(rfd)) + "\n"
+        lines = diff_lines(rfd)
+        if len(lines) == 0:
+            errmsg = f"No patterns matched for '{file_path}'"
+            raise ValueError(errmsg)
+
+        full_diff += "\n".join(lines) + "\n"
 
     full_diff = full_diff.rstrip("\n")
     return full_diff
