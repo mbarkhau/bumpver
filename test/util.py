@@ -55,7 +55,7 @@ class Project:
 
     def __enter__(self):
         self.prev_cwd = os.getcwd()
-        os.chdir(self.dir)
+        os.chdir(str(self.dir))
         return self
 
     def __exit__(self, *exc):
