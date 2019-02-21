@@ -1,6 +1,11 @@
 # Changelog for https://gitlab.com/mbarkhau/pycalver
 
 
+## v201902.0023
+
+ - Added: Support for globs in file patterns
+ 
+
 ## v201902.0020
 
  - Added: Support for many more custom version patterns
