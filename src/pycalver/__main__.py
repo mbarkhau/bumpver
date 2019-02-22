@@ -10,6 +10,7 @@ CLI module for PyCalVer.
 Provided subcommands: show, test, init, bump
 """
 
+import os
 import sys
 import click
 import logging
@@ -24,14 +25,11 @@ from . import rewrite
 _VERBOSE = 0
 
 
-try:
+# To enable pretty tracebacks:
+#   echo "export ENABLE_BACKTRACE=1;" >> ~/.bashrc
+if os.environ.get('ENABLE_BACKTRACE') == "1":
     import backtrace
-
-    # To enable pretty tracebacks:
-    #   echo "export ENABLE_BACKTRACE=1;" >> ~/.bashrc
     backtrace.hook(align=True, strip_path=True, enable_on_envvar_only=True)
-except ImportError:
-    pass
 
 
 click.disable_unicode_literals_warning = True
