@@ -43,7 +43,7 @@ def test_bump_random(monkeypatch):
     for i in range(1000):
         cur_date += dt.timedelta(days=int((1 + random.random()) ** 10))
         new_version = version.incr(
-            cur_version, release=random.choice([None, "alpha", "beta", "rc", 'final'])
+            cur_version, release=random.choice([None, "alpha", "beta", "rc", "final", "post"])
         )
         assert cur_version < new_version
         cur_version = new_version

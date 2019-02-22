@@ -170,7 +170,14 @@ def _is_calver(nfo: typ.Union[CalendarInfo, VersionInfo]) -> bool:
 TAG_ALIASES: typ.Dict[str, str] = {'a': "alpha", 'b': "beta", 'pre': "rc"}
 
 
-PEP440_TAGS: typ.Dict[str, str] = {'alpha': "a", 'beta': "b", 'final': "", 'rc': "rc", 'dev': "dev"}
+PEP440_TAGS: typ.Dict[str, str] = {
+    'alpha': "a",
+    'beta' : "b",
+    'final': "",
+    'rc'   : "rc",
+    'dev'  : "dev",
+    'post' : "post",
+}
 
 
 VersionInfoKW = typ.Dict[str, typ.Union[str, int, None]]
