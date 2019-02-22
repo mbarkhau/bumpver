@@ -326,3 +326,6 @@ def bump(
         return
 
     _bump(cfg, new_version, allow_dirty)
+
+if __name__ == '__main__':
+    cli()
