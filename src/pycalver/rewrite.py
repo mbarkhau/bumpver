@@ -15,6 +15,7 @@ import pathlib2 as pl
 from . import parse
 from . import config
 from . import version
+from . import patterns
 
 
 log = logging.getLogger("pycalver.rewrite")
@@ -41,29 +42,39 @@ def detect_line_sep(content: str) -> str:
 
 
 def rewrite_lines(
-    patterns: typ.List[str], new_version: str, old_lines: typ.List[str]
+    pattern_strs: typ.List[str], new_version: str, old_lines: typ.List[str]
 ) -> typ.List[str]:
-    """Replace occurances of patterns in old_lines with new_version.
+    """Replace occurances of pattern_strs in old_lines with new_version.
 
-    >>> patterns = ['__version__ = "{pycalver}"']
-    >>> rewrite_lines(patterns, "v201811.0123-beta", ['__version__ = "v201809.0002-beta"'])
+    >>> pattern_strs = ['__version__ = "{pycalver}"']
+    >>> rewrite_lines(pattern_strs, "v201811.0123-beta", ['__version__ = "v201809.0002-beta"'])
     ['__version__ = "v201811.0123-beta"']
 
-    >>> patterns = ['__version__ = "{pep440_version}"']
-    >>> rewrite_lines(patterns, "v201811.0123-beta", ['__version__ = "201809.2b0"'])
+    >>> pattern_strs = ['__version__ = "{pep440_version}"']
+    >>> rewrite_lines(pattern_strs, "v201811.0123-beta", ['__version__ = "201809.2b0"'])
     ['__version__ = "201811.123b0"']
     """
     new_version_nfo = version.parse_version_info(new_version)
 
-    new_lines = old_lines[:]
+    new_lines      = old_lines[:]
+    found_patterns = set()
 
-    for m in parse.iter_matches(old_lines, patterns):
+    for m in parse.iter_matches(old_lines, pattern_strs):
+        found_patterns.add(m.pattern)
         replacement = version.format_version(new_version_nfo, m.pattern)
         span_l, span_r = m.span
         new_line = m.line[:span_l] + replacement + m.line[span_r:]
         new_lines[m.lineno] = new_line
 
-    return new_lines
+    non_matched_patterns = set(pattern_strs) - found_patterns
+    if non_matched_patterns:
+        for non_matched_pattern in non_matched_patterns:
+            log.error(f"No match for pattern '{non_matched_pattern}'")
+            compiled_pattern = patterns._compile_pattern(non_matched_pattern)
+            log.error(f"Pattern compiles to regex '{compiled_pattern}'")
+        raise ValueError("Invalid pattern(s)", list(non_matched_patterns))
+    else:
+        return new_lines
 
 
 class RewrittenFileData(typ.NamedTuple):
@@ -75,32 +86,34 @@ class RewrittenFileData(typ.NamedTuple):
     new_lines: typ.List[str]
 
 
-def rfd_from_content(patterns: typ.List[str], new_version: str, content: str) -> RewrittenFileData:
+def rfd_from_content(
+    pattern_strs: typ.List[str], new_version: str, content: str
+) -> RewrittenFileData:
     r"""Rewrite pattern occurrences with version string.
 
-    >>> patterns = ['__version__ = "{pycalver}"']
+    >>> pattern_strs = ['__version__ = "{pycalver}"']
     >>> content = '__version__ = "v201809.0001-alpha"'
-    >>> rfd = rfd_from_content(patterns, "v201809.0123", content)
+    >>> rfd = rfd_from_content(pattern_strs, "v201809.0123", content)
     >>> rfd.new_lines
     ['__version__ = "v201809.0123"']
     """
     line_sep  = detect_line_sep(content)
     old_lines = content.split(line_sep)
-    new_lines = rewrite_lines(patterns, new_version, old_lines)
+    new_lines = rewrite_lines(pattern_strs, new_version, old_lines)
     return RewrittenFileData("<path>", line_sep, old_lines, new_lines)
 
 
 def _iter_file_paths(
     file_patterns: config.PatternsByGlob
 ) -> typ.Iterable[typ.Tuple[pl.Path, config.Patterns]]:
-    for globstr, patterns in file_patterns.items():
+    for globstr, pattern_strs in file_patterns.items():
         file_paths = glob.glob(globstr)
         if not any(file_paths):
             errmsg = f"No files found for path/glob '{globstr}'"
             raise ValueError(errmsg)
         for file_path_str in file_paths:
             file_path = pl.Path(file_path_str)
-            yield (file_path, patterns)
+            yield (file_path, pattern_strs)
 
 
 def iter_rewritten(
@@ -126,11 +139,11 @@ def iter_rewritten(
     '''
     fh: typ.IO[str]
 
-    for file_path, patterns in _iter_file_paths(file_patterns):
+    for file_path, pattern_strs in _iter_file_paths(file_patterns):
         with file_path.open(mode="rt", encoding="utf-8") as fh:
             content = fh.read()
 
-        rfd = rfd_from_content(patterns, new_version, content)
+        rfd = rfd_from_content(pattern_strs, new_version, content)
         yield rfd._replace(path=str(file_path))
 
 
@@ -169,12 +182,12 @@ def diff(new_version: str, file_patterns: config.PatternsByGlob) -> str:
     full_diff = ""
     fh: typ.IO[str]
 
-    for file_path, patterns in sorted(_iter_file_paths(file_patterns)):
+    for file_path, pattern_strs in sorted(_iter_file_paths(file_patterns)):
         with file_path.open(mode="rt", encoding="utf-8") as fh:
             content = fh.read()
 
-        rfd = rfd_from_content(patterns, new_version, content)
-        rfd = rfd._replace(path=str(file_path))
+        rfd   = rfd_from_content(pattern_strs, new_version, content)
+        rfd   = rfd._replace(path=str(file_path))
         lines = diff_lines(rfd)
         if len(lines) == 0:
             errmsg = f"No patterns matched for '{file_path}'"
