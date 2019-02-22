@@ -372,6 +372,7 @@ def test_novcs_bump(runner):
     with pl.Path("README.md").open() as fh:
         content = fh.read()
         assert calver + ".0002-alpha !\n" in content
+        assert calver[1:] + ".2a0 !\n" in content
 
     result = runner.invoke(pycalver.cli, ['bump', "--verbose", "--release", "beta"])
     assert result.exit_code == 0
@@ -379,6 +380,7 @@ def test_novcs_bump(runner):
     with pl.Path("README.md").open() as fh:
         content = fh.read()
         assert calver + ".0003-beta !\n" in content
+        assert calver[1:] + ".3b0 !\n" in content
 
 
 def test_git_bump(runner):
