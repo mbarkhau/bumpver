@@ -186,7 +186,12 @@ def diff(new_version: str, file_patterns: config.PatternsByGlob) -> str:
         with file_path.open(mode="rt", encoding="utf-8") as fh:
             content = fh.read()
 
-        rfd   = rfd_from_content(pattern_strs, new_version, content)
+        try:
+            rfd   = rfd_from_content(pattern_strs, new_version, content)
+        except ValueError:
+            errmsg = f"No patterns matched for '{file_path}'"
+            raise ValueError(errmsg)
+
         rfd   = rfd._replace(path=str(file_path))
         lines = diff_lines(rfd)
         if len(lines) == 0:
