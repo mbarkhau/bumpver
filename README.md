@@ -147,7 +147,7 @@ src/mymodule_v*/__init__.py =
     __version__ = "{pycalver}"
 README.md =
     [PyCalVer {calver}{build}{release}]
-    img.shields.io/badge/PyCalVer-{calver}{build}-{release}-blue
+    img.shields.io/static/v1.svg?label=PyCalVer&message={pycalver}&color=blue
 ```
 
 To see if a pattern is found, you can use `pycalver bump --dry`, which will
@@ -187,6 +187,19 @@ INFO    - New Version: v201902.0002-beta
 +    version="201902.2b0",
      license="MIT",
 ```
+
+If there is no match for a pattern, bump will report an error.
+
+```shell
+$ pycalver bump --dry --no-fetch
+INFO    - Old Version: v201901.0001-beta
+INFO    - New Version: v201902.0002-beta
+ERROR   - No match for pattern 'img.shields.io/static/v1.svg?label=PyCalVer&message={pycalver}&color=blue'
+ERROR   - Pattern compiles to regex 'img\.shields\.io/static/v1\.svg\?label=PyCalVer&message=(?P<pycalver>v(?P<year>\d{4})(?P<month>(?:0[0-9]|1[0-2]))\.(?P<bid>\d{4,})(?:-(?P
+<tag>(?:alpha|beta|dev|rc|post|final)))?)&color=blue'
+```
+
+The internally used regular expression is also shown, which you can use to debug the issue, for example on https://regex101.com.
 
 
 ### Pattern Search and Replacement
