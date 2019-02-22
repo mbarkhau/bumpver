@@ -979,7 +979,7 @@ artifact of a package, eg. a `.whl` file.
 [downloads_img]: https://pepy.tech/badge/pycalver/month
 [downloads_ref]: https://pepy.tech/project/pycalver
 
-[version_img]: https://img.shields.io/badge/PyCalVer-v201902.0024-blue.svg
+[version_img]: https://img.shields.io/static/v1.svg?label=PyCalVer&message=v201902.0024&color=blue
 [version_ref]: https://pypi.org/project/pycalver/
 
 [pypi_img]: https://img.shields.io/badge/PyPI-wheels-green.svg
