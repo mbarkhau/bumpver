@@ -490,7 +490,7 @@ bump_version:
 .PHONY: dist_build
 dist_build:
 	$(DEV_ENV_PY) setup.py sdist;
-	$(DEV_ENV_PY) setup.py bdist_wheel --python-tag=$(BDIST_WHEEL_PYTHON_TAG);
+	$(DEV_ENV_PY) setup.py bdist_wheel --python-tag=py2.py3;
 	@rm -rf src/*.egg-info
 
 
