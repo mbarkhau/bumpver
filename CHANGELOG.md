@@ -1,11 +1,11 @@
 # Changelog for https://gitlab.com/mbarkhau/pycalver
 
 
-## v201902.0026
+## v201902.0027
 
  - Fix: Allow --release=post
  - Fix: Better error reporting for bad patterns
- - Fix: Regex escaping issue with ?
+ - Fix: Regex escaping issue with "?"
  
 
 ## v201902.0024
