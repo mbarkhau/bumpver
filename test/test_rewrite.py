@@ -46,10 +46,7 @@ def test_iter_file_paths():
             str(file_path) for file_path, patterns in rewrite._iter_file_paths(cfg.file_patterns)
         }
 
-    assert file_paths == {
-        "pycalver.toml",
-        "README.md",
-    }
+    assert file_paths == {"pycalver.toml", "README.md"}
 
 
 def test_iter_file_globs():

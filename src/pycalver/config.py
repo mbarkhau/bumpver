@@ -20,7 +20,7 @@ from . import version
 
 log = logging.getLogger("pycalver.config")
 
-Patterns = typ.List[str]
+Patterns       = typ.List[str]
 PatternsByGlob = typ.Dict[str, Patterns]
 
 SUPPORTED_CONFIGS = ["setup.cfg", "pyproject.toml", "pycalver.toml"]

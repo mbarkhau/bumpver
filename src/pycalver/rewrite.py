@@ -187,7 +187,7 @@ def diff(new_version: str, file_patterns: config.PatternsByGlob) -> str:
             content = fh.read()
 
         try:
-            rfd   = rfd_from_content(pattern_strs, new_version, content)
+            rfd = rfd_from_content(pattern_strs, new_version, content)
         except ValueError:
             errmsg = f"No patterns matched for '{file_path}'"
             raise ValueError(errmsg)
