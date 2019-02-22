@@ -1,7 +1,7 @@
 # Changelog for https://gitlab.com/mbarkhau/pycalver
 
 
-## v201902.0025
+## v201902.0026
 
  - Fix: Allow --release=post
  - Fix: Better error reporting for bad patterns
