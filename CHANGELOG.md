@@ -1,6 +1,13 @@
 # Changelog for https://gitlab.com/mbarkhau/pycalver
 
 
+## v201902.0025
+
+ - Fix: Allow --release=post
+ - Fix: Better error reporting for bad patterns
+ - Fix: Regex escaping issue with ?
+ 
+
 ## v201902.0024
 
  - Added: Support for globs in file patterns.
