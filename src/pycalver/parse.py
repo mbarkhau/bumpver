@@ -1,7 +1,7 @@
 # This file is part of the pycalver project
-# https://github.com/mbarkhau/pycalver
+# https://gitlab.com/mbarkhau/pycalver
 #
-# Copyright (c) 2018 Manuel Barkhau (@mbarkhau) - MIT License
+# Copyright (c) 2019 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 """Parse PyCalVer strings from files."""
 
