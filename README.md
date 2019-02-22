@@ -199,7 +199,7 @@ ERROR   - Pattern compiles to regex 'img\.shields\.io/static/v1\.svg\?label=PyCa
 <tag>(?:alpha|beta|dev|rc|post|final)))?)&color=blue'
 ```
 
-The internally used regular expression is also shown, which you can use to debug the issue, for example on https://regex101.com.
+The internally used regular expression is also shown, which you can use to debug the issue, for example on [regex101.com](https://regex101.com/r/ajQDTz/2).
 
 
 ### Pattern Search and Replacement
