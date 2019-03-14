@@ -28,7 +28,7 @@ py-spy
 # SNAKEVIZ : A browser based viewer for the output of Python’s cProfile.
 # https://jiffyclub.github.io/snakeviz/
 # This is good for fine grained profiling (function level/micro optimizations)
-snakeviz
+snakeviz==2.0.0
 
 # I've yet to find a decent memory profiler for python, feel free to
 # add one after you've tested it and found it to be actually useful.
