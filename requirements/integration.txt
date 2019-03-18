@@ -20,7 +20,7 @@ pytest-cov
 readme_renderer[md]
 twine
 
-md-toc
+md-toc==3.0.0
 straitjacket
 pycalver
 lib3to6
