@@ -42,7 +42,7 @@ VALID_RELEASE_VALUES = ("alpha", "beta", "dev", "rc", "post", "final")
 log = logging.getLogger("pycalver.cli")
 
 
-def _init_logging(verbose: int = 0) -> None:
+def _configure_logging(verbose: int = 0) -> None:
     if verbose >= 2:
         log_format = "%(asctime)s.%(msecs)03d %(levelname)-7s %(name)-15s - %(message)s"
         log_level  = logging.DEBUG
@@ -54,7 +54,7 @@ def _init_logging(verbose: int = 0) -> None:
         log_level  = logging.INFO
 
     logging.basicConfig(level=log_level, format=log_format, datefmt="%Y-%m-%dT%H:%M:%S")
-    log.debug("Logging initialized.")
+    log.debug("Logging configured.")
 
 
 def _validate_release_tag(release: str) -> None:
@@ -70,7 +70,7 @@ def _validate_release_tag(release: str) -> None:
 @click.version_option(version="v201902.0027")
 @click.help_option()
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
-def cli(verbose: int = 0):
+def cli(verbose: int = 0) -> None:
     """Automatically update PyCalVer version strings on python projects."""
     global _VERBOSE
     _VERBOSE = verbose
@@ -96,7 +96,7 @@ def test(
     patch      : bool = False,
 ) -> None:
     """Increment a version number for demo purposes."""
-    _init_logging(verbose=max(_VERBOSE, verbose))
+    _configure_logging(verbose=max(_VERBOSE, verbose))
 
     if release:
         _validate_release_tag(release)
@@ -150,7 +150,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 )
 def show(verbose: int = 0, fetch: bool = True) -> None:
     """Show current version."""
-    _init_logging(verbose=max(_VERBOSE, verbose))
+    _configure_logging(verbose=max(_VERBOSE, verbose))
 
     ctx: config.ProjectContext = config.init_project_ctx(project_path=".")
     cfg: config.MaybeConfig    = config.parse(ctx)
@@ -172,7 +172,7 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
 )
 def init(verbose: int = 0, dry: bool = False) -> None:
     """Initialize [pycalver] configuration."""
-    _init_logging(verbose=max(_VERBOSE, verbose))
+    _configure_logging(verbose=max(_VERBOSE, verbose))
 
     ctx: config.ProjectContext = config.init_project_ctx(project_path=".")
     cfg: config.MaybeConfig    = config.parse(ctx)
@@ -286,7 +286,7 @@ def bump(
 ) -> None:
     """Increment the current version string and update project files."""
     verbose = max(_VERBOSE, verbose)
-    _init_logging(verbose)
+    _configure_logging(verbose)
 
     if release:
         _validate_release_tag(release)
