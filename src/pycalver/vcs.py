@@ -40,7 +40,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'is_usable'   : "hg root",
         'fetch'       : "hg pull",
         'ls_tags'     : "hg tags",
-        'status'      : "hg status -mard",
+        'status'      : "hg status -umard",
         'add_path'    : "hg add {path}",
         'commit'      : "hg commit --logfile {path}",
         'tag'         : "hg tag {tag} --message {tag}",
@@ -109,13 +109,15 @@ class VCS:
         if self.has_remote:
             self('fetch')
 
-    def status(self) -> typ.List[str]:
+    def status(self, required_files: typ.Set[str]) -> typ.List[str]:
         """Get status lines."""
         status_output = self('status')
+        status_items = [line.split(" ", 1) for line in status_output.splitlines()]
+
         return [
-            line[2:].strip()
-            for line in status_output.splitlines()
-            if not line.strip().startswith("??")
+            filepath.strip()
+            for status, filepath in status_items
+            if filepath.strip() in required_files or status != "??"
         ]
 
     def ls_tags(self) -> typ.List[str]:
@@ -142,7 +144,8 @@ class VCS:
         tmp_file = tempfile.NamedTemporaryFile("wb", delete=False)
         assert " " not in tmp_file.name
 
-        fh                 : typ.IO[bytes]
+        fh: typ.IO[bytes]
+
         with tmp_file as fh:
             fh.write(message_data)
 

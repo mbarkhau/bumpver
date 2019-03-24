@@ -286,6 +286,7 @@ def test_novcs_pyproject_init(runner):
 
 
 def _vcs_init(vcs):
+    assert vcs in ("git", "hg")
     assert not pl.Path(f".{vcs}").exists()
     sh(f"{vcs}", "init")
     assert pl.Path(f".{vcs}").is_dir()
@@ -392,6 +393,9 @@ def test_git_bump(runner):
     result = runner.invoke(pycalver.cli, ['init', "--verbose"])
     assert result.exit_code == 0
 
+    sh("git", "add", "pycalver.toml")
+    sh("git", "commit", "-m", "initial commit")
+
     result = runner.invoke(pycalver.cli, ['bump', "--verbose"])
     assert result.exit_code == 0
 
@@ -409,6 +413,9 @@ def test_hg_bump(runner):
     result = runner.invoke(pycalver.cli, ['init', "--verbose"])
     assert result.exit_code == 0
 
+    sh("hg", "add", "pycalver.toml")
+    sh("hg", "commit", "-m", "initial commit")
+
     result = runner.invoke(pycalver.cli, ['bump', "--verbose"])
     assert result.exit_code == 0
 
@@ -417,3 +424,45 @@ def test_hg_bump(runner):
     with pl.Path("README.md").open() as fh:
         content = fh.read()
         assert calver + ".0002-alpha !\n" in content
+
+
+def test_empty_git_bump(runner, caplog):
+    sh("git", "init")
+    with pl.Path("setup.cfg").open(mode="w") as fh:
+        fh.write("")
+    result = runner.invoke(pycalver.cli, ['init', "--verbose"])
+    assert result.exit_code == 0
+
+    with pl.Path("setup.cfg").open(mode="r") as fh:
+        default_cfg_data = fh.read()
+
+    assert "[pycalver]\n" in default_cfg_data
+    assert "\ncurrent_version = " in default_cfg_data
+    assert "\n[pycalver:file_patterns]\n" in default_cfg_data
+    assert "\nsetup.cfg =\n" in default_cfg_data
+
+    result = runner.invoke(pycalver.cli, ['bump'])
+
+    assert any(("working directory is not clean" in r.message) for r in caplog.records)
+    assert any(("setup.cfg" in r.message) for r in caplog.records)
+
+
+def test_empty_hg_bump(runner, caplog):
+    sh("hg", "init")
+    with pl.Path("setup.cfg").open(mode="w") as fh:
+        fh.write("")
+    result = runner.invoke(pycalver.cli, ['init', "--verbose"])
+    assert result.exit_code == 0
+
+    with pl.Path("setup.cfg").open(mode="r") as fh:
+        default_cfg_data = fh.read()
+
+    assert "[pycalver]\n" in default_cfg_data
+    assert "\ncurrent_version = " in default_cfg_data
+    assert "\n[pycalver:file_patterns]\n" in default_cfg_data
+    assert "\nsetup.cfg =\n" in default_cfg_data
+
+    result = runner.invoke(pycalver.cli, ['bump'])
+
+    assert any(("working directory is not clean" in r.message) for r in caplog.records)
+    assert any(("setup.cfg" in r.message) for r in caplog.records)

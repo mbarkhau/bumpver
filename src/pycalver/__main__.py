@@ -190,11 +190,11 @@ def init(verbose: int = 0, dry: bool = False) -> None:
     config.write_content(ctx)
 
 
-def _assert_not_dirty(vcs, filepaths: typ.Set[str], allow_dirty: bool):
-    dirty_files = vcs.status()
+def _assert_not_dirty(_vcs: vcs.VCS, filepaths: typ.Set[str], allow_dirty: bool):
+    dirty_files = _vcs.status(required_files=filepaths)
 
     if dirty_files:
-        log.warning(f"{vcs.name} working directory is not clean:")
+        log.warning(f"{_vcs.name} working directory is not clean. Uncomitted file(s):")
         for dirty_file in dirty_files:
             log.warning("    " + dirty_file)
 

@@ -34,15 +34,18 @@ FIXTURE_PATH_PARTS = [
 
 
 class Project:
-    def __init__(self, project="a"):
-        if not project.startswith("project_"):
-            project = "project_" + project
-
+    def __init__(self, project=None):
         tmpdir      = pl.Path(tempfile.mkdtemp(prefix="pytest_"))
         self.tmpdir = tmpdir
 
         self.dir = tmpdir / "pycalver_project"
         self.dir.mkdir()
+
+        if project is None:
+            return
+
+        if not project.startswith("project_"):
+            project = "project_" + project
 
         fixtures_subdir = FIXTURES_DIR / project
 
