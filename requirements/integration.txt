@@ -22,7 +22,7 @@ twine
 
 md-toc
 straitjacket
-pycalver
+pycalver==201903.28
 lib3to6
 
 # needed for mypy coverage report
