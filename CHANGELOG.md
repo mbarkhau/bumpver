@@ -1,6 +1,12 @@
 # Changelog for https://gitlab.com/mbarkhau/pycalver
 
 
+## v201903.0028
+
+ - Fix: Add warnings when configured files are not under version control.
+ - Add: Coloured output for bump --dry
+
+
 ## v201902.0027
 
  - Fix: Allow --release=post
@@ -16,7 +22,7 @@
 
 ## v201902.0020
 
- - Added: Support for many more custom version patterns
+ - Added: Support for many more custom version patterns.
 
 
 ## v201812.0018
