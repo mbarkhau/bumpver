@@ -244,6 +244,25 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
         _vcs.push(new_version)
 
 
+def _print_diff(cfg: config.Config, new_version: str) -> None:
+    diff: str = rewrite.diff(new_version, cfg.file_patterns)
+
+    if sys.stdout.isatty():
+        for line in diff.splitlines():
+            if line.startswith("+++") or line.startswith("---"):
+                print(line)
+            elif line.startswith("+"):
+                print("\u001b[32m" + line + "\u001b[0m")
+            elif line.startswith("-"):
+                print("\u001b[31m" + line + "\u001b[0m")
+            elif line.startswith("@"):
+                print("\u001b[36m" + line + "\u001b[0m")
+            else:
+                print(line)
+    else:
+        print(diff)
+
+
 @cli.command()
 @click.option("-v", "--verbose", count=True, help="Control log level. -vv for debug level.")
 @click.option(
@@ -318,7 +337,7 @@ def bump(
 
     if dry or verbose >= 2:
         try:
-            print(rewrite.diff(new_version, cfg.file_patterns))
+            _print_diff(cfg, new_version)
         except ValueError as ex:
             log.error(str(ex))
             sys.exit(1)

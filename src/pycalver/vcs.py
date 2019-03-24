@@ -112,7 +112,7 @@ class VCS:
     def status(self, required_files: typ.Set[str]) -> typ.List[str]:
         """Get status lines."""
         status_output = self('status')
-        status_items = [line.split(" ", 1) for line in status_output.splitlines()]
+        status_items  = [line.split(" ", 1) for line in status_output.splitlines()]
 
         return [
             filepath.strip()
