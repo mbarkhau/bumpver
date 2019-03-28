@@ -107,7 +107,7 @@ def test_parse_error_empty():
     try:
         version.parse_version_info("")
         assert False
-    except ValueError as err:
+    except version.PatternError as err:
         pass
 
 
@@ -115,7 +115,7 @@ def test_parse_error_noprefix():
     try:
         version.parse_version_info("201809.0002")
         assert False
-    except ValueError as err:
+    except version.PatternError as err:
         pass
 
 
@@ -123,7 +123,7 @@ def test_parse_error_nopadding():
     try:
         version.parse_version_info("v201809.2b0")
         assert False
-    except ValueError as err:
+    except version.PatternError as err:
         pass
 
 

@@ -224,7 +224,7 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
 
     try:
         rewrite.rewrite(new_version, cfg.file_patterns)
-    except ValueError as ex:
+    except Exception as ex:
         log.error(str(ex))
         sys.exit(1)
 
@@ -337,7 +337,7 @@ def bump(
     if dry or verbose >= 2:
         try:
             _print_diff(cfg, new_version)
-        except ValueError as ex:
+        except Exception as ex:
             log.error(str(ex))
             sys.exit(1)
 

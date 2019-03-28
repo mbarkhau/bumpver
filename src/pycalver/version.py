@@ -183,6 +183,10 @@ PEP440_TAGS: typ.Dict[str, str] = {
 VersionInfoKW = typ.Dict[str, typ.Union[str, int, None]]
 
 
+class PatternError(Exception):
+    pass
+
+
 def _parse_pattern_groups(pattern_groups: typ.Dict[str, str]) -> typ.Dict[str, str]:
     for part_name in pattern_groups.keys():
         is_valid_part_name = (
@@ -190,7 +194,7 @@ def _parse_pattern_groups(pattern_groups: typ.Dict[str, str]) -> typ.Dict[str, s
         )
         if not is_valid_part_name:
             err_msg = f"Invalid part '{part_name}'"
-            raise ValueError(err_msg)
+            raise PatternError(err_msg)
 
     items = [
         (field_name, pattern_groups[part_name])
@@ -203,7 +207,7 @@ def _parse_pattern_groups(pattern_groups: typ.Dict[str, str]) -> typ.Dict[str, s
 
     if any(duplicate_fields):
         err_msg = f"Multiple parts for same field {duplicate_fields}."
-        raise ValueError(err_msg)
+        raise PatternError(err_msg)
 
     return dict(items)
 
@@ -302,7 +306,7 @@ def parse_version_info(version_str: str, pattern: str = "{pycalver}") -> Version
         err_msg = (
             f"Invalid version string '{version_str}' for pattern '{pattern}'/'{regex.pattern}'"
         )
-        raise ValueError(err_msg)
+        raise PatternError(err_msg)
 
     return _parse_version_info(match.groupdict())
 
@@ -322,7 +326,7 @@ def is_valid(version_str: str, pattern: str = "{pycalver}") -> bool:
     try:
         parse_version_info(version_str, pattern)
         return True
-    except ValueError:
+    except PatternError:
         return False
 
 
@@ -439,7 +443,7 @@ def incr(
     """
     try:
         old_ver_nfo = parse_version_info(old_version, pattern)
-    except ValueError as ex:
+    except PatternError as ex:
         log.error(str(ex))
         return None
 

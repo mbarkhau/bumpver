@@ -77,8 +77,8 @@ def test_error_bad_path():
         (project.dir / "setup.py").unlink()
         try:
             list(rewrite._iter_file_paths(cfg.file_patterns))
-            assert False, "expected ValueError"
-        except ValueError as ex:
+            assert False, "expected FileNotFoundError"
+        except FileNotFoundError as ex:
             assert "setup.py" in str(ex)
 
 
@@ -93,6 +93,5 @@ def test_error_bad_pattern():
 
         try:
             list(rewrite.diff("v201809.1234", patterns))
-            assert False, "expected ValueError"
-        except ValueError as ex:
+        except rewrite.NoPatternMatch as ex:
             assert "setup.py" in str(ex)

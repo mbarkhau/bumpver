@@ -41,6 +41,18 @@ def detect_line_sep(content: str) -> str:
         return "\n"
 
 
+class NoPatternMatch(Exception):
+    """Pattern not found in content.
+
+    log.error is used to show error info about the patterns so
+    that users can debug what is wrong with them. The class
+    itself doesn't capture that info. This approach is used so
+    that all patter issues can be shown, rather than bubbling
+    all the way up the stack on the very first pattern with no
+    matches.
+    """
+
+
 def rewrite_lines(
     pattern_strs: typ.List[str], new_version: str, old_lines: typ.List[str]
 ) -> typ.List[str]:
@@ -72,7 +84,7 @@ def rewrite_lines(
             log.error(f"No match for pattern '{non_matched_pattern}'")
             compiled_pattern = patterns._compile_pattern(non_matched_pattern)
             log.error(f"Pattern compiles to regex '{compiled_pattern}'")
-        raise ValueError("Invalid pattern(s)")
+        raise NoPatternMatch("Invalid pattern(s)")
     else:
         return new_lines
 
@@ -110,7 +122,7 @@ def _iter_file_paths(
         file_paths = glob.glob(globstr)
         if not any(file_paths):
             errmsg = f"No files found for path/glob '{globstr}'"
-            raise ValueError(errmsg)
+            raise FileNotFoundError(errmsg)
         for file_path_str in file_paths:
             file_path = pl.Path(file_path_str)
             yield (file_path, pattern_strs)
@@ -188,15 +200,15 @@ def diff(new_version: str, file_patterns: config.PatternsByGlob) -> str:
 
         try:
             rfd = rfd_from_content(pattern_strs, new_version, content)
-        except ValueError:
+        except NoPatternMatch:
             errmsg = f"No patterns matched for '{file_path}'"
-            raise ValueError(errmsg)
+            raise NoPatternMatch(errmsg)
 
         rfd   = rfd._replace(path=str(file_path))
         lines = diff_lines(rfd)
         if len(lines) == 0:
             errmsg = f"No patterns matched for '{file_path}'"
-            raise ValueError(errmsg)
+            raise NoPatternMatch(errmsg)
 
         full_diff += "\n".join(lines) + "\n"
 
