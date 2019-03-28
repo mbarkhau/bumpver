@@ -30,9 +30,17 @@ package_dir = {"": "src"}
 
 
 if any(arg.startswith("bdist") for arg in sys.argv):
-    import lib3to6
-
-    package_dir = lib3to6.fix(package_dir)
+    try:
+        import lib3to6
+        package_dir = lib3to6.fix(package_dir)
+    except ImportError:
+        if sys.version_info < (3, 6):
+            raise
+        else:
+            sys.stderr.write((
+                "WARNING: Creating non-universal bdist of pycalver, "
+                "this should only be used for development.\n"
+            ))
 
 
 long_description = "\n\n".join((read("README.md"), read("CHANGELOG.md")))
