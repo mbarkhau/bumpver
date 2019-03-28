@@ -356,50 +356,50 @@ ID_FIELDS_BY_PART = {
 }
 
 
-def format_version(ver_nfo: VersionInfo, pattern: str) -> str:
+def format_version(vinfo: VersionInfo, pattern: str) -> str:
     """Generate version string.
 
     >>> import datetime as dt
-    >>> ver_nfo = parse_version_info("v201712.0033-beta", pattern="{pycalver}")
-    >>> ver_nfo_a = ver_nfo._replace(**cal_info(date=dt.date(2017, 1, 1))._asdict())
-    >>> ver_nfo_b = ver_nfo._replace(**cal_info(date=dt.date(2017, 12, 31))._asdict())
-    >>> ver_nfo_c = ver_nfo_b._replace(major=1, minor=2, patch=34, tag='final')
+    >>> vinfo = parse_version_info("v201712.0033-beta", pattern="{pycalver}")
+    >>> vinfo_a = vinfo._replace(**cal_info(date=dt.date(2017, 1, 1))._asdict())
+    >>> vinfo_b = vinfo._replace(**cal_info(date=dt.date(2017, 12, 31))._asdict())
+    >>> vinfo_c = vinfo_b._replace(major=1, minor=2, patch=34, tag='final')
 
-    >>> format_version(ver_nfo_a, pattern="v{yy}.{BID}{release}")
+    >>> format_version(vinfo_a, pattern="v{yy}.{BID}{release}")
     'v17.33-beta'
-    >>> format_version(ver_nfo_a, pattern="{pep440_version}")
+    >>> format_version(vinfo_a, pattern="{pep440_version}")
     '201701.33b0'
 
-    >>> format_version(ver_nfo_a, pattern="{pycalver}")
+    >>> format_version(vinfo_a, pattern="{pycalver}")
     'v201701.0033-beta'
-    >>> format_version(ver_nfo_b, pattern="{pycalver}")
+    >>> format_version(vinfo_b, pattern="{pycalver}")
     'v201712.0033-beta'
 
-    >>> format_version(ver_nfo_a, pattern="v{year}w{iso_week}.{BID}{release}")
+    >>> format_version(vinfo_a, pattern="v{year}w{iso_week}.{BID}{release}")
     'v2017w00.33-beta'
-    >>> format_version(ver_nfo_b, pattern="v{year}w{iso_week}.{BID}{release}")
+    >>> format_version(vinfo_b, pattern="v{year}w{iso_week}.{BID}{release}")
     'v2017w52.33-beta'
 
-    >>> format_version(ver_nfo_a, pattern="v{year}d{doy}.{bid}{release}")
+    >>> format_version(vinfo_a, pattern="v{year}d{doy}.{bid}{release}")
     'v2017d001.0033-beta'
-    >>> format_version(ver_nfo_b, pattern="v{year}d{doy}.{bid}{release}")
+    >>> format_version(vinfo_b, pattern="v{year}d{doy}.{bid}{release}")
     'v2017d365.0033-beta'
 
-    >>> format_version(ver_nfo_c, pattern="v{year}w{iso_week}.{BID}-{tag}")
+    >>> format_version(vinfo_c, pattern="v{year}w{iso_week}.{BID}-{tag}")
     'v2017w52.33-final'
-    >>> format_version(ver_nfo_c, pattern="v{year}w{iso_week}.{BID}{release}")
+    >>> format_version(vinfo_c, pattern="v{year}w{iso_week}.{BID}{release}")
     'v2017w52.33'
 
-    >>> format_version(ver_nfo_c, pattern="v{MAJOR}.{MINOR}.{PATCH}")
+    >>> format_version(vinfo_c, pattern="v{MAJOR}.{MINOR}.{PATCH}")
     'v1.2.34'
-    >>> format_version(ver_nfo_c, pattern="v{MAJOR}.{MM}.{PPP}")
+    >>> format_version(vinfo_c, pattern="v{MAJOR}.{MM}.{PPP}")
     'v1.02.034'
     """
     full_pattern = pattern
     for part_name, full_part_format in patterns.FULL_PART_FORMATS.items():
         full_pattern = full_pattern.replace("{" + part_name + "}", full_part_format)
 
-    kw = ver_nfo._asdict()
+    kw = vinfo._asdict()
     if kw['tag'] == 'final':
         kw['release'   ] = ""
         kw['pep440_tag'] = ""
@@ -442,36 +442,36 @@ def incr(
     'old_version' is assumed to be a string that matches 'pattern'
     """
     try:
-        old_ver_nfo = parse_version_info(old_version, pattern)
+        old_vinfo = parse_version_info(old_version, pattern)
     except PatternError as ex:
         log.error(str(ex))
         return None
 
-    cur_ver_nfo = old_ver_nfo
+    cur_vinfo = old_vinfo
 
     cur_cal_nfo = cal_info()
 
-    old_date = (old_ver_nfo.year or 0, old_ver_nfo.month or 0, old_ver_nfo.dom or 0)
-    cur_date = (cur_cal_nfo.year     , cur_cal_nfo.month     , cur_cal_nfo.dom)
+    old_date = (old_vinfo.year or 0, old_vinfo.month or 0, old_vinfo.dom or 0)
+    cur_date = (cur_cal_nfo.year   , cur_cal_nfo.month   , cur_cal_nfo.dom)
 
     if old_date <= cur_date:
-        cur_ver_nfo = cur_ver_nfo._replace(**cur_cal_nfo._asdict())
+        cur_vinfo = cur_vinfo._replace(**cur_cal_nfo._asdict())
     else:
         log.warning(f"Version appears to be from the future '{old_version}'")
 
-    cur_ver_nfo = cur_ver_nfo._replace(bid=lex_id.next_id(cur_ver_nfo.bid))
+    cur_vinfo = cur_vinfo._replace(bid=lex_id.next_id(cur_vinfo.bid))
 
     if major:
-        cur_ver_nfo = cur_ver_nfo._replace(major=cur_ver_nfo.major + 1, minor=0, patch=0)
+        cur_vinfo = cur_vinfo._replace(major=cur_vinfo.major + 1, minor=0, patch=0)
     if minor:
-        cur_ver_nfo = cur_ver_nfo._replace(minor=cur_ver_nfo.minor + 1, patch=0)
+        cur_vinfo = cur_vinfo._replace(minor=cur_vinfo.minor + 1, patch=0)
     if patch:
-        cur_ver_nfo = cur_ver_nfo._replace(patch=cur_ver_nfo.patch + 1)
+        cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
 
     if release:
-        cur_ver_nfo = cur_ver_nfo._replace(tag=release)
+        cur_vinfo = cur_vinfo._replace(tag=release)
 
-    new_version = format_version(cur_ver_nfo, pattern)
+    new_version = format_version(cur_vinfo, pattern)
     if new_version == old_version:
         log.error("Invalid arguments or pattern, version did not change.")
         return None
