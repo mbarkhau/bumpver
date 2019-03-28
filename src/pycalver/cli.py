@@ -223,7 +223,8 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
         _assert_not_dirty(_vcs, filepaths, allow_dirty)
 
     try:
-        rewrite.rewrite(new_version, cfg.file_patterns)
+        new_vinfo = version.parse_version_info(new_version, cfg.version_pattern)
+        rewrite.rewrite(new_vinfo, cfg.file_patterns)
     except Exception as ex:
         log.error(str(ex))
         sys.exit(1)
@@ -244,7 +245,8 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
 
 
 def _print_diff(cfg: config.Config, new_version: str) -> None:
-    diff: str = rewrite.diff(new_version, cfg.file_patterns)
+    new_vinfo = version.parse_version_info(new_version, cfg.version_pattern)
+    diff: str = rewrite.diff(new_vinfo, cfg.file_patterns)
 
     if sys.stdout.isatty():
         for line in diff.splitlines():

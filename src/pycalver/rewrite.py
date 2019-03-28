@@ -54,26 +54,25 @@ class NoPatternMatch(Exception):
 
 
 def rewrite_lines(
-    pattern_strs: typ.List[str], new_version: str, old_lines: typ.List[str]
+    pattern_strs: typ.List[str], new_vinfo: version.VersionInfo, old_lines: typ.List[str]
 ) -> typ.List[str]:
-    """Replace occurances of pattern_strs in old_lines with new_version.
+    """Replace occurances of pattern_strs in old_lines with new_vinfo.
 
+    >>> new_vinfo = version.parse_version_info("v201811.0123-beta")
     >>> pattern_strs = ['__version__ = "{pycalver}"']
-    >>> rewrite_lines(pattern_strs, "v201811.0123-beta", ['__version__ = "v201809.0002-beta"'])
+    >>> rewrite_lines(pattern_strs, new_vinfo, ['__version__ = "v201809.0002-beta"'])
     ['__version__ = "v201811.0123-beta"']
 
     >>> pattern_strs = ['__version__ = "{pep440_version}"']
-    >>> rewrite_lines(pattern_strs, "v201811.0123-beta", ['__version__ = "201809.2b0"'])
+    >>> rewrite_lines(pattern_strs, new_vinfo, ['__version__ = "201809.2b0"'])
     ['__version__ = "201811.123b0"']
     """
-    new_version_nfo = version.parse_version_info(new_version)
-
     new_lines      = old_lines[:]
     found_patterns = set()
 
     for m in parse.iter_matches(old_lines, pattern_strs):
         found_patterns.add(m.pattern)
-        replacement = version.format_version(new_version_nfo, m.pattern)
+        replacement = version.format_version(new_vinfo, m.pattern)
         span_l, span_r = m.span
         new_line = m.line[:span_l] + replacement + m.line[span_r:]
         new_lines[m.lineno] = new_line
@@ -99,19 +98,20 @@ class RewrittenFileData(typ.NamedTuple):
 
 
 def rfd_from_content(
-    pattern_strs: typ.List[str], new_version: str, content: str
+    pattern_strs: typ.List[str], new_vinfo: version.VersionInfo, content: str
 ) -> RewrittenFileData:
     r"""Rewrite pattern occurrences with version string.
 
+    >>> new_vinfo = version.parse_version_info("v201809.0123")
     >>> pattern_strs = ['__version__ = "{pycalver}"']
     >>> content = '__version__ = "v201809.0001-alpha"'
-    >>> rfd = rfd_from_content(pattern_strs, "v201809.0123", content)
+    >>> rfd = rfd_from_content(pattern_strs, new_vinfo, content)
     >>> rfd.new_lines
     ['__version__ = "v201809.0123"']
     """
     line_sep  = detect_line_sep(content)
     old_lines = content.split(line_sep)
-    new_lines = rewrite_lines(pattern_strs, new_version, old_lines)
+    new_lines = rewrite_lines(pattern_strs, new_vinfo, old_lines)
     return RewrittenFileData("<path>", line_sep, old_lines, new_lines)
 
 
@@ -129,12 +129,13 @@ def _iter_file_paths(
 
 
 def iter_rewritten(
-    file_patterns: config.PatternsByGlob, new_version: str
+    file_patterns: config.PatternsByGlob, new_vinfo: version.VersionInfo
 ) -> typ.Iterable[RewrittenFileData]:
     r'''Iterate over files with version string replaced.
 
     >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "{pycalver}"']}
-    >>> rewritten_datas = iter_rewritten(file_patterns, "v201809.0123")
+    >>> new_vinfo = version.parse_version_info("v201809.0123")
+    >>> rewritten_datas = iter_rewritten(file_patterns, new_vinfo)
     >>> rfd = list(rewritten_datas)[0]
     >>> assert rfd.new_lines == [
     ...     '# This file is part of the pycalver project',
@@ -149,13 +150,14 @@ def iter_rewritten(
     ... ]
     >>>
     '''
+
     fh: typ.IO[str]
 
     for file_path, pattern_strs in _iter_file_paths(file_patterns):
         with file_path.open(mode="rt", encoding="utf-8") as fh:
             content = fh.read()
 
-        rfd = rfd_from_content(pattern_strs, new_version, content)
+        rfd = rfd_from_content(pattern_strs, new_vinfo, content)
         yield rfd._replace(path=str(file_path))
 
 
@@ -177,11 +179,12 @@ def diff_lines(rfd: RewrittenFileData) -> typ.List[str]:
     return list(lines)
 
 
-def diff(new_version: str, file_patterns: config.PatternsByGlob) -> str:
+def diff(new_vinfo: version.VersionInfo, file_patterns: config.PatternsByGlob) -> str:
     r"""Generate diffs of rewritten files.
 
+    >>> new_vinfo = version.parse_version_info("v201809.0123")
     >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "{pycalver}"']}
-    >>> diff_str = diff("v201809.0123", file_patterns)
+    >>> diff_str = diff(new_vinfo, file_patterns)
     >>> lines = diff_str.split("\n")
     >>> lines[:2]
     ['--- src/pycalver/__init__.py', '+++ src/pycalver/__init__.py']
@@ -199,7 +202,7 @@ def diff(new_version: str, file_patterns: config.PatternsByGlob) -> str:
             content = fh.read()
 
         try:
-            rfd = rfd_from_content(pattern_strs, new_version, content)
+            rfd = rfd_from_content(pattern_strs, new_vinfo, content)
         except NoPatternMatch:
             errmsg = f"No patterns matched for '{file_path}'"
             raise NoPatternMatch(errmsg)
@@ -216,11 +219,11 @@ def diff(new_version: str, file_patterns: config.PatternsByGlob) -> str:
     return full_diff
 
 
-def rewrite(new_version: str, file_patterns: config.PatternsByGlob) -> None:
+def rewrite(new_vinfo: version.VersionInfo, file_patterns: config.PatternsByGlob) -> None:
     """Rewrite project files, updating each with the new version."""
     fh: typ.IO[str]
 
-    for file_data in iter_rewritten(file_patterns, new_version):
+    for file_data in iter_rewritten(file_patterns, new_vinfo):
         new_content = file_data.line_sep.join(file_data.new_lines)
         with io.open(file_data.path, mode="wt", encoding="utf-8") as fh:
             fh.write(new_content)

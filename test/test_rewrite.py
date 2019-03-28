@@ -2,6 +2,7 @@ import copy
 
 from pycalver import config
 from pycalver import rewrite
+from pycalver import version
 
 from . import util
 
@@ -15,7 +16,8 @@ __version__ = "v201809.0002-beta"
 def test_rewrite_lines():
     old_lines = REWRITE_FIXTURE.splitlines()
     patterns  = ['__version__ = "{pycalver}"']
-    new_lines = rewrite.rewrite_lines(patterns, "v201911.0003", old_lines)
+    new_vinfo = version.parse_version_info("v201911.0003")
+    new_lines = rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
 
     assert len(new_lines) == len(old_lines)
     assert "v201911.0003" not in "\n".join(old_lines)
@@ -28,7 +30,8 @@ def test_rewrite_final():
 
     old_lines = REWRITE_FIXTURE.splitlines()
     patterns  = ['__version__ = "v{year}{month}.{build_no}-{release_tag}"']
-    new_lines = rewrite.rewrite_lines(patterns, "v201911.0003", old_lines)
+    new_vinfo = version.parse_version_info("v201911.0003")
+    new_lines = rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
 
     assert len(new_lines) == len(old_lines)
     assert "v201911.0003" not in "\n".join(old_lines)
@@ -92,6 +95,8 @@ def test_error_bad_pattern():
         patterns["setup.py"] = patterns["setup.py"][0] + "invalid"
 
         try:
-            list(rewrite.diff("v201809.1234", patterns))
+            new_vinfo = version.parse_version_info("v201809.1234")
+            list(rewrite.diff(new_vinfo, patterns))
+            assert False, "expected rewrite.NoPatternMatch"
         except rewrite.NoPatternMatch as ex:
             assert "setup.py" in str(ex)
