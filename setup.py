@@ -54,7 +54,7 @@ setuptools.setup(
     install_requires=install_requires,
     entry_points="""
         [console_scripts]
-        pycalver=pycalver.__main__:cli
+        pycalver=pycalver.cli:cli
     """,
     zip_safe=True,
 
