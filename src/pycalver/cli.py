@@ -43,7 +43,7 @@ log = logging.getLogger("pycalver.cli")
 
 def _configure_logging(verbose: int = 0) -> None:
     if verbose >= 2:
-        log_format = "%(asctime)s.%(msecs)03d %(levelname)-7s %(name)-15s - %(message)s"
+        log_format = "%(asctime)s.%(msecs)03d %(levelname)-7s %(name)-17s - %(message)s"
         log_level  = logging.DEBUG
     elif verbose == 1:
         log_format = "%(levelname)-7s - %(message)s"
