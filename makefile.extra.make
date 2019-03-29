@@ -33,5 +33,5 @@ test_compat: $(COMPAT_TEST_FILES)
 		env_py=$${env_pys[i]}; \
 		$${env_py} -m pip install --upgrade build/test_wheel/*.whl; \
 		ENABLE_BACKTRACE=0 PYTHONPATH="" ENV=$${ENV-dev} \
-			$${env_py} -m pytest --verbose compat_test/ -k novcs_bump; \
+			$${env_py} -m pytest --verbose compat_test/; \
 	done;
