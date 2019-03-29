@@ -1,7 +1,7 @@
 # Changelog for https://gitlab.com/mbarkhau/pycalver
 
 
-## v201903.0029-beta
+## v201903.0030
 
  - Fix: Use pattern from config instead of hardcoded {pycalver} pattern.
  - Fix: Better error messages for git/hg issues.
