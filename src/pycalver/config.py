@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: MIT
 """Parse setup.cfg or pycalver.cfg files."""
 
-import io
 import os
 import six
 import toml
@@ -468,23 +467,9 @@ def default_config(ctx: ProjectContext) -> str:
 
 def write_content(ctx: ProjectContext) -> None:
     """Update project config file with initial default config."""
-    # path           : pl.Path
-    # config_filepath: pl.Path
-    # config_format  : str
-    # vcs_type       : typ.Optional[str]
-
     fh: typ.IO[str]
 
     cfg_content = default_config(ctx)
-    if os.path.exists("pyproject.toml"):
-        with io.open("pyproject.toml", mode="at", encoding="utf-8") as fh:
-            fh.write(cfg_content)
-        print("Updated pyproject.toml")
-    elif os.path.exists("setup.cfg"):
-        with io.open("setup.cfg", mode="at", encoding="utf-8") as fh:
-            fh.write(cfg_content)
-        print("Updated setup.cfg")
-    else:
-        with io.open("pycalver.toml", mode="at", encoding="utf-8") as fh:
-            fh.write(cfg_content)
-        print("Created pycalver.toml")
+    with ctx.config_filepath.open(mode="at", encoding="utf-8") as fh:
+        fh.write(cfg_content)
+    print(f"Updated {ctx.config_filepath}")
