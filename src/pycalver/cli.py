@@ -14,6 +14,7 @@ import sys
 import click
 import logging
 import typing as typ
+import subprocess as sp
 
 from . import vcs
 from . import config
@@ -346,7 +347,15 @@ def bump(
     if dry:
         return
 
-    _bump(cfg, new_version, allow_dirty)
+    try:
+        _bump(cfg, new_version, allow_dirty)
+    except sp.CalledProcessError as ex:
+        log.error(f"Error running subcommand: {ex.cmd}")
+        if ex.stdout:
+            sys.stdout.write(ex.stdout.decode('utf-8'))
+        if ex.stderr:
+            sys.stderr.write(ex.stderr.decode('utf-8'))
+        sys.exit(1)
 
 
 if __name__ == '__main__':
