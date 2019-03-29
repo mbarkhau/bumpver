@@ -108,6 +108,13 @@ def rfd_from_content(
     >>> rfd = rfd_from_content(pattern_strs, new_vinfo, content)
     >>> rfd.new_lines
     ['__version__ = "v201809.0123"']
+    >>>
+    >>> new_vinfo = version.parse_version_info("v1.2.3", "v{semver}")
+    >>> pattern_strs = ['__version__ = "v{semver}"']
+    >>> content = '__version__ = "v1.2.2"'
+    >>> rfd = rfd_from_content(pattern_strs, new_vinfo, content)
+    >>> rfd.new_lines
+    ['__version__ = "v1.2.3"']
     """
     line_sep  = detect_line_sep(content)
     old_lines = content.split(line_sep)
