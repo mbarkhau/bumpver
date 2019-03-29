@@ -118,7 +118,13 @@ def _parse_cfg_file_patterns(cfg_parser: configparser.RawConfigParser,) -> FileP
 
     file_patterns: FilePatterns = {}
 
-    for filepath, patterns_str in cfg_parser.items("pycalver:file_patterns"):
+    file_pattern_items: typ.List[typ.Tuple[str, str]]
+    if cfg_parser.has_section("pycalver:file_patterns"):
+        file_pattern_items = cfg_parser.items("pycalver:file_patterns")
+    else:
+        file_pattern_items = []
+
+    for filepath, patterns_str in file_pattern_items:
         patterns: typ.List[str] = []
         for line in patterns_str.splitlines():
             pattern = line.strip()
@@ -191,7 +197,11 @@ def _normalize_file_patterns(raw_cfg: RawConfig) -> FilePatterns:
     version_pattern: str = raw_cfg['version_pattern']
     pep440_version : str = version.to_pep440(version_str)
 
-    file_patterns: FilePatterns = raw_cfg['file_patterns']
+    file_patterns: FilePatterns
+    if 'file_patterns' in raw_cfg:
+        file_patterns = raw_cfg['file_patterns']
+    else:
+        file_patterns = {}
 
     for filepath, patterns in list(file_patterns.items()):
         if not os.path.exists(filepath):
