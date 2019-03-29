@@ -177,8 +177,8 @@ def _parse_cfg(cfg_buffer: typ.IO[str]) -> RawConfig:
 
 
 def _parse_toml(cfg_buffer: typ.IO[str]) -> RawConfig:
-    raw_full_cfg = toml.load(cfg_buffer)
-    raw_cfg      = raw_full_cfg.get('pycalver', {})
+    raw_full_cfg: typ.Any   = toml.load(cfg_buffer)
+    raw_cfg     : RawConfig = raw_full_cfg.get('pycalver', {})
 
     for option, default_val in BOOL_OPTIONS.items():
         raw_cfg[option] = raw_cfg.get(option, default_val)
@@ -299,6 +299,8 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
     else:
         cfg_path = str(ctx.config_filepath)
 
+    raw_cfg: RawConfig
+
     try:
         with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fh:
             if ctx.config_format == 'toml':
@@ -309,7 +311,7 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
                 err_msg = "Invalid config_format='{ctx.config_format}'"
                 raise RuntimeError(err_msg)
 
-            cfg = _parse_config(raw_cfg)
+            cfg: Config = _parse_config(raw_cfg)
 
             if cfg_path not in cfg.file_patterns:
                 fh.seek(0)

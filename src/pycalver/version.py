@@ -161,7 +161,8 @@ def _is_calver(nfo: typ.Union[CalendarInfo, VersionInfo]) -> bool:
     False
     """
     for field in CalendarInfo._fields:
-        if isinstance(getattr(nfo, field, None), int):
+        maybe_val: typ.Any = getattr(nfo, field, None)
+        if isinstance(maybe_val, int):
             return True
 
     return False
@@ -399,19 +400,24 @@ def format_version(vinfo: VersionInfo, pattern: str) -> str:
     for part_name, full_part_format in patterns.FULL_PART_FORMATS.items():
         full_pattern = full_pattern.replace("{" + part_name + "}", full_part_format)
 
-    kw = vinfo._asdict()
-    if kw['tag'] == 'final':
+    kw: typ.Dict[str, typ.Union[str, int, None]] = vinfo._asdict()
+
+    tag = vinfo.tag
+    if tag == 'final':
         kw['release'   ] = ""
         kw['pep440_tag'] = ""
     else:
-        kw['release'   ] = "-" + kw['tag']
-        kw['pep440_tag'] = PEP440_TAGS[kw['tag']] + "0"
+        kw['release'   ] = "-" + tag
+        kw['pep440_tag'] = PEP440_TAGS[tag] + "0"
 
-    kw['release_tag'] = kw['tag']
+    kw['release_tag'] = tag
 
-    kw['yy'  ] = str(kw['year'])[-2:]
-    kw['yyyy'] = kw['year']
-    kw['BID' ] = int(kw['bid'], 10)
+    year = vinfo.year
+    if year:
+        kw['yy'  ] = str(year)[-2:]
+        kw['yyyy'] = year
+
+    kw['BID'] = int(vinfo.bid, 10)
 
     for part_name, field in ID_FIELDS_BY_PART.items():
         val = kw[field]

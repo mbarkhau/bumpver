@@ -190,7 +190,7 @@ def init(verbose: int = 0, dry: bool = False) -> None:
     config.write_content(ctx)
 
 
-def _assert_not_dirty(_vcs: vcs.VCS, filepaths: typ.Set[str], allow_dirty: bool):
+def _assert_not_dirty(_vcs: vcs.VCS, filepaths: typ.Set[str], allow_dirty: bool) -> None:
     dirty_files = _vcs.status(required_files=filepaths)
 
     if dirty_files:
