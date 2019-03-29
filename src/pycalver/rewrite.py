@@ -122,7 +122,7 @@ def _iter_file_paths(
         file_paths = glob.glob(globstr)
         if not any(file_paths):
             errmsg = f"No files found for path/glob '{globstr}'"
-            raise FileNotFoundError(errmsg)
+            raise IOError(errmsg)
         for file_path_str in file_paths:
             file_path = pl.Path(file_path_str)
             yield (file_path, pattern_strs)

@@ -80,8 +80,8 @@ def test_error_bad_path():
         (project.dir / "setup.py").unlink()
         try:
             list(rewrite._iter_file_paths(cfg.file_patterns))
-            assert False, "expected FileNotFoundError"
-        except FileNotFoundError as ex:
+            assert False, "expected IOError"
+        except IOError as ex:
             assert "setup.py" in str(ex)
 
 
