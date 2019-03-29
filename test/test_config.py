@@ -212,6 +212,28 @@ def test_parse_toml_file(tmpdir):
     }
 
 
+def test_parse_default_pattern(tmpdir):
+    project_path = util.FIXTURES_DIR / "project_c"
+    config_path  = util.FIXTURES_DIR / "project_c" / "pyproject.toml"
+
+    ctx = config.init_project_ctx(project_path)
+
+    assert ctx == config.ProjectContext(project_path, config_path, "toml", None)
+
+    cfg = config.parse(ctx)
+
+    assert cfg
+
+    assert cfg.current_version == "v2017q1.54321"
+    assert cfg.commit is True
+    assert cfg.tag    is True
+    assert cfg.push   is True
+
+    assert cfg.file_patterns == {
+        "pyproject.toml": [r'current_version = "v{year}q{quarter}.{build_no}"']
+    }
+
+
 def test_parse_cfg_file(tmpdir):
     project_path = tmpdir.mkdir("minimal")
     setup_cfg    = project_path.join("setup.cfg")
