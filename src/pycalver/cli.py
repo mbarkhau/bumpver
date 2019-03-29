@@ -67,7 +67,7 @@ def _validate_release_tag(release: str) -> None:
 
 
 @click.group()
-@click.version_option(version="v201903.0029-beta")
+@click.version_option(version="v201903.0030")
 @click.help_option()
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 def cli(verbose: int = 0) -> None:
