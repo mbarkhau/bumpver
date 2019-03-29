@@ -114,8 +114,7 @@ MaybeRawConfig = typ.Optional[RawConfig]
 FilePatterns = typ.Dict[str, typ.List[str]]
 
 
-def _parse_cfg_file_patterns(cfg_parser: configparser.RawConfigParser,) -> FilePatterns:
-
+def _parse_cfg_file_patterns(cfg_parser: configparser.RawConfigParser) -> FilePatterns:
     file_patterns: FilePatterns = {}
 
     file_pattern_items: typ.List[typ.Tuple[str, str]]
@@ -274,6 +273,19 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     return cfg
 
 
+def _parse_current_version_default_pattern(cfg: Config, raw_cfg_text: str) -> str:
+    is_pycalver_section = False
+    for line in raw_cfg_text.splitlines():
+        if is_pycalver_section and line.startswith("current_version"):
+            return line.replace(cfg.current_version, cfg.version_pattern)
+        elif line.strip() == "[pycalver]":
+            is_pycalver_section = True
+        elif line and line[0] == "[" and line[-1] == "]":
+            is_pycalver_section = False
+
+    raise ValueError("Could not parse pycalver.current_version")
+
+
 def parse(ctx: ProjectContext) -> MaybeConfig:
     """Parse config file if available."""
     if not ctx.config_filepath.exists():
@@ -281,6 +293,12 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
         return None
 
     fh: typ.IO[str]
+
+    cfg_path: str
+    if ctx.config_filepath.is_absolute():
+        cfg_path = str(ctx.config_filepath.relative_to(ctx.path.absolute()))
+    else:
+        cfg_path = str(ctx.config_filepath)
 
     try:
         with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fh:
@@ -292,9 +310,18 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
                 err_msg = "Invalid config_format='{ctx.config_format}'"
                 raise RuntimeError(err_msg)
 
-        return _parse_config(raw_cfg)
+            cfg = _parse_config(raw_cfg)
+
+            if cfg_path not in cfg.file_patterns:
+                fh.seek(0)
+                raw_cfg_text = fh.read()
+                cfg.file_patterns[cfg_path] = [
+                    _parse_current_version_default_pattern(cfg, raw_cfg_text)
+                ]
+
+        return cfg
     except ValueError as ex:
-        log.warning(f"Couldn't parse {ctx.config_filepath}: {str(ex)}")
+        log.warning(f"Couldn't parse {cfg_path}: {str(ex)}")
         return None
 
 
