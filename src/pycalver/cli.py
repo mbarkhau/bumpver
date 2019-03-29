@@ -245,6 +245,18 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
         _vcs.push(new_version)
 
 
+def _try_bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> None:
+    try:
+        _bump(cfg, new_version, allow_dirty)
+    except sp.CalledProcessError as ex:
+        log.error(f"Error running subcommand: {ex.cmd}")
+        if ex.stdout:
+            sys.stdout.write(ex.stdout.decode('utf-8'))
+        if ex.stderr:
+            sys.stderr.write(ex.stderr.decode('utf-8'))
+        sys.exit(1)
+
+
 def _print_diff(cfg: config.Config, new_version: str) -> None:
     new_vinfo = version.parse_version_info(new_version, cfg.version_pattern)
     diff: str = rewrite.diff(new_vinfo, cfg.file_patterns)
@@ -263,6 +275,14 @@ def _print_diff(cfg: config.Config, new_version: str) -> None:
                 print(line)
     else:
         print(diff)
+
+
+def _try_print_diff(cfg: config.Config, new_version: str) -> None:
+    try:
+        _print_diff(cfg, new_version)
+    except Exception as ex:
+        log.error(str(ex))
+        sys.exit(1)
 
 
 @cli.command()
@@ -338,24 +358,12 @@ def bump(
     log.info(f"New Version: {new_version}")
 
     if dry or verbose >= 2:
-        try:
-            _print_diff(cfg, new_version)
-        except Exception as ex:
-            log.error(str(ex))
-            sys.exit(1)
+        _try_print_diff(cfg, new_version)
 
     if dry:
         return
 
-    try:
-        _bump(cfg, new_version, allow_dirty)
-    except sp.CalledProcessError as ex:
-        log.error(f"Error running subcommand: {ex.cmd}")
-        if ex.stdout:
-            sys.stdout.write(ex.stdout.decode('utf-8'))
-        if ex.stderr:
-            sys.stderr.write(ex.stderr.decode('utf-8'))
-        sys.exit(1)
+    _try_bump(cfg, new_version, allow_dirty)
 
 
 if __name__ == '__main__':
