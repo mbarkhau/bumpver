@@ -21,7 +21,7 @@ readme_renderer[md]
 twine
 
 md-toc
-straitjacket
+straitjacket==201904.10b0
 pycalver
 lib3to6
 
