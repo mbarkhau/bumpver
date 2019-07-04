@@ -33,4 +33,4 @@ snakeviz
 # I've yet to find a decent memory profiler for python, feel free to
 # add one after you've tested it and found it to be actually useful.
 
-ipython     # nuff said
+ipython==7.6.1     # nuff said
