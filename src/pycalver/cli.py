@@ -28,7 +28,7 @@ _VERBOSE = 0
 # To enable pretty tracebacks:
 #   echo "export ENABLE_BACKTRACE=1;" >> ~/.bashrc
 if os.environ.get('ENABLE_BACKTRACE') == '1':
-    try
+    try:
         import backtrace
 
         backtrace.hook(align=True, strip_path=True, enable_on_envvar_only=True)
