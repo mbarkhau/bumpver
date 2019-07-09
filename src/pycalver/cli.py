@@ -113,8 +113,8 @@ def test(
 
     pep440_version = version.to_pep440(new_version)
 
-    print("New Version:", new_version)
-    print("PEP440     :", pep440_version)
+    click.echo(f"New Version: {new_version}")
+    click.echo(f"PEP440     : {pep440_version}")
 
 
 def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
@@ -164,8 +164,8 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
 
     cfg = _update_cfg_from_vcs(cfg, fetch=fetch)
 
-    print(f"Current Version: {cfg.current_version}")
-    print(f"PEP440         : {cfg.pep440_version}")
+    click.echo(f"Current Version: {cfg.current_version}")
+    click.echo(f"PEP440         : {cfg.pep440_version}")
 
 
 @cli.command()
@@ -185,9 +185,9 @@ def init(verbose: int = 0, dry: bool = False) -> None:
         sys.exit(1)
 
     if dry:
-        print(f"Exiting because of '--dry'. Would have written to {ctx.config_filepath}:")
+        click.echo(f"Exiting because of '--dry'. Would have written to {ctx.config_filepath}:")
         cfg_text: str = config.default_config(ctx)
-        print("\n    " + "\n    ".join(cfg_text.splitlines()))
+        click.echo("\n    " + "\n    ".join(cfg_text.splitlines()))
         sys.exit(0)
 
     config.write_content(ctx)
@@ -267,17 +267,17 @@ def _print_diff(cfg: config.Config, new_version: str) -> None:
     if sys.stdout.isatty():
         for line in diff.splitlines():
             if line.startswith("+++") or line.startswith("---"):
-                print(line)
+                click.echo(line)
             elif line.startswith("+"):
-                print("\u001b[32m" + line + "\u001b[0m")
+                click.echo("\u001b[32m" + line + "\u001b[0m")
             elif line.startswith("-"):
-                print("\u001b[31m" + line + "\u001b[0m")
+                click.echo("\u001b[31m" + line + "\u001b[0m")
             elif line.startswith("@"):
-                print("\u001b[36m" + line + "\u001b[0m")
+                click.echo("\u001b[36m" + line + "\u001b[0m")
             else:
-                print(line)
+                click.echo(line)
     else:
-        print(diff)
+        click.echo(diff)
 
 
 def _try_print_diff(cfg: config.Config, new_version: str) -> None:

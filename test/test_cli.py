@@ -190,7 +190,7 @@ def test_nocfg(runner, caplog):
     )
 
 
-def test_novcs_nocfg_init(runner, caplog, capsys):
+def test_novcs_nocfg_init(runner, caplog):
     _add_project_files("README.md")
     # dry mode test
     result = runner.invoke(cli.cli, ['init', "-vv", "--dry"])
@@ -202,11 +202,6 @@ def test_novcs_nocfg_init(runner, caplog, capsys):
     log = caplog.records[0]
     assert log.levelname == 'WARNING'
     assert "File not found" in log.message
-
-    # print("moep")
-    # captured = capsys.readouterr()
-    # assert not captured.err
-    # assert "Would have written to pycalver.toml:" in captured.out
 
     # non dry mode
     result = runner.invoke(cli.cli, ['init', "-vv"])
