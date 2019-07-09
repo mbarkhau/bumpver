@@ -780,7 +780,7 @@ setuptools.setup(
 ```
 
 Users will have an easier time working with your package if `import mypkg2`
-is enough to determine which version of your project are using. A further
+is enough to determine which version of your project they are using. A further
 benefit of creating multiple modules is that users can import both old and
 new modules in the same environment and can use some packages which depend
 on the old version as well as some that depend on the new version. The
