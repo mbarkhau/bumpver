@@ -37,8 +37,8 @@ PATTERN_PART_CASES = [
     ("release"        , "-dev"               , "-dev"),
     ("release"        , "-rc"                , "-rc"),
     ("release"        , "-post"              , "-post"),
-    ("release"        , "-pre"               , None),
-    ("release"        , "alpha"              , None),
+    ("release"        , "-pre"               , ""),
+    ("release"        , "alpha"              , ""),
 ]
 
 

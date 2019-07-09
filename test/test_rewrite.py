@@ -100,3 +100,31 @@ def test_error_bad_pattern():
             assert False, "expected rewrite.NoPatternMatch"
         except rewrite.NoPatternMatch as ex:
             assert "setup.py" in str(ex)
+
+
+OPTIONAL_RELEASE_FIXTURE = """
+# SPDX-License-Identifier: BSD
+__version__ = "2018.0002-beta"
+"""
+
+
+def test_optional_release():
+    old_lines = OPTIONAL_RELEASE_FIXTURE.splitlines()
+    pattern   = "{year}.{build_no}{release}"
+    patterns  = ['__version__ = "{year}.{build_no}{release}"']
+
+    new_vinfo = version.parse_version_info("2019.0003", pattern)
+    new_lines = rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
+
+    assert len(new_lines) == len(old_lines)
+    assert "2019.0003" not in "\n".join(old_lines)
+    new_text = "\n".join(new_lines)
+    assert "2019.0003" in new_text
+
+    new_vinfo = version.parse_version_info("2019.0004-beta", pattern)
+    new_lines = rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
+
+    # make sure optional release tag is added back on
+    assert len(new_lines) == len(old_lines)
+    assert "2019.0004-beta" not in "\n".join(old_lines)
+    assert "2019.0004-beta" in "\n".join(new_lines)

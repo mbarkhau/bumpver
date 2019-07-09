@@ -78,7 +78,7 @@ COMPOSITE_PART_PATTERNS = {
     'semver'         : r"{MAJOR}\.{MINOR}\.{PATCH}",
     'release_tag'    : r"{tag}",
     'build'          : r"\.{bid}",
-    'release'        : r"-{tag}",
+    'release'        : r"(?:-{tag})?",
     # depricated
     'pep440_version': r"{year}{month}\.{BID}(?:{pep440_tag})?",
 }
