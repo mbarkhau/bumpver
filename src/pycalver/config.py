@@ -472,6 +472,9 @@ def write_content(ctx: ProjectContext) -> None:
     fh: typ.IO[str]
 
     cfg_content = default_config(ctx)
+    if ctx.config_filepath.exists():
+        cfg_content = "\n" + cfg_content
+
     with ctx.config_filepath.open(mode="at", encoding="utf-8") as fh:
         fh.write(cfg_content)
     print(f"Updated {ctx.config_filepath}")

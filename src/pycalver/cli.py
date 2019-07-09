@@ -354,7 +354,12 @@ def bump(
         patch=patch,
     )
     if new_version is None:
-        log.error(f"Invalid version '{old_version}' and/or pattern '{cfg.version_pattern}'.")
+        is_semver      = "{semver}" in cfg.version_pattern
+        has_semver_inc = major or minor or patch
+        if is_semver and not has_semver_inc:
+            log.warning("bump --major/--minor/--patch required when using semver.")
+        else:
+            log.error(f"Invalid version '{old_version}' and/or pattern '{cfg.version_pattern}'.")
         sys.exit(1)
 
     log.info(f"Old Version: {old_version}")

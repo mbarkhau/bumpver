@@ -274,13 +274,15 @@ def test_novcs_pyproject_init(runner):
     assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
 
 
-def _vcs_init(vcs):
+def _vcs_init(vcs, files=["README.md"]):
     assert vcs in ("git", "hg")
     assert not pl.Path(f".{vcs}").exists()
     sh(f"{vcs}", "init")
     assert pl.Path(f".{vcs}").is_dir()
 
-    sh(f"{vcs}", "add", "README.md")
+    for filename in files:
+        sh(f"{vcs}", "add", filename)
+
     sh(f"{vcs}", "commit", "-m", "initial commit")
 
 
@@ -444,14 +446,71 @@ def test_empty_hg_bump(runner, caplog):
     assert result.exit_code == 0
 
     with pl.Path("setup.cfg").open(mode="r") as fh:
-        default_cfg_data = fh.read()
+        default_cfg_text = fh.read()
 
-    assert "[pycalver]\n" in default_cfg_data
-    assert "\ncurrent_version = " in default_cfg_data
-    assert "\n[pycalver:file_patterns]\n" in default_cfg_data
-    assert "\nsetup.cfg =\n" in default_cfg_data
+    assert "[pycalver]\n" in default_cfg_text
+    assert "\ncurrent_version = " in default_cfg_text
+    assert "\n[pycalver:file_patterns]\n" in default_cfg_text
+    assert "\nsetup.cfg =\n" in default_cfg_text
 
     result = runner.invoke(cli.cli, ['bump'])
 
     assert any(("working directory is not clean" in r.message) for r in caplog.records)
     assert any(("setup.cfg" in r.message) for r in caplog.records)
+
+
+SETUP_CFG_SEMVER_FIXTURE = """
+[metadata]
+license_file = LICENSE
+
+[bdist_wheel]
+universal = 1
+
+[pycalver]
+current_version = "0.1.0"
+version_pattern = "{semver}"
+
+[pycalver:file_patterns]
+setup.cfg =
+    current_version = "{version}"
+"""
+
+
+def test_bump_semver_warning(runner, caplog):
+    _add_project_files("README.md")
+
+    with pl.Path("setup.cfg").open(mode="w") as fobj:
+        fobj.write(SETUP_CFG_SEMVER_FIXTURE)
+
+    _vcs_init("hg", files=["README.md", "setup.cfg"])
+
+    result = runner.invoke(cli.cli, ['bump', "-vv", "-n", "--dry"])
+    assert result.exit_code == 1
+
+    assert any("version did not change" in r.message for r in caplog.records)
+    assert any("--major/--minor/--patch required" in r.message for r in caplog.records)
+
+    result = runner.invoke(cli.cli, ['bump', "-vv", "-n", "--dry", "--patch"])
+    assert result.exit_code == 0
+
+
+def test_bump_semver_diff(runner, caplog):
+    _add_project_files("README.md")
+
+    with pl.Path("setup.cfg").open(mode="w") as fobj:
+        fobj.write(SETUP_CFG_SEMVER_FIXTURE)
+
+    _vcs_init("hg", files=["README.md", "setup.cfg"])
+
+    cases = [("--major", "1.0.0"), ("--minor", "0.2.0"), ("--patch", "0.1.1")]
+
+    for flag, expected in cases:
+        result = runner.invoke(cli.cli, ['bump', "-vv", "-n", "--dry", flag])
+        assert result.exit_code == 0
+        assert len(caplog.records) == 0
+
+        out_lines = set(result.output.splitlines())
+
+        assert "+++ setup.cfg" in out_lines
+        assert "-current_version = \"0.1.0\"" in out_lines
+        assert f"+current_version = \"{expected}\"" in out_lines
