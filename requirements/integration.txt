@@ -7,6 +7,9 @@
 #
 # No dependencies required for production should be listed here.
 
+# oh ffs: https://gitlab.com/pycqa/flake8-docstrings/issues/36
+pydocstyle<4
+
 flake8
 flake8-bugbear
 flake8-docstrings
