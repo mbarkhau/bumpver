@@ -364,7 +364,10 @@ test:
 ## Run code formatter on src/ and test/
 .PHONY: fmt
 fmt:
-	@$(DEV_ENV)/bin/sjfmt --py36 --skip-string-normalization --line-length=100 \
+	@$(DEV_ENV)/bin/sjfmt \
+		--target-version=py36 \
+		--skip-string-normalization \
+		--line-length=100 \
 		 src/ test/
 
 
