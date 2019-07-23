@@ -77,7 +77,6 @@ DOCKER_BASE_IMAGE := registry.gitlab.com/mbarkhau/pycalver/base
 GIT_HEAD_REV = $(shell git rev-parse --short HEAD)
 DOCKER_IMAGE_VERSION = $(shell date -u +'%Y%m%dt%H%M%S')_$(GIT_HEAD_REV)
 
-
 MAX_LINE_LEN = $(shell grep 'max-line-length' setup.cfg | sed 's/[^0-9]\+//')
 
 
@@ -309,6 +308,7 @@ lint:
 	@printf "flake8 ..\n"
 	@$(DEV_ENV)/bin/flake8 src/
 	@printf "\e[1F\e[9C ok\n"
+
 	@printf "sjfmt ..\n"
 	@$(DEV_ENV)/bin/sjfmt \
 		--target-version=py36 \
