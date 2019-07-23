@@ -77,7 +77,7 @@ DOCKER_BASE_IMAGE := registry.gitlab.com/mbarkhau/pycalver/base
 GIT_HEAD_REV = $(shell git rev-parse --short HEAD)
 DOCKER_IMAGE_VERSION = $(shell date -u +'%Y%m%dt%H%M%S')_$(GIT_HEAD_REV)
 
-MAX_LINE_LEN = $(shell grep 'max-line-length' setup.cfg | sed 's/[^0-9]{1,}//')
+MAX_LINE_LEN = $(shell grep 'max-line-length' setup.cfg | sed 's![^0-9]\{1,\}!!')
 
 
 build/envs.txt: requirements/conda.txt
