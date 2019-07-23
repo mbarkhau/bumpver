@@ -78,6 +78,9 @@ GIT_HEAD_REV = $(shell git rev-parse --short HEAD)
 DOCKER_IMAGE_VERSION = $(shell date -u +'%Y%m%dt%H%M%S')_$(GIT_HEAD_REV)
 
 
+MAX_LINE_LEN = $(shell grep 'max-line-length = 100' setup.cfg | grep -oE "[0-9]+")
+
+
 build/envs.txt: requirements/conda.txt
 	@mkdir -p build/;
 
@@ -306,6 +309,14 @@ lint:
 	@printf "flake8 ..\n"
 	@$(DEV_ENV)/bin/flake8 src/
 	@printf "\e[1F\e[9C ok\n"
+	@printf "sjfmt ..\n"
+	@$(DEV_ENV)/bin/sjfmt \
+		--target-version=py36 \
+		--skip-string-normalization \
+		--line-length=$(MAX_LINE_LEN) \
+		--check \
+		src/ test/ 2>&1 | sed "/All done/d" | sed "/left unchanged/d"
+	@printf "\e[1F\e[9C ok\n"
 
 
 ## Run mypy type checker
@@ -367,7 +378,7 @@ fmt:
 	@$(DEV_ENV)/bin/sjfmt \
 		--target-version=py36 \
 		--skip-string-normalization \
-		--line-length=100 \
+		--line-length=$(MAX_LINE_LEN) \
 		 src/ test/
 
 
