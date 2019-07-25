@@ -21,37 +21,40 @@ TODAY = dt.datetime.utcnow().date()
 
 
 PATTERN_PART_FIELDS = {
-    'year'      : 'year',
-    'month'     : 'month',
-    'pep440_tag': 'tag',
-    'tag'       : 'tag',
-    'yy'        : 'year',
-    'yyyy'      : 'year',
-    'quarter'   : 'quarter',
-    'iso_week'  : 'iso_week',
-    'us_week'   : 'us_week',
-    'dom'       : 'dom',
-    'doy'       : 'doy',
-    'MAJOR'     : 'major',
-    'MINOR'     : 'minor',
-    'MM'        : 'minor',
-    'MMM'       : 'minor',
-    'MMMM'      : 'minor',
-    'MMMMM'     : 'minor',
-    'PP'        : 'patch',
-    'PPP'       : 'patch',
-    'PPPP'      : 'patch',
-    'PPPPP'     : 'patch',
-    'PATCH'     : 'patch',
-    'build_no'  : 'bid',
-    'bid'       : 'bid',
-    'BID'       : 'bid',
-    'BB'        : 'bid',
-    'BBB'       : 'bid',
-    'BBBB'      : 'bid',
-    'BBBBB'     : 'bid',
-    'BBBBBB'    : 'bid',
-    'BBBBBBB'   : 'bid',
+    'year'       : 'year',
+    'month'      : 'month',
+    'month_short': 'month',
+    'pep440_tag' : 'tag',
+    'tag'        : 'tag',
+    'yy'         : 'year',
+    'yyyy'       : 'year',
+    'quarter'    : 'quarter',
+    'iso_week'   : 'iso_week',
+    'us_week'    : 'us_week',
+    'dom'        : 'dom',
+    'doy'        : 'doy',
+    'dom_short'  : 'dom',
+    'doy_short'  : 'doy',
+    'MAJOR'      : 'major',
+    'MINOR'      : 'minor',
+    'MM'         : 'minor',
+    'MMM'        : 'minor',
+    'MMMM'       : 'minor',
+    'MMMMM'      : 'minor',
+    'PP'         : 'patch',
+    'PPP'        : 'patch',
+    'PPPP'       : 'patch',
+    'PPPPP'      : 'patch',
+    'PATCH'      : 'patch',
+    'build_no'   : 'bid',
+    'bid'        : 'bid',
+    'BID'        : 'bid',
+    'BB'         : 'bid',
+    'BBB'        : 'bid',
+    'BBBB'       : 'bid',
+    'BBBBB'      : 'bid',
+    'BBBBBB'     : 'bid',
+    'BBBBBBB'    : 'bid',
 }
 
 
@@ -146,6 +149,74 @@ class VersionInfo(typ.NamedTuple):
     tag     : str
 
 
+FieldKey      = str
+MatchGroupKey = str
+MatchGroupStr = str
+
+PatternGroups = typ.Dict[MatchGroupKey, MatchGroupStr]
+FieldValues   = typ.Dict[FieldKey     , MatchGroupStr]
+
+
+def _parse_field_values(field_values: FieldValues) -> VersionInfo:
+    fv  = field_values
+    tag = fv.get('tag')
+    if tag is None:
+        tag = "final"
+    tag = TAG_ALIASES.get(tag, tag)
+    assert tag is not None
+
+    bid = fv['bid'] if 'bid' in fv else "0001"
+
+    year = int(fv['year']) if 'year' in fv else None
+    doy  = int(fv['doy' ]) if 'doy' in fv else None
+
+    month: typ.Optional[int]
+    dom  : typ.Optional[int]
+
+    if year and doy:
+        date  = _date_from_doy(year, doy)
+        month = date.month
+        dom   = date.day
+    else:
+        month = int(fv['month']) if 'month' in fv else None
+        dom   = int(fv['dom'  ]) if 'dom' in fv else None
+
+    iso_week: typ.Optional[int]
+    us_week : typ.Optional[int]
+
+    if year and month and dom:
+        date     = dt.date(year, month, dom)
+        doy      = int(date.strftime("%j"), base=10)
+        iso_week = int(date.strftime("%W"), base=10)
+        us_week  = int(date.strftime("%U"), base=10)
+    else:
+        iso_week = None
+        us_week  = None
+
+    quarter = int(fv['quarter']) if 'quarter' in fv else None
+    if quarter is None and month:
+        quarter = _quarter_from_month(month)
+
+    major = int(fv['major']) if 'major' in fv else 0
+    minor = int(fv['minor']) if 'minor' in fv else 0
+    patch = int(fv['patch']) if 'patch' in fv else 0
+
+    return VersionInfo(
+        year=year,
+        quarter=quarter,
+        month=month,
+        dom=dom,
+        doy=doy,
+        iso_week=iso_week,
+        us_week=us_week,
+        major=major,
+        minor=minor,
+        patch=patch,
+        bid=bid,
+        tag=tag,
+    )
+
+
 def _is_calver(nfo: typ.Union[CalendarInfo, VersionInfo]) -> bool:
     """Check pattern for any calendar based parts.
 
@@ -188,7 +259,7 @@ class PatternError(Exception):
     pass
 
 
-def _parse_pattern_groups(pattern_groups: typ.Dict[str, str]) -> typ.Dict[str, str]:
+def _parse_pattern_groups(pattern_groups: PatternGroups) -> FieldValues:
     for part_name in pattern_groups.keys():
         is_valid_part_name = (
             part_name in patterns.COMPOSITE_PART_PATTERNS or part_name in PATTERN_PART_FIELDS
@@ -197,12 +268,13 @@ def _parse_pattern_groups(pattern_groups: typ.Dict[str, str]) -> typ.Dict[str, s
             err_msg = f"Invalid part '{part_name}'"
             raise PatternError(err_msg)
 
-    items = [
+    field_value_items = [
         (field_name, pattern_groups[part_name])
         for part_name, field_name in PATTERN_PART_FIELDS.items()
         if part_name in pattern_groups.keys()
     ]
-    all_fields       = [field_name for field_name, _ in items]
+
+    all_fields       = [field_name for field_name, _ in field_value_items]
     unique_fields    = set(all_fields)
     duplicate_fields = [f for f in unique_fields if all_fields.count(f) > 1]
 
@@ -210,10 +282,10 @@ def _parse_pattern_groups(pattern_groups: typ.Dict[str, str]) -> typ.Dict[str, s
         err_msg = f"Multiple parts for same field {duplicate_fields}."
         raise PatternError(err_msg)
 
-    return dict(items)
+    return dict(field_value_items)
 
 
-def _parse_version_info(pattern_groups: typ.Dict[str, str]) -> VersionInfo:
+def _parse_version_info(pattern_groups: PatternGroups) -> VersionInfo:
     """Parse normalized VersionInfo from groups of a matched pattern.
 
     >>> vnfo = _parse_version_info({'year': "2018", 'month': "11", 'bid': "0099"})
@@ -232,64 +304,8 @@ def _parse_version_info(pattern_groups: typ.Dict[str, str]) -> VersionInfo:
     >>> (vnfo.major, vnfo.minor, vnfo.patch)
     (1, 23, 45)
     """
-    kw = _parse_pattern_groups(pattern_groups)
-
-    tag = kw.get('tag')
-    if tag is None:
-        tag = "final"
-    tag = TAG_ALIASES.get(tag, tag)
-    assert tag is not None
-
-    bid = kw['bid'] if 'bid' in kw else "0001"
-
-    year = int(kw['year']) if 'year' in kw else None
-    doy  = int(kw['doy' ]) if 'doy' in kw else None
-
-    month: typ.Optional[int]
-    dom  : typ.Optional[int]
-
-    if year and doy:
-        date  = _date_from_doy(year, doy)
-        month = date.month
-        dom   = date.day
-    else:
-        month = int(kw['month']) if 'month' in kw else None
-        dom   = int(kw['dom'  ]) if 'dom' in kw else None
-
-    iso_week: typ.Optional[int]
-    us_week : typ.Optional[int]
-
-    if year and month and dom:
-        date     = dt.date(year, month, dom)
-        doy      = int(date.strftime("%j"), base=10)
-        iso_week = int(date.strftime("%W"), base=10)
-        us_week  = int(date.strftime("%U"), base=10)
-    else:
-        iso_week = None
-        us_week  = None
-
-    quarter = int(kw['quarter']) if 'quarter' in kw else None
-    if quarter is None and month:
-        quarter = _quarter_from_month(month)
-
-    major = int(kw['major']) if 'major' in kw else 0
-    minor = int(kw['minor']) if 'minor' in kw else 0
-    patch = int(kw['patch']) if 'patch' in kw else 0
-
-    return VersionInfo(
-        year=year,
-        quarter=quarter,
-        month=month,
-        dom=dom,
-        doy=doy,
-        iso_week=iso_week,
-        us_week=us_week,
-        major=major,
-        minor=minor,
-        patch=patch,
-        bid=bid,
-        tag=tag,
-    )
+    field_values = _parse_pattern_groups(pattern_groups)
+    return _parse_field_values(field_values)
 
 
 def parse_version_info(version_str: str, pattern: str = "{pycalver}") -> VersionInfo:
