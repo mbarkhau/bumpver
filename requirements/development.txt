@@ -42,7 +42,7 @@ ipython     # nuff said
 # For graph output you will need to:
 # $ sudo apt install -y graphviz
 # $ pipdeptree --graph-output svg > requirements/tree.svg
-pipdeptree
+pipdeptree==0.13.2
 graphviz
 
 # run failed tests first
