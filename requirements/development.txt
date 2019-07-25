@@ -46,4 +46,4 @@ pipdeptree
 graphviz
 
 # run failed tests first
-pytest-cache
+pytest-cache==1.0
