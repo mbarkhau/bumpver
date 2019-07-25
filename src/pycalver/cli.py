@@ -228,7 +228,7 @@ def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> No
 
     try:
         new_vinfo = version.parse_version_info(new_version, cfg.version_pattern)
-        rewrite.rewrite(new_vinfo, cfg.file_patterns)
+        rewrite.rewrite(cfg.file_patterns, new_vinfo)
     except Exception as ex:
         log.error(str(ex))
         sys.exit(1)

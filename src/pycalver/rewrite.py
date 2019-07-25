@@ -226,7 +226,7 @@ def diff(new_vinfo: version.VersionInfo, file_patterns: config.PatternsByGlob) -
     return full_diff
 
 
-def rewrite(new_vinfo: version.VersionInfo, file_patterns: config.PatternsByGlob) -> None:
+def rewrite(file_patterns: config.PatternsByGlob, new_vinfo: version.VersionInfo) -> None:
     """Rewrite project files, updating each with the new version."""
     fh: typ.IO[str]
 
