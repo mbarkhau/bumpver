@@ -53,6 +53,25 @@ def test_re_pattern_parts(part_name, line, expected):
         assert result_val == expected, (part_name, line)
 
 
+PATTERN_CASES = [
+    (r"v{year}.{month}.{MINOR}"      , "v2017.11.1" , "v2017.11.1"),
+    (r"v{year}.{month}.{MINOR}"      , "v2017.07.12", "v2017.07.12"),
+    (r"v{year}.{month_short}.{MINOR}", "v2017.11.1" , "v2017.11.1"),
+    (r"v{year}.{month_short}.{MINOR}", "v2017.7.12" , "v2017.7.12"),
+]
+
+
+@pytest.mark.parametrize("pattern_str, line, expected", PATTERN_CASES)
+def test_patterns(pattern_str, line, expected):
+    pattern_re = patterns.compile_pattern(pattern_str)
+    result     = pattern_re.search(line)
+    if result is None:
+        assert expected is None, (pattern_str, line)
+    else:
+        result_val = result.group(0)
+        assert result_val == expected, (pattern_str, line)
+
+
 CLI_MAIN_FIXTURE = """
 @click.group()
 @click.version_option(version="v201812.0123-beta")
