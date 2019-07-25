@@ -97,7 +97,9 @@ PART_PATTERNS = {
     'iso_week'   : r"(?:[0-4]\d|5[0-3])",
     'us_week'    : r"(?:[0-4]\d|5[0-3])",
     'dom'        : r"(0[1-9]|[1-2][0-9]|3[0-1])",
+    'dom_short'  : r"([1-9]|[1-2][0-9]|3[0-1])",
     'doy'        : r"(?:[0-2]\d\d|3[0-5][0-9]|36[0-6])",
+    'doy_short'  : r"(?:[0-2]\d\d|3[0-5][0-9]|36[0-6])",
     'MAJOR'      : r"\d+",
     'MINOR'      : r"\d+",
     'MM'         : r"\d{2,}",
@@ -137,6 +139,8 @@ FULL_PART_FORMATS = {
     'us_week'    : "{us_week:02}",
     'dom'        : "{dom:02}",
     'doy'        : "{doy:03}",
+    'dom_short'  : "{dom}",
+    'doy_short'  : "{doy}",
     # depricated
     'pep440_version': "{year}{month:02}.{BID}{pep440_tag}",
     'version'       : "v{year}{month:02}.{bid}{release}",
