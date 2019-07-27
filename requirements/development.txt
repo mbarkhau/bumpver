@@ -33,7 +33,7 @@ snakeviz
 # I've yet to find a decent memory profiler for python, feel free to
 # add one after you've tested it and found it to be actually useful.
 
-ipython     # nuff said
+ipython==7.7.0     # nuff said
 
 
 # A command line utility to display dependency tree of the installed Python packages
