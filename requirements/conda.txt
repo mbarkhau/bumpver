@@ -34,4 +34,4 @@
 # pyblake2
 
 # needed for mypy coverage report
-lxml
+lxml==4.3.5
