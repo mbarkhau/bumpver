@@ -7,7 +7,7 @@
 # Binary (non-pure) packages may also be listed here, but you
 # should see if there is a conda package that suits your needs.
 
-pathlib2
+pathlib2==2.3.5
 typing
 click
 toml
