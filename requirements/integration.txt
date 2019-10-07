@@ -18,7 +18,7 @@ flake8-comprehensions
 pylint
 mypy
 pytest<5.0
-pytest-cov
+pytest-cov==2.8.1
 
 readme_renderer[md]
 twine
