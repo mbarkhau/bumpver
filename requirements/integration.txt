@@ -17,7 +17,7 @@ flake8-builtins
 flake8-comprehensions
 pylint
 mypy
-pytest<5.0
+pytest==5.2.1
 pytest-cov
 
 readme_renderer[md]
