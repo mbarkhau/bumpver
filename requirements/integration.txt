@@ -10,7 +10,7 @@
 # oh ffs: https://gitlab.com/pycqa/flake8-docstrings/issues/36
 pydocstyle<4
 
-flake8
+flake8==3.7.9
 flake8-bugbear
 flake8-docstrings
 flake8-builtins
