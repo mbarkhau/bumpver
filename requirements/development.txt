@@ -43,7 +43,7 @@ ipython     # nuff said
 # $ sudo apt install -y graphviz
 # $ pipdeptree --graph-output svg > requirements/tree.svg
 pipdeptree
-graphviz
+graphviz==0.13.2
 
 # run failed tests first
 pytest-cache
