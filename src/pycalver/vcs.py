@@ -33,7 +33,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'add_path'    : "git add --update {path}",
         'commit'      : "git commit --file {path}",
         'tag'         : "git tag --annotate {tag} --message {tag}",
-        'push_tag'    : "git push origin {tag}",
+        'push_tag'    : "git push origin --follow-tags {tag}",
         'show_remotes': "git config --get remote.origin.url",
     },
     'hg': {
