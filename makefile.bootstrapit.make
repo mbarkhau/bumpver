@@ -10,7 +10,6 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 .SUFFIXES:
 
-
 PROJECT_DIR := $(notdir $(abspath .))
 
 ifndef DEVELOPMENT_PYTHON_VERSION
@@ -48,7 +47,7 @@ CONDA_ENV_PATHS := \
 # envname/bin/pypy3
 CONDA_ENV_BIN_PYTHON_PATHS := \
 	$(shell echo "$(CONDA_ENV_PATHS)" \
-	| sed 's!\(_py[[:digit:]]\+\)!\1/bin/python!g' \
+	| sed 's!\(_py[[:digit:]]\{1,\}\)!\1/bin/python!g' \
 	| sed 's!\(_pypy2[[:digit:]]\)!\1/bin/pypy!g' \
 	| sed 's!\(_pypy3[[:digit:]]\)!\1/bin/pypy3!g' \
 )
@@ -85,13 +84,13 @@ build/envs.txt: requirements/conda.txt
 	@if [[ ! -f $(CONDA_BIN) ]]; then \
 		echo "installing miniconda ..."; \
 		if [[ $(PLATFORM) == "Linux" ]]; then \
-			curl "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" \
+			curl "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" --location \
 				> build/miniconda3.sh; \
 		elif [[ $(PLATFORM) == "MINGW64_NT-10.0" ]]; then \
-			curl "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" \
+			curl "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" --location \
 				> build/miniconda3.sh; \
 		elif [[ $(PLATFORM) == "Darwin" ]]; then \
-			curl "https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh" \
+			curl "https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh" --location \
 				> build/miniconda3.sh; \
 		fi; \
 		bash build/miniconda3.sh -b -p $(CONDA_ROOT); \
@@ -164,7 +163,7 @@ help:
 						helpCommand, helpMessage; \
 					helpMessage = ""; \
 				} \
-			} else if ($$0 ~ /^[a-zA-Z\-\_0-9.]+:/) { \
+			} else if ($$0 ~ /^[a-zA-Z\-\_0-9.\/]+:/) { \
 				helpCommand = substr($$0, 0, index($$0, ":")); \
 				if (helpMessage) { \
 					printf "\033[36m%-20s\033[0m %s\n", \
@@ -182,7 +181,7 @@ help:
 				helpMessage = ""; \
 			} \
 		}' \
-		$(MAKEFILE_LIST)
+		makefile.bootstrapit.make makefile
 
 	@if [[ ! -f $(DEV_ENV_PY) ]]; then \
 	echo "Missing python interpreter at $(DEV_ENV_PY) !"; \
@@ -216,7 +215,7 @@ helpverbose:
 						helpCommand, helpMessage; \
 					helpMessage = ""; \
 				} \
-			} else if ($$0 ~ /^[a-zA-Z\-\_0-9.]+:/) { \
+			} else if ($$0 ~ /^[a-zA-Z\-\_0-9.\/]+:/) { \
 				helpCommand = substr($$0, 0, index($$0, ":")); \
 				if (helpMessage) { \
 					printf "\033[36m%-20s\033[0m %s\n", \
@@ -236,7 +235,7 @@ helpverbose:
 				helpMessage = ""; \
 			} \
 		}' \
-		$(MAKEFILE_LIST)
+		makefile.bootstrapit.make makefile
 
 
 ## -- Project Setup --
@@ -301,11 +300,18 @@ git_hooks:
 ## -- Integration --
 
 
-## Run flake8 linter
+## Run flake8 linter and check for fmt
 .PHONY: lint
 lint:
-	@printf "flake8 ..\n"
-	@$(DEV_ENV)/bin/flake8 src/
+	@printf "isort ..\n"
+	@$(DEV_ENV)/bin/isort \
+		--check-only \
+		--force-single-line-imports \
+		--length-sort \
+		--recursive \
+		--line-width=$(MAX_LINE_LEN) \
+		--project $(PKG_NAME) \
+		src/ test/
 	@printf "\e[1F\e[9C ok\n"
 
 	@printf "sjfmt ..\n"
@@ -317,6 +323,10 @@ lint:
 		src/ test/ 2>&1 | sed "/All done/d" | sed "/left unchanged/d"
 	@printf "\e[1F\e[9C ok\n"
 
+	@printf "flake8 ..\n"
+	@$(DEV_ENV)/bin/flake8 src/
+	@printf "\e[1F\e[9C ok\n"
+
 
 ## Run mypy type checker
 .PHONY: mypy
@@ -326,6 +336,7 @@ mypy:
 	@printf "mypy ....\n"
 	@MYPYPATH=stubs/:vendor/ $(DEV_ENV_PY) -m mypy \
 		--html-report mypycov \
+		--no-error-summary \
 		src/ | sed "/Generated HTML report/d"
 	@printf "\e[1F\e[9C ok\n"
 
@@ -354,14 +365,26 @@ test:
 	@rm -rf "test/__pycache__";
 
 	# First we test the local source tree using the dev environment
-	ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+	ENV=$${ENV-dev} \
+		PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+		PATH=$(DEV_ENV)/bin:$$PATH \
 		$(DEV_ENV_PY) -m pytest -v \
 		--doctest-modules \
 		--verbose \
 		--cov-report html \
 		--cov-report term \
-		$(shell cd src/ && ls -1 */__init__.py | awk '{ print "--cov "substr($$1,0,index($$1,"/")-1) }') \
+		-k "$${PYTEST_FILTER}" \
+		$(shell cd src/ && ls -1 */__init__.py | awk '{ sub(/\/__init__.py/, "", $$1); print "--cov "$$1 }') \
 		test/ src/;
+
+	# Next we install the package and run the test suite against it.
+
+	IFS=' ' read -r -a env_py_paths <<< "$(CONDA_ENV_BIN_PYTHON_PATHS)"; \
+	for i in $${!env_py_paths[@]}; do \
+		env_py=$${env_py_paths[i]}; \
+		$${env_py} -m pip install --upgrade .; \
+		PYTHONPATH="" ENV=$${ENV-dev} $${env_py} -m pytest test/; \
+	done;
 
 	@rm -rf ".pytest_cache";
 	@rm -rf "src/__pycache__";
@@ -374,11 +397,20 @@ test:
 ## Run code formatter on src/ and test/
 .PHONY: fmt
 fmt:
+	@$(DEV_ENV)/bin/isort \
+		--force-single-line-imports \
+		--length-sort \
+		--recursive \
+		--line-width=$(MAX_LINE_LEN) \
+		--project $(PKG_NAME) \
+		src/ test/;
+
 	@$(DEV_ENV)/bin/sjfmt \
 		--target-version=py36 \
 		--skip-string-normalization \
 		--line-length=$(MAX_LINE_LEN) \
-		 src/ test/
+		src/ test/;
+
 
 
 ## Shortcut for make fmt lint mypy test
@@ -429,7 +461,9 @@ activate:
 ## Drop into an ipython shell with correct env variables set
 .PHONY: ipy
 ipy:
-	@ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+	@ENV=$${ENV-dev} \
+		PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+		PATH=$(DEV_ENV)/bin:$$PATH \
 		$(DEV_ENV)/bin/ipython
 
 
@@ -439,28 +473,19 @@ devtest:
 	@rm -rf "src/__pycache__";
 	@rm -rf "test/__pycache__";
 
-ifdef FILTER
-	ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+	ENV=$${ENV-dev} \
+		PYTHONPATH=src/:vendor/:$$PYTHONPATH \
+		PATH=$(DEV_ENV)/bin:$$PATH \
 		$(DEV_ENV_PY) -m pytest -v \
 		--doctest-modules \
 		--no-cov \
+		--durations 5 \
 		--verbose \
 		--capture=no \
 		--exitfirst \
 		--failed-first \
-		-k $(FILTER) \
+		-k "$${PYTEST_FILTER}" \
 		test/ src/;
-else
-	ENV=$${ENV-dev} PYTHONPATH=src/:vendor/:$$PYTHONPATH \
-		$(DEV_ENV_PY) -m pytest -v \
-		--doctest-modules \
-		--no-cov \
-		--verbose \
-		--capture=no \
-		--exitfirst \
-		--failed-first \
-		test/ src/;
-endif
 
 	@rm -rf "src/__pycache__";
 	@rm -rf "test/__pycache__";
@@ -518,7 +543,8 @@ dist_upload:
 
 	$(DEV_ENV)/bin/twine check $$($(SDIST_FILE_CMD));
 	$(DEV_ENV)/bin/twine check $$($(BDIST_WHEEL_FILE_CMD));
-	$(DEV_ENV)/bin/twine upload $$($(SDIST_FILE_CMD)) $$($(BDIST_WHEEL_FILE_CMD));
+	$(DEV_ENV)/bin/twine upload --skip-existing \
+		$$($(SDIST_FILE_CMD)) $$($(BDIST_WHEEL_FILE_CMD));
 
 
 ## bump_version dist_build dist_upload
@@ -552,6 +578,3 @@ docker_build:
 	fi
 
 	docker push $(DOCKER_BASE_IMAGE)
-
-
-

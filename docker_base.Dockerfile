@@ -32,8 +32,7 @@ RUN if ! test -z "${ENV_SSH_PRIVATE_RSA_KEY}"; then \
 ADD requirements/ requirements/
 ADD scripts/ scripts/
 
-ADD makefile.extra.make makefile.extra.make
-ADD makefile.config.make makefile.config.make
+ADD makefile.bootstrapit.make makefile.bootstrapit.make
 ADD makefile makefile
 
 RUN make install

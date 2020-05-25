@@ -10,9 +10,8 @@ ADD README.md README.md
 ADD CHANGELOG.md CHANGELOG.md
 ADD LICENSE LICENSE
 ADD makefile makefile
-ADD makefile.config.make makefile.config.make
-ADD makefile.extra.make makefile.extra.make
+ADD makefile.bootstrapit.make makefile.bootstrapit.make
 
 ENV PYTHONPATH="src/:vendor/"
 
-CMD make test_compat
+CMD make lint test_compat
