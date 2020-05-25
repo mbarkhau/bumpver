@@ -12,7 +12,7 @@ Project/Repo:
 
 [![MIT License][license_img]][license_ref]
 [![Supported Python Versions][pyversions_img]][pyversions_ref]
-[![PyCalVer v202005.0033][version_img]][version_ref]
+[![PyCalVer v202005.0034][version_img]][version_ref]
 [![PyPI Releases][pypi_img]][pypi_ref]
 [![PyPI Downloads][downloads_img]][downloads_ref]
 
@@ -70,10 +70,10 @@ The fastest way to setup a project is to use `pycalver init`.
 $ pip install pycalver
 ...
 Installing collected packages: click pathlib2 typing toml six pycalver
-Successfully installed pycalver-202005.33
+Successfully installed pycalver-202005.34
 
 $ pycalver --version
-pycalver, version v202005.0033
+pycalver, version v202005.0034
 
 $ cd myproject
 ~/myproject$ pycalver init --dry
@@ -992,7 +992,7 @@ artifact of a package, eg. a `.whl` file.
 [downloads_img]: https://pepy.tech/badge/pycalver/month
 [downloads_ref]: https://pepy.tech/project/pycalver
 
-[version_img]: https://img.shields.io/static/v1.svg?label=PyCalVer&message=v202005.0033&color=blue
+[version_img]: https://img.shields.io/static/v1.svg?label=PyCalVer&message=v202005.0034&color=blue
 [version_ref]: https://pypi.org/project/pycalver/
 
 [pypi_img]: https://img.shields.io/badge/PyPI-wheels-green.svg
