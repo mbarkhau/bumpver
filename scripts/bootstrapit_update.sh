@@ -49,6 +49,28 @@ if [[ $BOOTSTRAPIT_DEBUG == 0 ]]; then
     fi
 fi
 
+# One time update of makefile setup
+if [[ -f "makefile.extra.make" && -f "makefile.config.make" ]]; then
+    printf "Converting simplified makefile setup\n\n"
+    printf "  mv makefile makefile.bootstrapit.make\n"
+    printf "  cat makefile.config.make > makefile\n"
+    printf "  cat makefile.extra.make >> makefile\n"
+
+    grep -v "include" makefile | grep -v "Project Specific Tasks" > makefile.bootstrapit.make;
+
+    cat makefile.config.make > makefile;
+    printf "\n\ninclude makefile.bootstrapit.make\n\n" >> makefile;
+    printf "## -- Extra/Custom/Project Specific Tasks --\n" >> makefile;
+    cat makefile.extra.make >> makefile;
+
+    git rm makefile.config.make;
+    git rm makefile.extra.make;
+    git add makefile;
+    git add makefile.bootstrapit.make;
+
+    printf "\nNow the 'makefile' is yours and the bootstrapit targets are in makefile.bootstrapit.make"
+    exit 1
+fi
 
 # Argument parsing from
 # https://stackoverflow.com/a/14203146/62997
@@ -101,6 +123,10 @@ done
 
 if [[ -z $MODULE_NAME ]]; then
     MODULE_NAME=${PACKAGE_NAME};
+    # replace "-"" with "_"
+    MODULE_NAME=${MODULE_NAME//-/_};
+    # lower case
+    MODULE_NAME=${MODULE_NAME,,};
 fi
 
 if [[ -z $PACKAGE_VERSION ]]; then
@@ -317,7 +343,7 @@ elif [[ -z "${IGNORE_IF_EXISTS[*]}" ]]; then
         "CHANGELOG.md"
         "README.md"
         "setup.py"
-        "makefile.config.make"
+        "makefile"
         "requirements/pypi.txt"
         "requirements/development.txt"
         "requirements/conda.txt"
@@ -369,8 +395,7 @@ copy_template setup.py;
 copy_template setup.cfg;
 
 copy_template makefile;
-copy_template makefile.config.make;
-copy_template makefile.extra.make;
+copy_template makefile.bootstrapit.make;
 copy_template activate;
 copy_template docker_base.Dockerfile;
 copy_template Dockerfile;
@@ -397,7 +422,7 @@ chmod +x "${PROJECT_DIR}/scripts/pre-push-hook.sh";
 
 head -n 7 "${PROJECT_DIR}/license.header" \
     | tail -n +3 \
-    | sed -re 's/(^   |^$)/#/g' \
+    | sed -E 's/(^   |^$)/#/g' \
     > /tmp/.py_license.header;
 
 src_files="${PROJECT_DIR}/src/*/*.py"
