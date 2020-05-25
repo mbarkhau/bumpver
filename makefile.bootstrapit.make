@@ -544,6 +544,7 @@ dist_upload:
 	$(DEV_ENV)/bin/twine check $$($(SDIST_FILE_CMD));
 	$(DEV_ENV)/bin/twine check $$($(BDIST_WHEEL_FILE_CMD));
 	$(DEV_ENV)/bin/twine upload --skip-existing \
+		--repository pypi-legacy \
 		$$($(SDIST_FILE_CMD)) $$($(BDIST_WHEEL_FILE_CMD));
 
 
