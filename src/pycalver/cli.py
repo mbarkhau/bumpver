@@ -122,7 +122,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
         _vcs = vcs.get_vcs()
         log.debug(f"vcs found: {_vcs.name}")
         if fetch:
-            log.info(f"fetching tags from remote (to turn off use: -n / --no-fetch)")
+            log.info("fetching tags from remote (to turn off use: -n / --no-fetch)")
             _vcs.fetch()
 
         version_tags = [tag for tag in _vcs.ls_tags() if version.is_valid(tag, cfg.version_pattern)]

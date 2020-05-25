@@ -89,7 +89,7 @@ class Config(typ.NamedTuple):
 
 def _debug_str(cfg: Config) -> str:
     cfg_str_parts = [
-        f"Config Parsed: Config(",
+        "Config Parsed: Config(",
         f"current_version='{cfg.current_version}'",
         "version_pattern='{pycalver}'",
         f"pep440_version='{cfg.pep440_version}'",
