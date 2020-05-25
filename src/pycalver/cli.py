@@ -11,16 +11,16 @@ Provided subcommands: show, test, init, bump
 """
 import os
 import sys
-import click
-import logging
 import typing as typ
+import logging
 import subprocess as sp
+
+import click
 
 from . import vcs
 from . import config
-from . import version
 from . import rewrite
-
+from . import version
 
 _VERBOSE = 0
 

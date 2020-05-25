@@ -5,8 +5,8 @@
 # SPDX-License-Identifier: MIT
 """Parse PyCalVer strings from files."""
 
-import logging
 import typing as typ
+import logging
 
 from . import patterns
 

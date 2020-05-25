@@ -15,11 +15,10 @@ mercurial, then the git terms are used. For example "fetch"
 """
 
 import os
+import typing as typ
 import logging
 import tempfile
-import typing as typ
 import subprocess as sp
-
 
 log = logging.getLogger("pycalver.vcs")
 

@@ -2,8 +2,9 @@ import os
 import shlex
 import shutil
 import tempfile
-import pathlib2 as pl
 import subprocess as sp
+
+import pathlib2 as pl
 
 
 class Shell:

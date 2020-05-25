@@ -5,10 +5,11 @@
 # SPDX-License-Identifier: MIT
 """Functions related to version string manipulation."""
 
-import logging
-import pkg_resources
 import typing as typ
+import logging
 import datetime as dt
+
+import pkg_resources
 
 from . import lex_id
 from . import patterns

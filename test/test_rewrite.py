@@ -6,7 +6,6 @@ from pycalver import version
 
 from . import util
 
-
 REWRITE_FIXTURE = """
 # SPDX-License-Identifier: MIT
 __version__ = "v201809.0002-beta"

@@ -1,17 +1,15 @@
 import os
 import time
 import shutil
-import pathlib2 as pl
 import subprocess as sp
 
 import pytest
-
+import pathlib2 as pl
 from click.testing import CliRunner
 
+import pycalver.cli as cli
 import pycalver.config as config
 import pycalver.patterns as patterns
-import pycalver.cli as cli
-
 
 SETUP_CFG_FIXTURE = """
 [metadata]

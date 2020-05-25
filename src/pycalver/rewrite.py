@@ -7,16 +7,16 @@
 
 import io
 import glob
+import typing as typ
 import difflib
 import logging
-import typing as typ
+
 import pathlib2 as pl
 
 from . import parse
 from . import config
 from . import version
 from . import patterns
-
 
 log = logging.getLogger("pycalver.rewrite")
 
@@ -123,7 +123,7 @@ def rfd_from_content(
 
 
 def _iter_file_paths(
-    file_patterns: config.PatternsByGlob
+    file_patterns: config.PatternsByGlob,
 ) -> typ.Iterable[typ.Tuple[pl.Path, config.Patterns]]:
     for globstr, pattern_strs in file_patterns.items():
         file_paths = glob.glob(globstr)

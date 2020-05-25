@@ -6,14 +6,14 @@
 """Parse setup.cfg or pycalver.cfg files."""
 
 import os
+import typing as typ
+import logging
+import datetime as dt
+import configparser
+
 import six
 import toml
-import configparser
-import typing as typ
 import pathlib2 as pl
-import datetime as dt
-
-import logging
 
 from . import version
 

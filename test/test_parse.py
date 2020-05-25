@@ -1,6 +1,5 @@
 from pycalver import parse
 
-
 SETUP_PY_FIXTURE = """
 # setup.py
 import setuptools

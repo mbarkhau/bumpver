@@ -4,7 +4,6 @@ from pycalver import config
 
 from . import util
 
-
 PYCALVER_TOML_FIXTURE_1 = """
 [pycalver]
 current_version = "v201808.0123-alpha"
