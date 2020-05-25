@@ -379,12 +379,12 @@ test:
 
 	# Next we install the package and run the test suite against it.
 
-	IFS=' ' read -r -a env_py_paths <<< "$(CONDA_ENV_BIN_PYTHON_PATHS)"; \
-	for i in $${!env_py_paths[@]}; do \
-		env_py=$${env_py_paths[i]}; \
-		$${env_py} -m pip install --upgrade .; \
-		PYTHONPATH="" ENV=$${ENV-dev} $${env_py} -m pytest test/; \
-	done;
+	# 	IFS=' ' read -r -a env_py_paths <<< "$(CONDA_ENV_BIN_PYTHON_PATHS)"; \
+	# 	for i in $${!env_py_paths[@]}; do \
+	# 		env_py=$${env_py_paths[i]}; \
+	# 		$${env_py} -m pip install --upgrade .; \
+	# 		PYTHONPATH="" ENV=$${ENV-dev} $${env_py} -m pytest test/; \
+	# 	done;
 
 	@rm -rf ".pytest_cache";
 	@rm -rf "src/__pycache__";
