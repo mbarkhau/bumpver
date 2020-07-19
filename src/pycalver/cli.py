@@ -42,7 +42,7 @@ click.disable_unicode_literals_warning = True
 VALID_RELEASE_VALUES = ("alpha", "beta", "dev", "rc", "post", "final")
 
 
-log = logging.getLogger("pycalver.cli")
+logger = logging.getLogger("pycalver.cli")
 
 
 def _configure_logging(verbose: int = 0) -> None:
@@ -57,15 +57,15 @@ def _configure_logging(verbose: int = 0) -> None:
         log_level  = logging.INFO
 
     logging.basicConfig(level=log_level, format=log_format, datefmt="%Y-%m-%dT%H:%M:%S")
-    log.debug("Logging configured.")
+    logger.debug("Logging configured.")
 
 
 def _validate_release_tag(release: str) -> None:
     if release in VALID_RELEASE_VALUES:
         return
 
-    log.error(f"Invalid argument --release={release}")
-    log.error(f"Valid arguments are: {', '.join(VALID_RELEASE_VALUES)}")
+    logger.error(f"Invalid argument --release={release}")
+    logger.error(f"Valid arguments are: {', '.join(VALID_RELEASE_VALUES)}")
     sys.exit(1)
 
 
@@ -108,7 +108,7 @@ def test(
         old_version, pattern=pattern, release=release, major=major, minor=minor, patch=patch
     )
     if new_version is None:
-        log.error(f"Invalid version '{old_version}' and/or pattern '{pattern}'.")
+        logger.error(f"Invalid version '{old_version}' and/or pattern '{pattern}'.")
         sys.exit(1)
 
     pep440_version = version.to_pep440(new_version)
@@ -119,29 +119,31 @@ def test(
 
 def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     try:
-        _vcs = vcs.get_vcs()
-        log.debug(f"vcs found: {_vcs.name}")
+        vcs_api = vcs.get_vcs_api()
+        logger.debug(f"vcs found: {vcs_api.name}")
         if fetch:
-            log.info("fetching tags from remote (to turn off use: -n / --no-fetch)")
-            _vcs.fetch()
+            logger.info("fetching tags from remote (to turn off use: -n / --no-fetch)")
+            vcs_api.fetch()
 
-        version_tags = [tag for tag in _vcs.ls_tags() if version.is_valid(tag, cfg.version_pattern)]
+        version_tags = [
+            tag for tag in vcs_api.ls_tags() if version.is_valid(tag, cfg.version_pattern)
+        ]
         if version_tags:
             version_tags.sort(reverse=True)
-            log.debug(f"found {len(version_tags)} tags: {version_tags[:2]}")
+            logger.debug(f"found {len(version_tags)} tags: {version_tags[:2]}")
             latest_version_tag    = version_tags[0]
             latest_version_pep440 = version.to_pep440(latest_version_tag)
             if latest_version_tag > cfg.current_version:
-                log.info(f"Working dir version        : {cfg.current_version}")
-                log.info(f"Latest version from {_vcs.name:>3} tag: {latest_version_tag}")
+                logger.info(f"Working dir version        : {cfg.current_version}")
+                logger.info(f"Latest version from {vcs_api.name:>3} tag: {latest_version_tag}")
                 cfg = cfg._replace(
                     current_version=latest_version_tag, pep440_version=latest_version_pep440
                 )
 
         else:
-            log.debug("no vcs tags found")
+            logger.debug("no vcs tags found")
     except OSError:
-        log.debug("No vcs found")
+        logger.debug("No vcs found")
 
     return cfg
 
@@ -159,7 +161,7 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
     cfg: config.MaybeConfig    = config.parse(ctx)
 
     if cfg is None:
-        log.error("Could not parse configuration. Perhaps try 'pycalver init'.")
+        logger.error("Could not parse configuration. Perhaps try 'pycalver init'.")
         sys.exit(1)
 
     cfg = _update_cfg_from_vcs(cfg, fetch=fetch)
@@ -181,7 +183,7 @@ def init(verbose: int = 0, dry: bool = False) -> None:
     cfg: config.MaybeConfig    = config.parse(ctx)
 
     if cfg:
-        log.error(f"Configuration already initialized in {ctx.config_filepath}")
+        logger.error(f"Configuration already initialized in {ctx.config_filepath}")
         sys.exit(1)
 
     if dry:
@@ -193,66 +195,70 @@ def init(verbose: int = 0, dry: bool = False) -> None:
     config.write_content(ctx)
 
 
-def _assert_not_dirty(_vcs: vcs.VCS, filepaths: typ.Set[str], allow_dirty: bool) -> None:
-    dirty_files = _vcs.status(required_files=filepaths)
+def _assert_not_dirty(vcs_api: vcs.VCSAPI, filepaths: typ.Set[str], allow_dirty: bool) -> None:
+    dirty_files = vcs_api.status(required_files=filepaths)
 
     if dirty_files:
-        log.warning(f"{_vcs.name} working directory is not clean. Uncomitted file(s):")
+        logger.warning(f"{vcs_api.name} working directory is not clean. Uncomitted file(s):")
         for dirty_file in dirty_files:
-            log.warning("    " + dirty_file)
+            logger.warning("    " + dirty_file)
 
     if not allow_dirty and dirty_files:
         sys.exit(1)
 
     dirty_pattern_files = set(dirty_files) & filepaths
     if dirty_pattern_files:
-        log.error("Not commiting when pattern files are dirty:")
+        logger.error("Not commiting when pattern files are dirty:")
         for dirty_file in dirty_pattern_files:
-            log.warning("    " + dirty_file)
+            logger.warning("    " + dirty_file)
         sys.exit(1)
 
 
-def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> None:
-    _vcs: typ.Optional[vcs.VCS]
+def _commit(
+    cfg: config.Config, new_version: str, vcs_api: vcs.VCSAPI, filepaths: typ.Set[str]
+) -> None:
+    for filepath in filepaths:
+        vcs_api.add(filepath)
 
-    try:
-        _vcs = vcs.get_vcs()
-    except OSError:
-        log.warning("Version Control System not found, aborting commit.")
-        _vcs = None
+    vcs_api.commit(f"bump version to {new_version}")
+
+    if cfg.commit and cfg.tag:
+        vcs_api.tag(new_version)
+
+    if cfg.commit and cfg.tag and cfg.push:
+        vcs_api.push(new_version)
+
+
+def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> None:
+    vcs_api: typ.Optional[vcs.VCSAPI] = None
+
+    if cfg.commit:
+        try:
+            vcs_api = vcs.get_vcs_api()
+        except OSError:
+            logger.warning("Version Control System not found, aborting commit.")
 
     filepaths = set(cfg.file_patterns.keys())
 
-    if _vcs:
-        _assert_not_dirty(_vcs, filepaths, allow_dirty)
+    if vcs_api:
+        _assert_not_dirty(vcs_api, filepaths, allow_dirty)
 
     try:
         new_vinfo = version.parse_version_info(new_version, cfg.version_pattern)
         rewrite.rewrite(cfg.file_patterns, new_vinfo)
     except Exception as ex:
-        log.error(str(ex))
+        logger.error(str(ex))
         sys.exit(1)
 
-    if _vcs is None or not cfg.commit:
-        return
-
-    for filepath in filepaths:
-        _vcs.add(filepath)
-
-    _vcs.commit(f"bump version to {new_version}")
-
-    if cfg.commit and cfg.tag:
-        _vcs.tag(new_version)
-
-    if cfg.commit and cfg.tag and cfg.push:
-        _vcs.push(new_version)
+    if vcs_api:
+        _commit(cfg, new_version, vcs_api, filepaths)
 
 
 def _try_bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> None:
     try:
         _bump(cfg, new_version, allow_dirty)
     except sp.CalledProcessError as ex:
-        log.error(f"Error running subcommand: {ex.cmd}")
+        logger.error(f"Error running subcommand: {ex.cmd}")
         if ex.stdout:
             sys.stdout.write(ex.stdout.decode('utf-8'))
         if ex.stderr:
@@ -284,7 +290,7 @@ def _try_print_diff(cfg: config.Config, new_version: str) -> None:
     try:
         _print_diff(cfg, new_version)
     except Exception as ex:
-        log.error(str(ex))
+        logger.error(str(ex))
         sys.exit(1)
 
 
@@ -339,7 +345,7 @@ def bump(
     cfg: config.MaybeConfig    = config.parse(ctx)
 
     if cfg is None:
-        log.error("Could not parse configuration. Perhaps try 'pycalver init'.")
+        logger.error("Could not parse configuration. Perhaps try 'pycalver init'.")
         sys.exit(1)
 
     cfg = _update_cfg_from_vcs(cfg, fetch=fetch)
@@ -357,13 +363,13 @@ def bump(
         is_semver      = "{semver}" in cfg.version_pattern
         has_semver_inc = major or minor or patch
         if is_semver and not has_semver_inc:
-            log.warning("bump --major/--minor/--patch required when using semver.")
+            logger.warning("bump --major/--minor/--patch required when using semver.")
         else:
-            log.error(f"Invalid version '{old_version}' and/or pattern '{cfg.version_pattern}'.")
+            logger.error(f"Invalid version '{old_version}' and/or pattern '{cfg.version_pattern}'.")
         sys.exit(1)
 
-    log.info(f"Old Version: {old_version}")
-    log.info(f"New Version: {new_version}")
+    logger.info(f"Old Version: {old_version}")
+    logger.info(f"New Version: {new_version}")
 
     if dry or verbose >= 2:
         _try_print_diff(cfg, new_version)

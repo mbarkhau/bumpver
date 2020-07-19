@@ -1,3 +1,5 @@
+# pylint:disable=protected-access ; allowed for test code
+
 import random
 
 from pycalver import lex_id
@@ -18,7 +20,7 @@ def test_next_id_overflow():
 
 
 def test_next_id_random():
-    for i in range(1000):
+    for _ in range(1000):
         prev_id = str(random.randint(1, 100 * 1000))
         try:
             next_id = lex_id.next_id(prev_id)

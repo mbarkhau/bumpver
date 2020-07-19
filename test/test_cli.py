@@ -1,3 +1,6 @@
+# pylint:disable=redefined-outer-name ; pytest fixtures
+# pylint:disable=protected-access ; allowed for test code
+
 import os
 import time
 import shutil
@@ -36,7 +39,7 @@ ENV = {
 }
 
 
-def sh(*cmd):
+def shell(*cmd):
     return sp.check_output(cmd, env=ENV)
 
 
@@ -157,8 +160,8 @@ def test_incr_invalid(runner):
 
 def _add_project_files(*files):
     if "README.md" in files:
-        with pl.Path("README.md").open(mode="wt", encoding="utf-8") as fh:
-            fh.write(
+        with pl.Path("README.md").open(mode="wt", encoding="utf-8") as fobj:
+            fobj.write(
                 """
                 Hello World v201701.0002-alpha !
                 aka. 201701.2a0 !
@@ -166,16 +169,16 @@ def _add_project_files(*files):
             )
 
     if "setup.cfg" in files:
-        with pl.Path("setup.cfg").open(mode="wt", encoding="utf-8") as fh:
-            fh.write(SETUP_CFG_FIXTURE)
+        with pl.Path("setup.cfg").open(mode="wt", encoding="utf-8") as fobj:
+            fobj.write(SETUP_CFG_FIXTURE)
 
     if "pycalver.toml" in files:
-        with pl.Path("pycalver.toml").open(mode="wt", encoding="utf-8") as fh:
-            fh.write(PYCALVER_TOML_FIXTURE)
+        with pl.Path("pycalver.toml").open(mode="wt", encoding="utf-8") as fobj:
+            fobj.write(PYCALVER_TOML_FIXTURE)
 
     if "pyproject.toml" in files:
-        with pl.Path("pyproject.toml").open(mode="wt", encoding="utf-8") as fh:
-            fh.write(PYPROJECT_TOML_FIXTURE)
+        with pl.Path("pyproject.toml").open(mode="wt", encoding="utf-8") as fobj:
+            fobj.write(PYPROJECT_TOML_FIXTURE)
 
 
 def test_nocfg(runner, caplog):
@@ -212,8 +215,8 @@ def test_novcs_nocfg_init(runner, caplog):
     assert "File not found" in log.message
 
     assert os.path.exists("pycalver.toml")
-    with pl.Path("pycalver.toml").open(mode="r", encoding="utf-8") as fh:
-        cfg_content = fh.read()
+    with pl.Path("pycalver.toml").open(mode="r", encoding="utf-8") as fobj:
+        cfg_content = fobj.read()
 
     base_str = config.DEFAULT_TOML_BASE_TMPL.format(initial_version=config._initial_version())
     assert base_str                          in cfg_content
@@ -234,13 +237,13 @@ def test_novcs_nocfg_init(runner, caplog):
     assert "Configuration already initialized" in log.message
 
 
-def test_novcs_setupcfg_init(runner, caplog):
+def test_novcs_setupcfg_init(runner):
     _add_project_files("README.md", "setup.cfg")
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
-    with pl.Path("setup.cfg").open(mode="r", encoding="utf-8") as fh:
-        cfg_content = fh.read()
+    with pl.Path("setup.cfg").open(mode="r", encoding="utf-8") as fobj:
+        cfg_content = fobj.read()
 
     base_str = config.DEFAULT_CONFIGPARSER_BASE_TMPL.format(
         initial_version=config._initial_version()
@@ -259,8 +262,8 @@ def test_novcs_pyproject_init(runner):
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
-    with pl.Path("pyproject.toml").open(mode="r", encoding="utf-8") as fh:
-        cfg_content = fh.read()
+    with pl.Path("pyproject.toml").open(mode="r", encoding="utf-8") as fobj:
+        cfg_content = fobj.read()
 
     base_str = config.DEFAULT_TOML_BASE_TMPL.format(initial_version=config._initial_version())
     assert base_str                          in cfg_content
@@ -272,16 +275,16 @@ def test_novcs_pyproject_init(runner):
     assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
 
 
-def _vcs_init(vcs, files=["README.md"]):
+def _vcs_init(vcs, files=("README.md",)):
     assert vcs in ("git", "hg")
     assert not pl.Path(f".{vcs}").exists()
-    sh(f"{vcs}", "init")
+    shell(f"{vcs}", "init")
     assert pl.Path(f".{vcs}").is_dir()
 
     for filename in files:
-        sh(f"{vcs}", "add", filename)
+        shell(f"{vcs}", "add", filename)
 
-    sh(f"{vcs}", "commit", "-m", "initial commit")
+    shell(f"{vcs}", "commit", "-m", "initial commit")
 
 
 def test_git_init(runner):
@@ -322,7 +325,7 @@ def test_git_tag_eval(runner):
     tag_version        = initial_version.replace(".0001-alpha", ".0123-beta")
     tag_version_pep440 = tag_version[1:7] + ".123b0"
 
-    sh("git", "tag", "--annotate", tag_version, "--message", f"bump version to {tag_version}")
+    shell("git", "tag", "--annotate", tag_version, "--message", f"bump version to {tag_version}")
 
     result = runner.invoke(cli.cli, ['show', "-vv"])
     assert result.exit_code == 0
@@ -342,7 +345,7 @@ def test_hg_tag_eval(runner):
     tag_version        = initial_version.replace(".0001-alpha", ".0123-beta")
     tag_version_pep440 = tag_version[1:7] + ".123b0"
 
-    sh("hg", "tag", tag_version, "--message", f"bump version to {tag_version}")
+    shell("hg", "tag", tag_version, "--message", f"bump version to {tag_version}")
 
     result = runner.invoke(cli.cli, ['show', "-vv"])
     assert result.exit_code == 0
@@ -361,16 +364,16 @@ def test_novcs_bump(runner):
 
     calver = config._initial_version()[:7]
 
-    with pl.Path("README.md").open() as fh:
-        content = fh.read()
+    with pl.Path("README.md").open() as fobj:
+        content = fobj.read()
         assert calver + ".0002-alpha !\n" in content
         assert calver[1:] + ".2a0 !\n" in content
 
     result = runner.invoke(cli.cli, ['bump', "-vv", "--release", "beta"])
     assert result.exit_code == 0
 
-    with pl.Path("README.md").open() as fh:
-        content = fh.read()
+    with pl.Path("README.md").open() as fobj:
+        content = fobj.read()
         assert calver + ".0003-beta !\n" in content
         assert calver[1:] + ".3b0 !\n" in content
 
@@ -382,16 +385,16 @@ def test_git_bump(runner):
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
-    sh("git", "add", "pycalver.toml")
-    sh("git", "commit", "-m", "initial commit")
+    shell("git", "add", "pycalver.toml")
+    shell("git", "commit", "-m", "initial commit")
 
     result = runner.invoke(cli.cli, ['bump', "-vv"])
     assert result.exit_code == 0
 
     calver = config._initial_version()[:7]
 
-    with pl.Path("README.md").open() as fh:
-        content = fh.read()
+    with pl.Path("README.md").open() as fobj:
+        content = fobj.read()
         assert calver + ".0002-alpha !\n" in content
 
 
@@ -402,28 +405,28 @@ def test_hg_bump(runner):
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
-    sh("hg", "add", "pycalver.toml")
-    sh("hg", "commit", "-m", "initial commit")
+    shell("hg", "add", "pycalver.toml")
+    shell("hg", "commit", "-m", "initial commit")
 
     result = runner.invoke(cli.cli, ['bump', "-vv"])
     assert result.exit_code == 0
 
     calver = config._initial_version()[:7]
 
-    with pl.Path("README.md").open() as fh:
-        content = fh.read()
+    with pl.Path("README.md").open() as fobj:
+        content = fobj.read()
         assert calver + ".0002-alpha !\n" in content
 
 
 def test_empty_git_bump(runner, caplog):
-    sh("git", "init")
-    with pl.Path("setup.cfg").open(mode="w") as fh:
-        fh.write("")
+    shell("git", "init")
+    with pl.Path("setup.cfg").open(mode="w") as fobj:
+        fobj.write("")
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
-    with pl.Path("setup.cfg").open(mode="r") as fh:
-        default_cfg_data = fh.read()
+    with pl.Path("setup.cfg").open(mode="r") as fobj:
+        default_cfg_data = fobj.read()
 
     assert "[pycalver]\n" in default_cfg_data
     assert "\ncurrent_version = " in default_cfg_data
@@ -437,14 +440,14 @@ def test_empty_git_bump(runner, caplog):
 
 
 def test_empty_hg_bump(runner, caplog):
-    sh("hg", "init")
-    with pl.Path("setup.cfg").open(mode="w") as fh:
-        fh.write("")
+    shell("hg", "init")
+    with pl.Path("setup.cfg").open(mode="w") as fobj:
+        fobj.write("")
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
-    with pl.Path("setup.cfg").open(mode="r") as fh:
-        default_cfg_text = fh.read()
+    with pl.Path("setup.cfg").open(mode="r") as fobj:
+        default_cfg_text = fobj.read()
 
     assert "[pycalver]\n" in default_cfg_text
     assert "\ncurrent_version = " in default_cfg_text

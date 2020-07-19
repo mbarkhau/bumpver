@@ -1,3 +1,5 @@
+# pylint:disable=protected-access ; allowed for test code
+
 import copy
 
 from pycalver import config

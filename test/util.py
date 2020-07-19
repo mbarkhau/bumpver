@@ -36,8 +36,9 @@ FIXTURE_PATH_PARTS = [
 
 class Project:
     def __init__(self, project=None):
-        tmpdir      = pl.Path(tempfile.mkdtemp(prefix="pytest_"))
-        self.tmpdir = tmpdir
+        tmpdir        = pl.Path(tempfile.mkdtemp(prefix="pytest_"))
+        self.tmpdir   = tmpdir
+        self.prev_cwd = os.getcwd()
 
         self.dir = tmpdir / "pycalver_project"
         self.dir.mkdir()
@@ -58,7 +59,6 @@ class Project:
                 shutil.copy(str(fixture_fpath), str(project_fpath))
 
     def __enter__(self):
-        self.prev_cwd = os.getcwd()
         os.chdir(str(self.dir))
         return self
 
@@ -67,7 +67,7 @@ class Project:
         os.chdir(self.prev_cwd)
         return False
 
-    def sh(self, cmd):
+    def shell(self, cmd):
         shell = Shell(str(self.dir))
         return shell(cmd)
 
@@ -76,17 +76,17 @@ class Project:
         for path_parts in FIXTURE_PATH_PARTS:
             maybe_file_path = self.dir.joinpath(*path_parts)
             if maybe_file_path.exists():
-                self.sh(f"{cmd} add {str(maybe_file_path)}")
+                self.shell(f"{cmd} add {str(maybe_file_path)}")
                 added_file_paths.append(maybe_file_path)
 
         assert len(added_file_paths) >= 2
 
     def git_init(self):
-        self.sh("git init")
+        self.shell("git init")
         self._vcs_addall(cmd="git")
-        self.sh("git commit -m 'initial commit'")
+        self.shell("git commit -m 'initial commit'")
 
     def hg_init(self):
-        self.sh("hg init")
+        self.shell("hg init")
         self._vcs_addall(cmd="hg")
-        self.sh("hg commit -m 'initial commit'")
+        self.shell("hg commit -m 'initial commit'")
