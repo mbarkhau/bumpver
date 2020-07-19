@@ -18,7 +18,7 @@ unit:
         - reports/flake8.xml
         - reports/pytest.xml
     paths:
-      - reports/htmlcov/
+      - reports/testcov/
       - reports/mypycov/
   allow_failure: false
 
@@ -28,7 +28,7 @@ pages:
   script:
     - mkdir -p public/cov
     - mkdir -p public/mypycov
-    - cp -r reports/htmlcov/* public/cov/
+    - cp -r reports/testcov/* public/cov/
     - cp -r reports/mypycov/* public/mypycov/
   artifacts:
     paths:
