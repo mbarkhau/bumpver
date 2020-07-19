@@ -214,7 +214,7 @@ def _assert_not_dirty(_vcs: vcs.VCS, filepaths: typ.Set[str], allow_dirty: bool)
 
 def _bump(cfg: config.Config, new_version: str, allow_dirty: bool = False) -> None:
     _vcs: typ.Optional[vcs.VCS]
-    
+
     if cfg.commit:
         try:
             _vcs = vcs.get_vcs()
