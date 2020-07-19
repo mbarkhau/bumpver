@@ -14,11 +14,10 @@ pudb
 # https://pypi.org/project/q/
 q
 
-# backtrace manipulates Python tracebacks to make them more
-# readable. It provides different configuration options for
-# coloring and formatting.
+# rich is used for more readable tracebacks during development
 # https://github.com/nir0s/backtrace
-backtrace
+# https://rich.readthedocs.io/en/latest/traceback.html
+rich
 
 # Py-Spy: A sampling profiler for Python programs.
 # https://github.com/benfred/py-spy
