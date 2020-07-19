@@ -21,6 +21,7 @@ ifndef SUPPORTED_PYTHON_VERSIONS
 endif
 
 PKG_NAME := $(PACKAGE_NAME)
+MODULE_NAME := $(shell echo $(subst -,_,$(PACKAGE_NAME)) | tr A-Z a-z)
 
 # TODO (mb 2018-09-23): Support for bash on windows
 #    perhaps we need to install conda using this
@@ -303,14 +304,14 @@ git_hooks:
 ## Run isort with --check-only
 .PHONY: lint_isort
 lint_isort:
-	@printf "isort ..\n"
+	@printf "isort ...\n"
 	@$(DEV_ENV)/bin/isort \
 		--check-only \
 		--force-single-line-imports \
 		--length-sort \
 		--recursive \
 		--line-width=$(MAX_LINE_LEN) \
-		--project $(PKG_NAME) \
+		--project $(MODULE_NAME) \
 		src/ test/
 	@printf "\e[1F\e[9C ok\n"
 
@@ -318,7 +319,7 @@ lint_isort:
 ## Run sjfmt with --check
 .PHONY: lint_sjfmt
 lint_sjfmt:
-	@printf "sjfmt ..\n"
+	@printf "sjfmt ...\n"
 	@$(DEV_ENV)/bin/sjfmt \
 		--target-version=py36 \
 		--skip-string-normalization \
@@ -342,14 +343,22 @@ lint_flake8:
 	@printf "\e[1F\e[9C ok\n"
 
 
-## Run pylint. Should not break the build yet
+## Run pylint.
 .PHONY: lint_pylint
 lint_pylint:
 	@mkdir -p "reports/";
 
 	@printf "pylint ..\n";
-	@$(DEV_ENV)/bin/pylint-ignore --rcfile=setup.cfg src/ test/
+	@$(DEV_ENV)/bin/pylint-ignore --rcfile=setup.cfg \
+		src/ test/
 	@printf "\e[1F\e[9C ok\n"
+
+
+## Run pylint-ignore --update-ignorefile.
+.PHONY: pylint_update_ignorefile
+pylint_update_ignorefile:
+	$(DEV_ENV)/bin/pylint-ignore --rcfile=setup.cfg \
+		src/ test/ --update-ignorefile
 
 
 ## Run flake8 linter and check for fmt
@@ -422,7 +431,7 @@ fmt_isort:
 		--length-sort \
 		--recursive \
 		--line-width=$(MAX_LINE_LEN) \
-		--project $(PKG_NAME) \
+		--project $(MODULE_NAME) \
 		src/ test/;
 
 

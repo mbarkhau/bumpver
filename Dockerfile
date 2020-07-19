@@ -6,6 +6,7 @@ ADD test/ test/
 ADD requirements/ requirements/
 ADD setup.cfg setup.cfg
 ADD setup.py setup.py
+ADD pylint-ignore.md pylint-ignore.md
 ADD README.md README.md
 ADD CHANGELOG.md CHANGELOG.md
 ADD LICENSE LICENSE

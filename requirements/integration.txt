@@ -19,6 +19,7 @@ flake8-builtins
 flake8-comprehensions
 flake8-junit-report
 pylint
+pylint-ignore
 mypy
 # pylint doesn't support isort>=5 for now
 #   https://github.com/PyCQA/pylint/issues/3722
