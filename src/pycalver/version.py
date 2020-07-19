@@ -14,7 +14,7 @@ import pkg_resources
 from . import lex_id
 from . import patterns
 
-log = logging.getLogger("pycalver.version")
+logger = logging.getLogger("pycalver.version")
 
 
 # The test suite may replace this.
@@ -467,7 +467,7 @@ def incr(
     try:
         old_vinfo = parse_version_info(old_version, pattern)
     except PatternError as ex:
-        log.error(str(ex))
+        logger.error(str(ex))
         return None
 
     cur_vinfo = old_vinfo
@@ -480,7 +480,7 @@ def incr(
     if old_date <= cur_date:
         cur_vinfo = cur_vinfo._replace(**cur_cal_nfo._asdict())
     else:
-        log.warning(f"Version appears to be from the future '{old_version}'")
+        logger.warning(f"Version appears to be from the future '{old_version}'")
 
     cur_vinfo = cur_vinfo._replace(bid=lex_id.next_id(cur_vinfo.bid))
 
@@ -496,7 +496,7 @@ def incr(
 
     new_version = format_version(cur_vinfo, pattern)
     if new_version == old_version:
-        log.error("Invalid arguments or pattern, version did not change.")
+        logger.error("Invalid arguments or pattern, version did not change.")
         return None
     else:
         return new_version

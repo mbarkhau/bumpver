@@ -17,7 +17,7 @@ import pathlib2 as pl
 
 from . import version
 
-log = logging.getLogger("pycalver.config")
+logger = logging.getLogger("pycalver.config")
 
 Patterns       = typ.List[str]
 PatternsByGlob = typ.Dict[str, Patterns]
@@ -203,7 +203,7 @@ def _normalize_file_patterns(raw_cfg: RawConfig) -> FilePatterns:
 
     for filepath, patterns in list(file_patterns.items()):
         if not os.path.exists(filepath):
-            log.warning(f"Invalid config, no such file: {filepath}")
+            logger.warning(f"Invalid config, no such file: {filepath}")
 
         normalized_patterns: typ.List[str] = []
         for pattern in patterns:
@@ -215,8 +215,8 @@ def _normalize_file_patterns(raw_cfg: RawConfig) -> FilePatterns:
             elif version_pattern == "{semver}":
                 normalized_pattern = normalized_pattern.replace("{pep440_version}", "{semver}")
             elif "{pep440_version}" in pattern:
-                log.warning(f"Invalid config, cannot match '{pattern}' for '{filepath}'.")
-                log.warning(f"No mapping of '{version_pattern}' to '{pep440_version}'")
+                logger.warning(f"Invalid config, cannot match '{pattern}' for '{filepath}'.")
+                logger.warning(f"No mapping of '{version_pattern}' to '{pep440_version}'")
             normalized_patterns.append(normalized_pattern)
 
         file_patterns[filepath] = normalized_patterns
@@ -268,7 +268,7 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
         push=push,
         file_patterns=file_patterns,
     )
-    log.debug(_debug_str(cfg))
+    logger.debug(_debug_str(cfg))
     return cfg
 
 
@@ -288,7 +288,7 @@ def _parse_current_version_default_pattern(cfg: Config, raw_cfg_text: str) -> st
 def parse(ctx: ProjectContext) -> MaybeConfig:
     """Parse config file if available."""
     if not ctx.config_filepath.exists():
-        log.warning(f"File not found: {ctx.config_filepath}")
+        logger.warning(f"File not found: {ctx.config_filepath}")
         return None
 
     fh: typ.IO[str]
@@ -322,7 +322,7 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
 
         return cfg
     except ValueError as ex:
-        log.warning(f"Couldn't parse {cfg_path}: {str(ex)}")
+        logger.warning(f"Couldn't parse {cfg_path}: {str(ex)}")
         return None
 
 

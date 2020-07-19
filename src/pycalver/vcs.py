@@ -20,7 +20,7 @@ import logging
 import tempfile
 import subprocess as sp
 
-log = logging.getLogger("pycalver.vcs")
+logger = logging.getLogger("pycalver.vcs")
 
 
 VCS_SUBCOMMANDS_BY_NAME = {
@@ -52,8 +52,8 @@ VCS_SUBCOMMANDS_BY_NAME = {
 Env = typ.Dict[str, str]
 
 
-class VCS:
-    """VCS absraction for git and mercurial."""
+class VCSAPI:
+    """Absraction for git and mercurial."""
 
     def __init__(self, name: str, subcommands: typ.Dict[str, str] = None):
         self.name = name
@@ -67,9 +67,9 @@ class VCS:
         cmd_tmpl = self.subcommands[cmd_name]
         cmd_str  = cmd_tmpl.format(**kwargs)
         if cmd_name in ("commit", "tag", "push_tag"):
-            log.info(cmd_str)
+            logger.info(cmd_str)
         else:
-            log.debug(cmd_str)
+            logger.debug(cmd_str)
         output_data: bytes = sp.check_output(cmd_str.split(), env=env, stderr=sp.STDOUT)
 
         # TODO (mb 2018-11-15): Detect encoding of output?
@@ -122,7 +122,7 @@ class VCS:
     def ls_tags(self) -> typ.List[str]:
         """List vcs tags on all branches."""
         ls_tag_lines = self('ls_tags').splitlines()
-        log.debug(f"ls_tags output {ls_tag_lines}")
+        logger.debug(f"ls_tags output {ls_tag_lines}")
         return [line.strip().split(" ", 1)[0] for line in ls_tag_lines]
 
     def add(self, path: str) -> None:
@@ -164,17 +164,17 @@ class VCS:
 
     def __repr__(self) -> str:
         """Generate string representation."""
-        return f"VCS(name='{self.name}')"
+        return f"VCSAPI(name='{self.name}')"
 
 
-def get_vcs() -> VCS:
+def get_vcs_api() -> VCSAPI:
     """Detect the appropriate VCS for a repository.
 
     raises OSError if the directory doesn't use a supported VCS.
     """
     for vcs_name in VCS_SUBCOMMANDS_BY_NAME.keys():
-        vcs = VCS(name=vcs_name)
-        if vcs.is_usable:
-            return vcs
+        vcs_api = VCSAPI(name=vcs_name)
+        if vcs_api.is_usable:
+            return vcs_api
 
     raise OSError("No such directory .git/ or .hg/ ")

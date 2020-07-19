@@ -6,11 +6,8 @@
 """Parse PyCalVer strings from files."""
 
 import typing as typ
-import logging
 
 from . import patterns
-
-log = logging.getLogger("pycalver.parse")
 
 
 class PatternMatch(typ.NamedTuple):

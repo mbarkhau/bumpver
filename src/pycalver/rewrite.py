@@ -18,7 +18,7 @@ from . import config
 from . import version
 from . import patterns
 
-log = logging.getLogger("pycalver.rewrite")
+logger = logging.getLogger("pycalver.rewrite")
 
 
 def detect_line_sep(content: str) -> str:
@@ -44,7 +44,7 @@ def detect_line_sep(content: str) -> str:
 class NoPatternMatch(Exception):
     """Pattern not found in content.
 
-    log.error is used to show error info about the patterns so
+    logger.error is used to show error info about the patterns so
     that users can debug what is wrong with them. The class
     itself doesn't capture that info. This approach is used so
     that all patter issues can be shown, rather than bubbling
@@ -80,9 +80,9 @@ def rewrite_lines(
     non_matched_patterns = set(pattern_strs) - found_patterns
     if non_matched_patterns:
         for non_matched_pattern in non_matched_patterns:
-            log.error(f"No match for pattern '{non_matched_pattern}'")
+            logger.error(f"No match for pattern '{non_matched_pattern}'")
             compiled_pattern = patterns._compile_pattern(non_matched_pattern)
-            log.error(f"Pattern compiles to regex '{compiled_pattern}'")
+            logger.error(f"Pattern compiles to regex '{compiled_pattern}'")
         raise NoPatternMatch("Invalid pattern(s)")
     else:
         return new_lines
