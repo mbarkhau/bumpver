@@ -410,6 +410,7 @@ copy_template .gitlab-ci.yml;
 copy_template scripts/update_conda_env_deps.sh;
 copy_template scripts/setup_conda_envs.sh;
 copy_template scripts/pre-push-hook.sh;
+copy_template scripts/exit_0_if_empty.py;
 
 copy_template __main__.py "src/${MODULE_NAME}/__main__.py";
 copy_template __init__.py "src/${MODULE_NAME}/__init__.py";
