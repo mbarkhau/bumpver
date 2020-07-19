@@ -20,7 +20,9 @@ flake8-comprehensions
 flake8-junit-report
 pylint
 mypy
-isort
+# pylint doesn't support isort>=5 for now
+#   https://github.com/PyCQA/pylint/issues/3722
+isort<5
 
 # http://doc.pytest.org/en/latest/py27-py34-deprecation.html
 # The pytest 4.6 series will be the last to support Python 2.7
@@ -28,7 +30,9 @@ isort
 # pytest 5.0 and onwards will support only Python 3.5+.
 pytest<5.0
 pytest-cov
-pytest-html
+# https://github.com/pytest-dev/pytest-html/blob/master/CHANGES.rst
+# pytest-html 2.0+ doesn't support python2.7
+pytest-html<2.0
 
 readme_renderer[md]
 twine
