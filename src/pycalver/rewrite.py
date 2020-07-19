@@ -81,8 +81,8 @@ def rewrite_lines(
     if non_matched_patterns:
         for non_matched_pattern in non_matched_patterns:
             logger.error(f"No match for pattern '{non_matched_pattern}'")
-            compiled_pattern = patterns._compile_pattern(non_matched_pattern)
-            logger.error(f"Pattern compiles to regex '{compiled_pattern}'")
+            compiled_pattern_str = patterns.compile_pattern_str(non_matched_pattern)
+            logger.error(f"Pattern compiles to regex '{compiled_pattern_str}'")
         raise NoPatternMatch("Invalid pattern(s)")
     else:
         return new_lines

@@ -185,7 +185,7 @@ def _replace_pattern_parts(pattern: str) -> str:
     return pattern
 
 
-def _compile_pattern(pattern: str) -> str:
+def compile_pattern_str(pattern: str) -> str:
     for char, escaped in PATTERN_ESCAPES:
         pattern = pattern.replace(char, escaped)
 
@@ -193,7 +193,7 @@ def _compile_pattern(pattern: str) -> str:
 
 
 def compile_pattern(pattern: str) -> typ.Pattern[str]:
-    pattern_str = _compile_pattern(pattern)
+    pattern_str = compile_pattern_str(pattern)
     return re.compile(pattern_str)
 
 

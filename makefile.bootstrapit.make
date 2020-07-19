@@ -348,13 +348,13 @@ lint_pylint:
 	@mkdir -p "reports/";
 
 	@printf "pylint ..\n";
-	@$(DEV_ENV)/bin/pylint --rcfile=setup.cfg src/ test/
+	@$(DEV_ENV)/bin/pylint-ignore --rcfile=setup.cfg src/ test/
 	@printf "\e[1F\e[9C ok\n"
 
 
 ## Run flake8 linter and check for fmt
 .PHONY: lint
-lint: lint_isort lint_sjfmt lint_flake8
+lint: lint_isort lint_sjfmt lint_flake8 lint_pylint
 
 
 ## Run mypy type checker
