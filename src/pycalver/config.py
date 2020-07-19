@@ -135,6 +135,7 @@ def _parse_cfg_file_patterns(cfg_parser: configparser.RawConfigParser) -> FilePa
 
 
 class _ConfigParser(configparser.RawConfigParser):
+    # pylint:disable=too-many-ancestors ; from our perspective, it's just one
     """Custom parser, simply to override optionxform behaviour."""
 
     def optionxform(self, optionstr: str) -> str:
@@ -277,7 +278,8 @@ def _parse_current_version_default_pattern(cfg: Config, raw_cfg_text: str) -> st
     for line in raw_cfg_text.splitlines():
         if is_pycalver_section and line.startswith("current_version"):
             return line.replace(cfg.current_version, cfg.version_pattern)
-        elif line.strip() == "[pycalver]":
+
+        if line.strip() == "[pycalver]":
             is_pycalver_section = True
         elif line and line[0] == "[" and line[-1] == "]":
             is_pycalver_section = False
@@ -291,7 +293,7 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
         logger.warning(f"File not found: {ctx.config_filepath}")
         return None
 
-    fh: typ.IO[str]
+    fobj: typ.IO[str]
 
     cfg_path: str
     if ctx.config_filepath.is_absolute():
@@ -302,11 +304,11 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
     raw_cfg: RawConfig
 
     try:
-        with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fh:
+        with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fobj:
             if ctx.config_format == 'toml':
-                raw_cfg = _parse_toml(fh)
+                raw_cfg = _parse_toml(fobj)
             elif ctx.config_format == 'cfg':
-                raw_cfg = _parse_cfg(fh)
+                raw_cfg = _parse_cfg(fobj)
             else:
                 err_msg = "Invalid config_format='{ctx.config_format}'"
                 raise RuntimeError(err_msg)
@@ -314,8 +316,8 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
             cfg: Config = _parse_config(raw_cfg)
 
             if cfg_path not in cfg.file_patterns:
-                fh.seek(0)
-                raw_cfg_text = fh.read()
+                fobj.seek(0)
+                raw_cfg_text = fobj.read()
                 cfg.file_patterns[cfg_path] = [
                     _parse_current_version_default_pattern(cfg, raw_cfg_text)
                 ]
@@ -469,12 +471,12 @@ def default_config(ctx: ProjectContext) -> str:
 
 def write_content(ctx: ProjectContext) -> None:
     """Update project config file with initial default config."""
-    fh: typ.IO[str]
+    fobj: typ.IO[str]
 
     cfg_content = default_config(ctx)
     if ctx.config_filepath.exists():
         cfg_content = "\n" + cfg_content
 
-    with ctx.config_filepath.open(mode="at", encoding="utf-8") as fh:
-        fh.write(cfg_content)
+    with ctx.config_filepath.open(mode="at", encoding="utf-8") as fobj:
+        fobj.write(cfg_content)
     print(f"Updated {ctx.config_filepath}")

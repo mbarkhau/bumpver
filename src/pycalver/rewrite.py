@@ -70,12 +70,12 @@ def rewrite_lines(
     new_lines      = old_lines[:]
     found_patterns = set()
 
-    for m in parse.iter_matches(old_lines, pattern_strs):
-        found_patterns.add(m.pattern)
-        replacement = version.format_version(new_vinfo, m.pattern)
-        span_l, span_r = m.span
-        new_line = m.line[:span_l] + replacement + m.line[span_r:]
-        new_lines[m.lineno] = new_line
+    for match in parse.iter_matches(old_lines, pattern_strs):
+        found_patterns.add(match.pattern)
+        replacement = version.format_version(new_vinfo, match.pattern)
+        span_l, span_r = match.span
+        new_line = match.line[:span_l] + replacement + match.line[span_r:]
+        new_lines[match.lineno] = new_line
 
     non_matched_patterns = set(pattern_strs) - found_patterns
     if non_matched_patterns:
@@ -158,11 +158,11 @@ def iter_rewritten(
     >>>
     '''
 
-    fh: typ.IO[str]
+    fobj: typ.IO[str]
 
     for file_path, pattern_strs in _iter_file_paths(file_patterns):
-        with file_path.open(mode="rt", encoding="utf-8") as fh:
-            content = fh.read()
+        with file_path.open(mode="rt", encoding="utf-8") as fobj:
+            content = fobj.read()
 
         rfd = rfd_from_content(pattern_strs, new_vinfo, content)
         yield rfd._replace(path=str(file_path))
@@ -202,11 +202,11 @@ def diff(new_vinfo: version.VersionInfo, file_patterns: config.PatternsByGlob) -
     """
 
     full_diff = ""
-    fh: typ.IO[str]
+    fobj: typ.IO[str]
 
     for file_path, pattern_strs in sorted(_iter_file_paths(file_patterns)):
-        with file_path.open(mode="rt", encoding="utf-8") as fh:
-            content = fh.read()
+        with file_path.open(mode="rt", encoding="utf-8") as fobj:
+            content = fobj.read()
 
         try:
             rfd = rfd_from_content(pattern_strs, new_vinfo, content)
@@ -228,9 +228,9 @@ def diff(new_vinfo: version.VersionInfo, file_patterns: config.PatternsByGlob) -
 
 def rewrite(file_patterns: config.PatternsByGlob, new_vinfo: version.VersionInfo) -> None:
     """Rewrite project files, updating each with the new version."""
-    fh: typ.IO[str]
+    fobj: typ.IO[str]
 
     for file_data in iter_rewritten(file_patterns, new_vinfo):
         new_content = file_data.line_sep.join(file_data.new_lines)
-        with io.open(file_data.path, mode="wt", encoding="utf-8") as fh:
-            fh.write(new_content)
+        with io.open(file_data.path, mode="wt", encoding="utf-8") as fobj:
+            fobj.write(new_content)

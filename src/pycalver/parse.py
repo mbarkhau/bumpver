@@ -7,7 +7,7 @@
 
 import typing as typ
 
-from . import patterns
+from .patterns import compile_pattern
 
 
 class PatternMatch(typ.NamedTuple):
@@ -26,7 +26,7 @@ PatternMatches = typ.Iterable[PatternMatch]
 def _iter_for_pattern(lines: typ.List[str], pattern: str) -> PatternMatches:
     # The pattern is escaped, so that everything besides the format
     # string variables is treated literally.
-    pattern_re = patterns.compile_pattern(pattern)
+    pattern_re = compile_pattern(pattern)
 
     for lineno, line in enumerate(lines):
         match = pattern_re.search(line)

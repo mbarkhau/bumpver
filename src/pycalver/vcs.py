@@ -87,11 +87,12 @@ class VCSAPI:
         try:
             retcode = sp.call(cmd, stderr=sp.PIPE, stdout=sp.PIPE)
             return retcode == 0
-        except OSError as e:
-            if e.errno == 2:
+        except OSError as err:
+            if err.errno == 2:
                 # git/mercurial is not installed.
                 return False
-            raise
+            else:
+                raise
 
     @property
     def has_remote(self) -> bool:
@@ -143,10 +144,10 @@ class VCSAPI:
         tmp_file = tempfile.NamedTemporaryFile("wb", delete=False)
         assert " " not in tmp_file.name
 
-        fh: typ.IO[bytes]
+        fobj: typ.IO[bytes]
 
-        with tmp_file as fh:
-            fh.write(message_data)
+        with tmp_file as fobj:
+            fobj.write(message_data)
 
         env: Env = os.environ.copy()
         env['HGENCODING'] = "utf-8"
@@ -172,7 +173,7 @@ def get_vcs_api() -> VCSAPI:
 
     raises OSError if the directory doesn't use a supported VCS.
     """
-    for vcs_name in VCS_SUBCOMMANDS_BY_NAME.keys():
+    for vcs_name in VCS_SUBCOMMANDS_BY_NAME:
         vcs_api = VCSAPI(name=vcs_name)
         if vcs_api.is_usable:
             return vcs_api

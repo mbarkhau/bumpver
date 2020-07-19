@@ -1,3 +1,6 @@
+# pylint:disable=redefined-outer-name ; pytest fixtures
+# pylint:disable=protected-access ; allowed for test code
+
 import io
 
 from pycalver import config
@@ -141,8 +144,8 @@ def test_parse_project_toml():
     project_path = util.FIXTURES_DIR / "project_a"
     config_path  = util.FIXTURES_DIR / "project_a" / "pycalver.toml"
 
-    with config_path.open() as fh:
-        config_data = fh.read()
+    with config_path.open() as fobj:
+        config_data = fobj.read()
 
     assert "v201710.0123-alpha" in config_data
 
@@ -165,8 +168,8 @@ def test_parse_project_cfg():
     project_path = util.FIXTURES_DIR / "project_b"
     config_path  = util.FIXTURES_DIR / "project_b" / "setup.cfg"
 
-    with config_path.open() as fh:
-        config_data = fh.read()
+    with config_path.open() as fobj:
+        config_data = fobj.read()
 
     assert "v201307.0456-beta" in config_data
 
@@ -211,7 +214,7 @@ def test_parse_toml_file(tmpdir):
     }
 
 
-def test_parse_default_pattern(tmpdir):
+def test_parse_default_pattern():
     project_path = util.FIXTURES_DIR / "project_c"
     config_path  = util.FIXTURES_DIR / "project_c" / "pyproject.toml"
 

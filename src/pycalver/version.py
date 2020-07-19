@@ -120,7 +120,7 @@ def cal_info(date: dt.date = None) -> CalendarInfo:
     if date is None:
         date = TODAY
 
-    kw = {
+    kwargs = {
         'year'    : date.year,
         'quarter' : _quarter_from_month(date.month),
         'month'   : date.month,
@@ -130,7 +130,7 @@ def cal_info(date: dt.date = None) -> CalendarInfo:
         'us_week' : int(date.strftime("%U"), base=10),
     }
 
-    return CalendarInfo(**kw)
+    return CalendarInfo(**kwargs)
 
 
 class VersionInfo(typ.NamedTuple):
@@ -159,17 +159,17 @@ FieldValues   = typ.Dict[FieldKey     , MatchGroupStr]
 
 
 def _parse_field_values(field_values: FieldValues) -> VersionInfo:
-    fv  = field_values
-    tag = fv.get('tag')
+    fvals = field_values
+    tag   = fvals.get('tag')
     if tag is None:
         tag = "final"
     tag = TAG_ALIASES.get(tag, tag)
     assert tag is not None
 
-    bid = fv['bid'] if 'bid' in fv else "0001"
+    bid = fvals['bid'] if 'bid' in fvals else "0001"
 
-    year = int(fv['year']) if 'year' in fv else None
-    doy  = int(fv['doy' ]) if 'doy' in fv else None
+    year = int(fvals['year']) if 'year' in fvals else None
+    doy  = int(fvals['doy' ]) if 'doy' in fvals else None
 
     month: typ.Optional[int]
     dom  : typ.Optional[int]
@@ -179,8 +179,8 @@ def _parse_field_values(field_values: FieldValues) -> VersionInfo:
         month = date.month
         dom   = date.day
     else:
-        month = int(fv['month']) if 'month' in fv else None
-        dom   = int(fv['dom'  ]) if 'dom' in fv else None
+        month = int(fvals['month']) if 'month' in fvals else None
+        dom   = int(fvals['dom'  ]) if 'dom' in fvals else None
 
     iso_week: typ.Optional[int]
     us_week : typ.Optional[int]
@@ -194,13 +194,13 @@ def _parse_field_values(field_values: FieldValues) -> VersionInfo:
         iso_week = None
         us_week  = None
 
-    quarter = int(fv['quarter']) if 'quarter' in fv else None
+    quarter = int(fvals['quarter']) if 'quarter' in fvals else None
     if quarter is None and month:
         quarter = _quarter_from_month(month)
 
-    major = int(fv['major']) if 'major' in fv else 0
-    minor = int(fv['minor']) if 'minor' in fv else 0
-    patch = int(fv['patch']) if 'patch' in fv else 0
+    major = int(fvals['major']) if 'major' in fvals else 0
+    minor = int(fvals['minor']) if 'minor' in fvals else 0
+    patch = int(fvals['patch']) if 'patch' in fvals else 0
 
     return VersionInfo(
         year=year,
@@ -417,38 +417,38 @@ def format_version(vinfo: VersionInfo, pattern: str) -> str:
     for part_name, full_part_format in patterns.FULL_PART_FORMATS.items():
         full_pattern = full_pattern.replace("{" + part_name + "}", full_part_format)
 
-    kw: typ.Dict[str, typ.Union[str, int, None]] = vinfo._asdict()
+    kwargs: typ.Dict[str, typ.Union[str, int, None]] = vinfo._asdict()
 
     tag = vinfo.tag
     if tag == 'final':
-        kw['release'   ] = ""
-        kw['pep440_tag'] = ""
+        kwargs['release'   ] = ""
+        kwargs['pep440_tag'] = ""
     else:
-        kw['release'   ] = "-" + tag
-        kw['pep440_tag'] = PEP440_TAGS[tag] + "0"
+        kwargs['release'   ] = "-" + tag
+        kwargs['pep440_tag'] = PEP440_TAGS[tag] + "0"
 
-    kw['release_tag'] = tag
+    kwargs['release_tag'] = tag
 
     year = vinfo.year
     if year:
-        kw['yy'  ] = str(year)[-2:]
-        kw['yyyy'] = year
+        kwargs['yy'  ] = str(year)[-2:]
+        kwargs['yyyy'] = year
 
-    kw['BID'] = int(vinfo.bid, 10)
+    kwargs['BID'] = int(vinfo.bid, 10)
 
     for part_name, field in ID_FIELDS_BY_PART.items():
-        val = kw[field]
+        val = kwargs[field]
         if part_name.lower() == field.lower():
             if isinstance(val, str):
-                kw[part_name] = int(val, base=10)
+                kwargs[part_name] = int(val, base=10)
             else:
-                kw[part_name] = val
+                kwargs[part_name] = val
         else:
             assert len(set(part_name)) == 1
             padded_len = len(part_name)
-            kw[part_name] = str(val).zfill(padded_len)
+            kwargs[part_name] = str(val).zfill(padded_len)
 
-    return full_pattern.format(**kw)
+    return full_pattern.format(**kwargs)
 
 
 def incr(

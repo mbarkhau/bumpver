@@ -1,3 +1,5 @@
+# pylint:disable=protected-access ; allowed for test code
+
 import random
 import datetime as dt
 
@@ -42,7 +44,7 @@ def test_bump_random(monkeypatch):
 
     monkeypatch.setattr(version, 'TODAY', cur_date)
 
-    for i in range(1000):
+    for _ in range(1000):
         cur_date += dt.timedelta(days=int((1 + random.random()) ** 10))
         new_version = version.incr(
             cur_version, release=random.choice([None, "alpha", "beta", "rc", "final", "post"])
