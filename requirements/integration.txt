@@ -18,8 +18,7 @@ flake8-docstrings
 flake8-builtins
 flake8-comprehensions
 flake8-junit-report
-pylint
-pylint-ignore
+pylint-ignore>=2020.1013
 mypy
 # pylint doesn't support isort>=5 for now
 #   https://github.com/PyCQA/pylint/issues/3722
@@ -39,7 +38,7 @@ readme_renderer[md]
 twine
 
 md-toc
-straitjacket
+straitjacket>=v202008.1016
 pycalver
 lib3to6
 

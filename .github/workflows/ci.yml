@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build-ubuntu:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Cache Conda Envs
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/miniconda3
+          build/*.txt
+        key: ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'makefile*') }}
+        restore-keys: |
+          ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'makefile*') }}
+
+    - name: make conda
+      run:
+        if [[ -e build/envs.txt ]]; then touch build/envs.txt; fi;
+        if [[ -e build/deps.txt ]]; then touch build/deps.txt; fi;
+        make conda
+
+    - name: make lint
+      run: make lint
+
+    - name: make mypy
+      run: make mypy
+
+    - name: make test
+      run: make test
+
+  build-macos:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Cache Conda Envs
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/miniconda3
+          build/*.txt
+        key: ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'makefile*') }}
+        restore-keys: |
+          ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'makefile*') }}
+
+    - name: make conda
+      run:
+        if [[ -e build/envs.txt ]]; then touch build/envs.txt; fi;
+        if [[ -e build/deps.txt ]]; then touch build/deps.txt; fi;
+        make conda
+
+    - name: make lint
+      run: make lint
+
+    - name: make mypy
+      run: make mypy
+
+    - name: make test
+      run: make test

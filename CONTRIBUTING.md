@@ -18,7 +18,7 @@
 - [These are not used on production, or staging, only](#these-are-not-used-on-production-or-staging-only)
 - [on development machines and the CI environment.](#on-development-machines-and-the-ci-environment)
 - [These are the requirements produced for specific builds. They can be](#these-are-the-requirements-produced-for-specific-builds-they-can-be)
-- [used to debug version compatatbility issues . They are generated](#used-to-debug-version-compatatbility-issues-they-are-generated)
+- [used to debug version compatibility issues . They are generated](#used-to-debug-version-compatibility-issues-they-are-generated)
 - [using pip freeze](#using-pip-freeze)
         - [Vendoring](#vendoring)
     - [Development](#development)
@@ -41,11 +41,9 @@ steps and not encounter any errors:
 
  1. `git clone <project_url>`
  2. `cd <project>`
- 3. `make install`
+ 3. `make conda`
  4. `# get some coffee`
- 5. `make lint`
- 6. `make test`
- 7. `make serve`
+ 5. `make fmt lint mypy test`
 
 If you as a new contributor encounter any errors, then please create
 an issue report and you will already have made a great contribution!
@@ -65,7 +63,7 @@ connect to remote servers. If this is the case, you should make
 sure that your ssh keys are available in `${HOME}/.ssh`, or you
 will have to do `ssh-keygen` and install the generated public
 key to host system. If this is not done, `pip install` will fail
-to install these dependencies from your private repositiories with
+to install these dependencies from your private repositories with
 an error like this
 
 ```shell
@@ -96,7 +94,7 @@ Cloning Git repository git@../group/project.git to project
 $ cd project
 
 dev@host:~/project
-$ make install
+$ make conda
 Solving environment:
 ...
 ```
@@ -183,7 +181,7 @@ Out[2]: '/home/dev/myproject/src/myproject/__init__.py'
 ## Project Types
 
 These guidelines written for different kinds of projects, each of
-which is ideally: small, focosued and reusable. These projects can be:
+which is ideally: small, focused and reusable. These projects can be:
 
  1. Services: Projects which are deployed and run continuously.
  2. Libraries: Projects which are not deployed by themselves but
@@ -192,7 +190,7 @@ which is ideally: small, focosued and reusable. These projects can be:
     developers and admins.
 
 The choices made here are intended to make it easy to start new
-projects by reducing the burdon of project setup to a minimum.
+projects by reducing the burden of project setup to a minimum.
 
 
 ## Project Layout
@@ -201,7 +199,7 @@ projects by reducing the burdon of project setup to a minimum.
     vendor/            # vendored dependencies
     stubs/             # mypy .pyi stub files
     test/              # pytest test files (files begin with test_)
-    scripts/           # miscalenious scripts used deployment and ops
+    scripts/           # miscellaneous scripts used deployment and ops
 
     requirements/      # dependency metadata files
     docs/              # documentation source files
@@ -237,11 +235,11 @@ requirements/vendor.txt         # installed via pip from pypi to vendor/
 
 # These are not used on production, or staging, only
 # on development machines and the CI environment.
-requirements/development.txt    # useful packgages for development/debugging
+requirements/development.txt    # useful packages for development/debugging
 requirements/integration.txt    # used for linting/testing/packaging
 
 # These are the requirements produced for specific builds. They can be
-# used to debug version compatatbility issues. They are generated
+# used to debug version compatibility issues. They are generated
 # using make freeze
 requirements/20190214t212403_freeze.txt
 ```
@@ -256,7 +254,7 @@ When adding a new dependency please consider:
   name without a version specifier. With this as the default, the
   project remains   up to date in terms of security fixes and other
   library improvements.
-- Some packages consider some of their dependancies to be optional,
+- Some packages consider some of their dependencies to be optional,
   in which case you will have to specify their transitive
   dependencies.
 - Only specify/pin/freeze a specific (older) version if there are
@@ -267,11 +265,11 @@ When adding a new dependency please consider:
 
 One argument against this approach is the issue of rogue package
 maintainers. A package maintainer might release a new version which
-you automatically install using `make update`, and this new code opens
+you automatically install using `make conda`, and this new code opens
 a back door or proceeds to send data from your production system to a
 random server on the internet.
 
-The only prodection pypi or conda-forge have against this is to remove
+The only protection pypi or conda-forge have against this is to remove
 packages that are reported to them. If you are paranoid, you could
 start pinning dependencies to older versions, for which you feel
 comfortable that any issues would have been noticed. This is only a
@@ -305,16 +303,16 @@ Choose a file:
   or cannot be downloaded from pypi (such as openjdk or node).
 - `pypi.txt` is for dependencies on python packages, be they from
   pypi or git repositories.
-- `vendor.txt` is appropriate for pure python libaries which are
+- `vendor.txt` is appropriate for pure python libraries which are
   written using mypy. This allows the mypy type checker to work with
   types defined in other packages
 
-After adding a new dependency, you can run `make update`
+After adding a new dependency, you can run `make conda`
 
 
 ```shell
 (myproject_py36) dev@host:~/myproject
-$ make update
+$ make conda
 Solving environment: done
 
 Downloading and Extracting Packages
@@ -322,10 +320,10 @@ requests-2.19.1        | 94 KB  conda-forge
 ...
 ```
 
-Normally make update only does something if you update one of the
-`requirements/*.txt` files has changed. If you know a dependency
-was updated, and `make update` is not having an effect, you can
-force the update using `make force update`.
+Normally `make conda` only does something if you update one of the
+`requirements/*.txt` files. If you know a dependency was updated, and
+`make conda` is not having an effect, you can force the update using
+`make force conda`.
 
 
 ### Vendoring
@@ -336,7 +334,7 @@ then it's not required.
 
 There are a few reasons to vendor a dependency:
 
-1. You want the source to be easilly accessible in your development
+1. You want the source to be easily accessible in your development
    tools. For example mypy can access the types of vendored projects.
 2. You don't trust the maintainer of a dependency, and want to review
    any updates using git diff.
@@ -352,7 +350,7 @@ contribute to the upstream project when possible.
 
 The typical commands used during development are:
 
-- `make install`: Setup virtual environment
+- `make conda`: Setup virtual environment
 - `source activate`: Activate virtual environment
 - `make help`: Overview of tasks
 - `make fmt`: Format code
@@ -368,6 +366,37 @@ Slightly less common but good to run before doing `git push`.
 - `make citest`: Run `make test` but inside a docker container, which is as
   close to the ci environment as possible. This is quite useful if you don't
   want to trigger dozens of CI builds to debug a tricky issue.
+
+
+### Packaging/Distribution
+
+Publishing a package is done using twine, for which you will need to somehow supply your pypi authentication. I haven't tried [keyring-support](https://twine.readthedocs.io/en/latest/#keyring-support), but your welcome to give that a shot. Another way is to add an entry in your `~/.pypirc`:
+
+
+```
+[distutils]
+index-servers =
+    pypi
+    pypi-legacy
+
+[pypi]
+repository = https://pypi.org
+username = Your.Username
+password = secret
+
+[pypi-legacy]
+repository = https://upload.pypi.org/legacy/
+username = Your.Username
+password = secret
+```
+
+Creating a new package and uploading it to pypi will typically involve these steps:
+
+- `make lint mypy test`: Run CI locally, in case you don't trust the CI setup.
+- `make bump_version`: Increment project wide version numbers and tag commit.
+- `git push`: Push the bumped version.
+- `make dist_build`: Create the .whl and .tar.gz distributions.
+- `make dist_upload`: Publish to pypi.
 
 
 ### Docker
@@ -406,7 +435,7 @@ to trim this down.
 ### Documentation
 
 
-Documentation is written in Github Flavoured Markdown. Typora is
+Documentation is written in Github Flavored Markdown. Typora is
 decent cross platform editor.
 
 TODO: `make doc`
@@ -426,7 +455,7 @@ contradictory to each other in places), reading them will give you a
 good overview of how different people think about structuring their
 code in order to minimize common pitfalls.
 
-Please read, view at your leasure:
+Please read, view at your leisure:
 
  - Talks:
    - [Stop Writing Classes by Jack Diederich](https://www.youtube.com/watch?v=o9pEzgHorH0)
@@ -443,14 +472,14 @@ Please read, view at your leasure:
    - https://github.com/google/styleguide/blob/gh-pages/pyguide.md
 
 Keep in mind, that all of this is about the form of your code, and
-catching common pitfalls or gotchas. None of this releives you of the
-burdon of thinking about your code. The reason to use linters and type
+catching common pitfalls or gotchas. None of this relieves you of the
+burden of thinking about your code. The reason to use linters and type
 checking is not to have a tool to make your code correct, but to
 support you to make your code correct.
 
 For now I won't go into the effort of writing yet another style guide.
 Instead, if your code passes `make fmt lint`, then it's acceptable.
-Every time you encounter a linting error, consider it as an opportinity
+Every time you encounter a linting error, consider it as an opportunity
 to learn a best practice and look up the error code.
 
 [^1]: Linux, MacOS and [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)

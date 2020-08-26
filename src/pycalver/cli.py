@@ -9,7 +9,6 @@ CLI module for PyCalVer.
 
 Provided subcommands: show, test, init, bump
 """
-import os
 import sys
 import typing as typ
 import logging
@@ -25,16 +24,12 @@ from . import version
 _VERBOSE = 0
 
 
-# To enable pretty tracebacks:
-#   echo "export ENABLE_RICH_TB=1;" >> ~/.bashrc
-if os.environ.get('ENABLE_RICH_TB') == '1':
-    try:
-        import rich.traceback
+try:
+    import pretty_traceback
 
-        rich.traceback.install()
-    except ImportError:
-        # don't fail just because of missing dev library
-        pass
+    pretty_traceback.install()
+except ImportError:
+    pass  # no need to fail because of missing dev dependency
 
 
 click.disable_unicode_literals_warning = True

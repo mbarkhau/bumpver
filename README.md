@@ -18,7 +18,8 @@ Project/Repo:
 
 Code Quality/CI:
 
-[![Build Status][build_img]][build_ref]
+[![GitHub Build Status][github_build_img]][github_build_ref]
+[![GitLab Build Status][gitlab_build_img]][gitlab_build_ref]
 [![Type Checked with mypy][mypy_img]][mypy_ref]
 [![Code Coverage][codecov_img]][codecov_ref]
 [![Code Style: sjfmt][style_img]][style_ref]
@@ -974,8 +975,11 @@ artifact of a package, eg. a `.whl` file.
 [cookiecutter_ref]: https://cookiecutter.readthedocs.io
 
 
-[build_img]: https://gitlab.com/mbarkhau/pycalver/badges/master/pipeline.svg
-[build_ref]: https://gitlab.com/mbarkhau/pycalver/pipelines
+[github_build_img]: https://github.com/mbarkhau/pycalver/workflows/CI/badge.svg
+[github_build_ref]: https://github.com/mbarkhau/pycalver/actions?query=workflow%3ACI
+
+[gitlab_build_img]: https://gitlab.com/mbarkhau/pycalver/badges/master/pipeline.svg
+[gitlab_build_ref]: https://gitlab.com/mbarkhau/pycalver/pipelines
 
 [codecov_img]: https://gitlab.com/mbarkhau/pycalver/badges/master/coverage.svg
 [codecov_ref]: https://mbarkhau.gitlab.io/pycalver/cov

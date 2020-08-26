@@ -12,7 +12,8 @@ ADD CHANGELOG.md CHANGELOG.md
 ADD LICENSE LICENSE
 ADD makefile makefile
 ADD makefile.bootstrapit.make makefile.bootstrapit.make
+ADD scripts/exit_0_if_empty.py scripts/exit_0_if_empty.py
 
 ENV PYTHONPATH="src/:vendor/"
 
-CMD make lint test_compat
+CMD make lint mypy test_compat

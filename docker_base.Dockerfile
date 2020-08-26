@@ -9,6 +9,11 @@
 
 FROM registry.gitlab.com/mbarkhau/bootstrapit/env_builder AS builder
 
+# gcc required for cmarkgfm on python3.8
+# https://github.com/theacodes/cmarkgfm/issues/22
+RUN apt-get update
+RUN apt-get install -y gcc
+
 RUN mkdir /root/.ssh/ && \
     ssh-keyscan gitlab.com >> /root/.ssh/known_hosts && \
     ssh-keyscan registry.gitlab.com >> /root/.ssh/known_hosts
@@ -35,7 +40,13 @@ ADD scripts/ scripts/
 ADD makefile.bootstrapit.make makefile.bootstrapit.make
 ADD makefile makefile
 
-RUN make install
+# install envs (relatively stable)
+ADD requirements/conda.txt requirements/conda.txt
+RUN make build/envs.txt
+
+# install python package dependencies (change more often)
+ADD requirements/ requirements/
+RUN make conda
 
 RUN rm -f /root/.ssh/id_rsa
 
