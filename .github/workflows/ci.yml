@@ -47,6 +47,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: brew install mercurial
+      run: brew install mercurial
+
     - name: Cache Conda Envs
       uses: actions/cache@v2
       with:
@@ -61,7 +64,6 @@ jobs:
       run:
         if [[ -e build/envs.txt ]]; then touch build/envs.txt; fi;
         if [[ -e build/deps.txt ]]; then touch build/deps.txt; fi;
-        brew install mercurial
         make conda
 
     - name: make lint
