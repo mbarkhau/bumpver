@@ -50,6 +50,12 @@ jobs:
     - name: brew install mercurial
       run: brew install mercurial
 
+    - name: debug hg
+      run: which hg
+
+    - name: debug mercurial
+      run: which mercurial
+
     - name: Cache Conda Envs
       uses: actions/cache@v2
       with:
