@@ -211,6 +211,7 @@ def diff(new_vinfo: version.VersionInfo, file_patterns: config.PatternsByGlob) -
         try:
             rfd = rfd_from_content(pattern_strs, new_vinfo, content)
         except NoPatternMatch:
+            # pylint:disable=raise-missing-from  ; we support py2, so not an option
             errmsg = f"No patterns matched for '{file_path}'"
             raise NoPatternMatch(errmsg)
 
