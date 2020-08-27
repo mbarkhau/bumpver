@@ -47,15 +47,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: brew install mercurial
-      run: brew install mercurial
-
-    - name: debug hg
-      run: which hg
-
-    - name: debug mercurial
-      run: which mercurial
-
     - name: Cache Conda Envs
       uses: actions/cache@v2
       with:
@@ -65,6 +56,9 @@ jobs:
         key: ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'makefile*') }}
         restore-keys: |
           ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'makefile*') }}
+
+    - name: brew install mercurial
+      run: brew install mercurial
 
     - name: make conda
       run:

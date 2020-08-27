@@ -36,6 +36,7 @@ ENV = {
     'GIT_AUTHOR_EMAIL'   : "pycalver_tester@nowhere.com",
     'GIT_COMMITTER_EMAIL': "pycalver_tester@nowhere.com",
     'HGUSER'             : "pycalver_tester",
+    'PATH'               : os.environ['PATH'],
 }
 
 
