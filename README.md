@@ -1,3 +1,10 @@
+<div align="center">
+<p align="center">
+  <img alt="logo" src="https://gitlab.com/mbarkhau/pycalver/-/raw/master/pycalver1k_128.png">
+</p>
+</div>
+
+
 # [PyCalVer: Automatic Calendar Versioning][repo_ref]
 
 PyCalVer is a cli tool to search and replace version strings in the files of
