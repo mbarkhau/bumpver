@@ -76,7 +76,7 @@ class Project:
         for path_parts in FIXTURE_PATH_PARTS:
             maybe_file_path = self.dir.joinpath(*path_parts)
             if maybe_file_path.exists():
-                self.shell(f"{cmd} add {str(maybe_file_path)}")
+                self.shell(cmd + " add " + str(maybe_file_path))
                 added_file_paths.append(maybe_file_path)
 
         assert len(added_file_paths) >= 2
