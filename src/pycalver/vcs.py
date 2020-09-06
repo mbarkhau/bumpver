@@ -1,7 +1,7 @@
 # This file is part of the pycalver project
-# https://gitlab.com/mbarkhau/pycalver
+# https://github.com/mbarkhau/pycalver
 #
-# Copyright (c) 2019 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 #
 # pycalver/vcs.py (this file) is based on code from the
@@ -15,10 +15,13 @@ mercurial, then the git terms are used. For example "fetch"
 """
 
 import os
+import sys
 import typing as typ
 import logging
 import tempfile
 import subprocess as sp
+
+from pycalver import config
 
 logger = logging.getLogger("pycalver.vcs")
 
@@ -179,3 +182,57 @@ def get_vcs_api() -> VCSAPI:
             return vcs_api
 
     raise OSError("No such directory .git/ or .hg/ ")
+
+
+# cli helper methods
+
+
+def assert_not_dirty(vcs_api: VCSAPI, filepaths: typ.Set[str], allow_dirty: bool) -> None:
+    dirty_files = vcs_api.status(required_files=filepaths)
+
+    if dirty_files:
+        logger.warning(f"{vcs_api.name} working directory is not clean. Uncomitted file(s):")
+        for dirty_file in dirty_files:
+            logger.warning("    " + dirty_file)
+
+    if not allow_dirty and dirty_files:
+        sys.exit(1)
+
+    dirty_pattern_files = set(dirty_files) & filepaths
+    if dirty_pattern_files:
+        logger.error("Not commiting when pattern files are dirty:")
+        for dirty_file in dirty_pattern_files:
+            logger.warning("    " + dirty_file)
+        sys.exit(1)
+
+
+def commit(
+    cfg           : config.Config,
+    vcs_api       : VCSAPI,
+    filepaths     : typ.Set[str],
+    new_version   : str,
+    commit_message: str,
+) -> None:
+    for filepath in filepaths:
+        vcs_api.add(filepath)
+
+    vcs_api.commit(commit_message)
+
+    if cfg.commit and cfg.tag:
+        vcs_api.tag(new_version)
+
+    if cfg.commit and cfg.tag and cfg.push:
+        vcs_api.push(new_version)
+
+
+def get_tags(fetch: bool) -> typ.List[str]:
+    try:
+        vcs_api = get_vcs_api()
+        logger.debug(f"vcs found: {vcs_api.name}")
+        if fetch:
+            logger.info("fetching tags from remote (to turn off use: -n / --no-fetch)")
+            vcs_api.fetch()
+        return vcs_api.ls_tags()
+    except OSError:
+        logger.debug("No vcs found")
+        return []

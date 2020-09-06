@@ -61,3 +61,5 @@ test_compat: $(COMPAT_TEST_FILES)
 		ENABLE_BACKTRACE=0 PYTHONPATH="" ENV=$${ENV-dev} \
 			$${env_py} -m pytest --verbose compat_test/; \
 	done;
+
+	rm -rf compat_test/

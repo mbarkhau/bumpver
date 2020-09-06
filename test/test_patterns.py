@@ -2,14 +2,17 @@ import re
 
 import pytest
 
-from pycalver import patterns
+import pycalver.patterns as v1patterns
+import pycalver2.patterns as v2patterns
+
+# TODO (mb 2020-09-06): test for v2patterns
 
 
 def _part_re_by_name(name):
-    return re.compile(patterns.PART_PATTERNS[name])
+    return re.compile(v1patterns.PART_PATTERNS[name])
 
 
-@pytest.mark.parametrize("part_name", patterns.PART_PATTERNS.keys())
+@pytest.mark.parametrize("part_name", v1patterns.PART_PATTERNS.keys())
 def test_part_compilation(part_name):
     assert _part_re_by_name(part_name)
 
@@ -64,7 +67,7 @@ PATTERN_CASES = [
 
 @pytest.mark.parametrize("pattern_str, line, expected", PATTERN_CASES)
 def test_patterns(pattern_str, line, expected):
-    pattern_re = patterns.compile_pattern(pattern_str)
+    pattern_re = v1patterns.compile_pattern(pattern_str)
     result     = pattern_re.search(line)
     if result is None:
         assert expected is None, (pattern_str, line)
@@ -82,7 +85,7 @@ CLI_MAIN_FIXTURE = """
 
 def test_pattern_escapes():
     pattern    = 'click.version_option(version="{pycalver}")'
-    pattern_re = patterns.compile_pattern(pattern)
+    pattern_re = v1patterns.compile_pattern(pattern)
     match      = pattern_re.search(CLI_MAIN_FIXTURE)
     expected   = 'click.version_option(version="v201812.0123-beta")'
     assert match.group(0) == expected
@@ -95,7 +98,7 @@ package_metadata = {"name": "mypackage", "version": "v201812.0123-beta"}
 
 def test_curly_escapes():
     pattern    = 'package_metadata = {"name": "mypackage", "version": "{pycalver}"}'
-    pattern_re = patterns.compile_pattern(pattern)
+    pattern_re = v1patterns.compile_pattern(pattern)
     match      = pattern_re.search(CURLY_BRACE_FIXTURE)
     expected   = 'package_metadata = {"name": "mypackage", "version": "v201812.0123-beta"}'
     assert match.group(0) == expected

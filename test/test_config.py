@@ -2,10 +2,9 @@
 # pylint:disable=protected-access ; allowed for test code
 
 import io
+from test import util
 
 from pycalver import config
-
-from . import util
 
 PYCALVER_TOML_FIXTURE_1 = """
 [pycalver]

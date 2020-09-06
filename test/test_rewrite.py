@@ -1,12 +1,13 @@
 # pylint:disable=protected-access ; allowed for test code
 
 import copy
+from test import util
 
 from pycalver import config
-from pycalver import rewrite
-from pycalver import version
-
-from . import util
+from pycalver import rewrite as v1rewrite
+from pycalver import version as v1version
+from pycalver2 import rewrite as v2rewrite
+from pycalver2 import version as v2version
 
 REWRITE_FIXTURE = """
 # SPDX-License-Identifier: MIT
@@ -17,8 +18,8 @@ __version__ = "v201809.0002-beta"
 def test_rewrite_lines():
     old_lines = REWRITE_FIXTURE.splitlines()
     patterns  = ['__version__ = "{pycalver}"']
-    new_vinfo = version.parse_version_info("v201911.0003")
-    new_lines = rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
+    new_vinfo = v1version.parse_version_info("v201911.0003")
+    new_lines = v1rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
 
     assert len(new_lines) == len(old_lines)
     assert "v201911.0003" not in "\n".join(old_lines)
@@ -31,8 +32,8 @@ def test_rewrite_final():
 
     old_lines = REWRITE_FIXTURE.splitlines()
     patterns  = ['__version__ = "v{year}{month}.{build_no}-{release_tag}"']
-    new_vinfo = version.parse_version_info("v201911.0003")
-    new_lines = rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
+    new_vinfo = v1version.parse_version_info("v201911.0003")
+    new_lines = v1rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
 
     assert len(new_lines) == len(old_lines)
     assert "v201911.0003" not in "\n".join(old_lines)
@@ -46,9 +47,8 @@ def test_iter_file_paths():
         cfg = config.parse(ctx)
         assert cfg
 
-        file_paths = {
-            str(file_path) for file_path, patterns in rewrite._iter_file_paths(cfg.file_patterns)
-        }
+        _paths_and_patterns = v1rewrite.iter_file_paths(cfg.file_patterns)
+        file_paths          = {str(file_path) for file_path, patterns in _paths_and_patterns}
 
     assert file_paths == {"pycalver.toml", "README.md"}
 
@@ -59,9 +59,8 @@ def test_iter_file_globs():
         cfg = config.parse(ctx)
         assert cfg
 
-        file_paths = {
-            str(file_path) for file_path, patterns in rewrite._iter_file_paths(cfg.file_patterns)
-        }
+        _paths_and_patterns = v1rewrite.iter_file_paths(cfg.file_patterns)
+        file_paths          = {str(file_path) for file_path, patterns in _paths_and_patterns}
 
     assert file_paths == {
         "setup.cfg",
@@ -80,7 +79,7 @@ def test_error_bad_path():
 
         (project.dir / "setup.py").unlink()
         try:
-            list(rewrite._iter_file_paths(cfg.file_patterns))
+            list(v1rewrite.iter_file_paths(cfg.file_patterns))
             assert False, "expected IOError"
         except IOError as ex:
             assert "setup.py" in str(ex)
@@ -96,10 +95,10 @@ def test_error_bad_pattern():
         patterns["setup.py"] = patterns["setup.py"][0] + "invalid"
 
         try:
-            new_vinfo = version.parse_version_info("v201809.1234")
-            list(rewrite.diff(new_vinfo, patterns))
-            assert False, "expected rewrite.NoPatternMatch"
-        except rewrite.NoPatternMatch as ex:
+            new_vinfo = v1version.parse_version_info("v201809.1234")
+            list(v1rewrite.diff(new_vinfo, patterns))
+            assert False, "expected v1rewrite.NoPatternMatch"
+        except v1rewrite.NoPatternMatch as ex:
             assert "setup.py" in str(ex)
 
 
@@ -109,21 +108,21 @@ __version__ = "2018.0002-beta"
 """
 
 
-def test_optional_release():
+def test_v1_optional_release():
     old_lines = OPTIONAL_RELEASE_FIXTURE.splitlines()
     pattern   = "{year}.{build_no}{release}"
     patterns  = ['__version__ = "{year}.{build_no}{release}"']
 
-    new_vinfo = version.parse_version_info("2019.0003", pattern)
-    new_lines = rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
+    new_vinfo = v1version.parse_version_info("2019.0003", pattern)
+    new_lines = v1rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
 
     assert len(new_lines) == len(old_lines)
     assert "2019.0003" not in "\n".join(old_lines)
     new_text = "\n".join(new_lines)
     assert "2019.0003" in new_text
 
-    new_vinfo = version.parse_version_info("2019.0004-beta", pattern)
-    new_lines = rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
+    new_vinfo = v1version.parse_version_info("2019.0004-beta", pattern)
+    new_lines = v1rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
 
     # make sure optional release tag is added back on
     assert len(new_lines) == len(old_lines)

@@ -1,7 +1,7 @@
 # This file is part of the pycalver project
-# https://gitlab.com/mbarkhau/pycalver
+# https://github.com/mbarkhau/pycalver
 #
-# Copyright (c) 2019 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 
 import os
@@ -26,10 +26,42 @@ install_requires = [
 ]
 
 
+long_description = "\n\n".join((read("README.md"), read("CHANGELOG.md")))
+
+
+# See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: Other Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Unix",
+    "Operating System :: POSIX",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
 package_dir = {"": "src"}
 
 
-if any(arg.startswith("bdist") for arg in sys.argv):
+is_lib3to6_fix_required = (
+    any(arg.startswith("bdist") for arg in sys.argv)
+    and (
+        "Programming Language :: Python :: 2.7" in classifiers
+        or "Programming Language :: Python :: 2" in classifiers
+    )
+)
+
+
+if is_lib3to6_fix_required:
     try:
         import lib3to6
         package_dir = lib3to6.fix(package_dir)
@@ -43,9 +75,6 @@ if any(arg.startswith("bdist") for arg in sys.argv):
             ))
 
 
-long_description = "\n\n".join((read("README.md"), read("CHANGELOG.md")))
-
-
 setuptools.setup(
     name="pycalver",
     license="MIT",
@@ -57,32 +86,14 @@ setuptools.setup(
     description="CalVer for python libraries.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=['pycalver'],
+    packages=setuptools.find_packages("src/"),
     package_dir=package_dir,
     install_requires=install_requires,
     entry_points="""
         [console_scripts]
         pycalver=pycalver.cli:cli
     """,
+    python_requires=">=2.7",
     zip_safe=True,
-
-    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "Environment :: Console",
-        "Environment :: Other Environment",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: Unix",
-        "Operating System :: POSIX",
-        "Operating System :: Microsoft :: Windows",
-        "Operating System :: MacOS :: MacOS X",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "Programming Language :: Python :: Implementation :: PyPy",
-        "Topic :: Software Development :: Libraries",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-    ],
+    classifiers=classifiers,
 )

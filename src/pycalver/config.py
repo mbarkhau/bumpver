@@ -234,6 +234,8 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     version_str: str = raw_cfg['current_version']
     version_str = raw_cfg['current_version'] = version_str.strip("'\" ")
 
+    # TODO (mb 2020-09-06): new style pattern by default
+    # version_pattern: str = raw_cfg.get('version_pattern', "vYYYY0M.BUILD[-TAG]")
     version_pattern: str = raw_cfg.get('version_pattern', "{pycalver}")
     version_pattern = raw_cfg['version_pattern'] = version_pattern.strip("'\" ")
 

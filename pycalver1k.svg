@@ -14,8 +14,8 @@
    version="1.1"
    id="svg8"
    inkscape:version="1.0 (b51213c273, 2020-08-10)"
-   sodipodi:docname="pycalver_1k.svg"
-   inkscape:export-filename="C:\Users\ManuelBarkhau\Dropbox\projects\pycalver\pycalver_128.png"
+   sodipodi:docname="pycalver1k.svg"
+   inkscape:export-filename="/home/mbarkhau/foss/pycalver/pycalver1k2_128.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96">
   <defs
@@ -147,7 +147,7 @@
        x2="17.63979"
        y2="282.83472"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.0831145,0,0,1.325042,-1.407405,-355.71527)" />
+       gradientTransform="matrix(1.0541065,0,0,0.87055183,-0.916204,-223.64659)" />
     <mask
        maskUnits="userSpaceOnUse"
        id="mask1129">
@@ -201,6 +201,59 @@
         </g>
       </g>
     </mask>
+    <mask
+       maskUnits="userSpaceOnUse"
+       id="mask1129-3">
+      <g
+         id="g1145-6"
+         transform="translate(-1.5416733,-2.3386129)">
+        <rect
+           y="267.51743"
+           x="-0.8018086"
+           height="9.5214758"
+           width="38.553631"
+           id="rect1131-7"
+           style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:#aa8800;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers" />
+        <g
+           transform="translate(0.07525963,4.2889947)"
+           id="g1137-5"
+           style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">
+          <ellipse
+             cy="268.73132"
+             cx="10.111843"
+             id="ellipse1133-3"
+             style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+             rx="2.2523122"
+             ry="2.629046" />
+          <rect
+             y="263.9899"
+             x="8.7405252"
+             height="6.5171237"
+             width="2.7426364"
+             id="rect1135-5"
+             style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal" />
+        </g>
+        <g
+           transform="translate(16.669414,4.2889947)"
+           id="g1143-6"
+           style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">
+          <ellipse
+             cy="268.73132"
+             cx="10.111843"
+             id="ellipse1139-2"
+             style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+             rx="2.2523122"
+             ry="2.629046" />
+          <rect
+             y="263.9899"
+             x="8.7405252"
+             height="6.5171237"
+             width="2.7426364"
+             id="rect1141-9"
+             style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal" />
+        </g>
+      </g>
+    </mask>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -209,11 +262,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="9.2734375"
-     inkscape:cx="56.807022"
-     inkscape:cy="64"
+     inkscape:zoom="8"
+     inkscape:cx="61.591322"
+     inkscape:cy="64.987937"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer5"
+     inkscape:current-layer="layer8"
      showgrid="false"
      units="px"
      inkscape:window-width="2512"
@@ -250,44 +303,76 @@
   </g>
   <g
      inkscape:groupmode="layer"
-     id="layer4"
-     inkscape:label="gradient"
-     style="display:inline"
-     sodipodi:insensitive="true">
-    <rect
-       style="display:inline;opacity:1;fill:url(#linearGradient1165-3);fill-opacity:1;stroke:#000000;stroke-width:1.52114;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
-       id="rect815"
-       width="30.280628"
-       height="20.917326"
-       x="1.7930192"
-       y="10.965927" />
+     id="layer6"
+     inkscape:label="bg"
+     style="display:inline">
+    <path
+       id="rect880"
+       style="display:inline;fill:#ffffff;stroke-width:7.16557"
+       d="m 1.585409,3.7099638 30.618783,-0.052171 0.725957,0.7967657 -0.0046,27.3188725 -0.528162,0.557572 L 1.1974464,32.32312 0.94904837,32.088188 0.93651797,4.3514519 Z"
+       sodipodi:nodetypes="ccccccccc" />
   </g>
   <g
-     inkscape:label="text"
+     inkscape:groupmode="layer"
+     id="layer4"
+     inkscape:label="gradient"
+     style="display:inline">
+    <rect
+       style="display:inline;opacity:1;fill:url(#linearGradient1165-3);fill-opacity:1;stroke:#000000;stroke-width:1.21634;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815"
+       width="29.469652"
+       height="13.742671"
+       x="2.1985073"
+       y="17.262745" />
+  </g>
+  <g
+     inkscape:label="text bottom"
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-263.13332)"
-     style="display:inline"
-     sodipodi:insensitive="true">
+     style="display:inline">
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.2889px;line-height:0.85;font-family:Monoid;-inkscape-font-specification:Monoid;letter-spacing:-0.111125px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
-       x="3.0023723"
-       y="283.79349"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.8167px;line-height:0.85;font-family:Monoid;-inkscape-font-specification:Monoid;letter-spacing:-0.111125px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="2.2388713"
+       y="292.59897"
        id="text859"><tspan
          sodipodi:role="line"
-         x="3.0023723"
-         y="283.79349"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:11.2889px;font-family:'Iosevka Term SS05';-inkscape-font-specification:'Iosevka Term SS05 Bold';stroke-width:0.264583"
-         id="tspan886"><tspan
-           dy="0.58999997"
-           id="tspan884"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:11.2889px;font-family:'Iosevka Term SS05';-inkscape-font-specification:'Iosevka Term SS05 Bold';stroke-width:0.264583">v2020</tspan></tspan><tspan
+         x="2.2388713"
+         y="292.59897"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14.8167px;font-family:'Iosevka Term SS05';-inkscape-font-specification:'Iosevka Term SS05 Bold';stroke-width:0.264583"
+         id="tspan953">2020</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer9"
+     inkscape:label="frame top"
+     style="display:inline">
+    <rect
+       style="display:inline;opacity:1;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect815-0"
+       width="30.546177"
+       height="13.588312"
+       x="1.6602445"
+       y="-15.922193"
+       transform="scale(1,-1)" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer8"
+     inkscape:label="text top"
+     style="display:inline">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:16.9333px;line-height:1.25;font-family:sans-serif;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none"
+       x="4.7286582"
+       y="13.507061"
+       id="text921"><tspan
          sodipodi:role="line"
-         x="3.0023723"
-         y="293.7308"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:11.2889px;font-family:'Iosevka Term SS05';-inkscape-font-specification:'Iosevka Term SS05 Bold';stroke-width:0.264583"
-         id="tspan953">.1001</tspan></text>
+         id="tspan919"
+         x="4.7286582"
+         y="13.507061"
+         style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-size:16.9333px;font-family:'Iosevka Fixed SS05';-inkscape-font-specification:'Iosevka Fixed SS05 Medium';fill:#ffffff;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none">ver</tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"
@@ -297,10 +382,17 @@
     <rect
        style="display:inline;opacity:1;fill:#000000;fill-opacity:1;stroke:#aa8800;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
        id="rect1398"
-       width="31.802925"
+       width="30.684868"
        height="0.76833469"
-       x="1.0316887"
-       y="10.203551" />
+       x="1.5910856"
+       y="16.622082" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer7"
+     inkscape:label="top frame"
+     sodipodi:insensitive="true"
+     style="display:none">
     <rect
        style="display:inline;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2.32913;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
        id="rect900"
@@ -309,27 +401,28 @@
        x="3.5457754"
        y="268.57437"
        clip-path="none"
-       mask="url(#mask1129)"
-       transform="matrix(1.0938376,0,0,0.89104584,-1.5990177,-235.29985)" />
+       mask="url(#mask1129-3)"
+       transform="matrix(1.0545213,0,0,0.89332824,-0.92322741,-236.38373)" />
   </g>
   <g
      inkscape:groupmode="layer"
      id="layer5"
      inkscape:label="pegs"
-     style="display:inline">
+     style="display:none"
+     sodipodi:insensitive="true">
     <rect
        style="display:inline;opacity:1;fill:#000000;fill-opacity:1;stroke:#aa8800;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect1400"
        width="1.5874993"
        height="5.499999"
-       x="7.0579548"
-       y="1.2687082" />
+       x="7.3927369"
+       y="1.7978847" />
     <rect
        style="display:inline;opacity:1;fill:#000000;fill-opacity:1;stroke:#aa8800;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect1400-6"
        width="1.5874993"
        height="5.499999"
-       x="25.221212"
-       y="1.39138" />
+       x="24.886431"
+       y="1.7978847" />
   </g>
 </svg>

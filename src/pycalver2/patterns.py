@@ -71,6 +71,7 @@ PATTERN_ESCAPES = [
     (")"     , "\u005c)"),
 ]
 
+# NOTE (mb 2020-09-04): These are depricated in favour of explicit patterns
 COMPOSITE_PART_PATTERNS = {
     'pep440_pycalver': r"{year}{month}\.{BID}(?:{pep440_tag})?",
     'pycalver'       : r"v{year}{month}\.{bid}(?:-{tag})?",
@@ -85,6 +86,35 @@ COMPOSITE_PART_PATTERNS = {
 
 
 PART_PATTERNS = {
+    # recommended (based on calver.org)
+    'YYYY': r"[1-9]\d{3}",
+    'YY'  : r"\d{1,2}",
+    '0Y'  : r"\d{2}",
+    'Q'   : r"[1-4]",
+    'MM'  : r"(?:[1-9]|1[0-2])",
+    '0M'  : r"(?:0[1-9]|1[0-2])",
+    'DD'  : r"([1-9]|[1-2][0-9]|3[0-1])",
+    '0D'  : r"(0[1-9]|[1-2][0-9]|3[0-1])",
+    'JJJ' : r"(?:[1-9]\d|[1-9]|[1-2]\d\d|3[0-5][0-9]|36[0-6])",
+    '00J' : r"(?:[0-2]\d\d|3[0-5][0-9]|36[0-6])",
+    'WW'  : r"(?:[1-9]|[1-4]\d|5[0-2])",
+    '0W'  : r"(?:[0-4]\d|5[0-2])",
+    'UU'  : r"(?:[1-9]|[0-4]\d|5[0-2])",
+    '0U'  : r"(?:[0-4]\d|5[0-2])",
+    'VV'  : r"(?:[1-9]|[1-4]\d|5[0-3])",
+    '0V'  : r"(?:[0-4]\d|5[0-3])",
+    'GGGG': r"[1-9]\d{3}",
+    'GG'  : r"\d{1,2}",
+    '0G'  : r"\d{2}",
+    # non calver parts
+    'MAJOR': r"\d+",
+    'MINOR': r"\d+",
+    'PATCH': r"\d+",
+    'MICRO': r"\d+",
+    'BUILD': r"\d+",
+    'TAG'  : r"(?:alpha|beta|dev|rc|post|final)",
+    'PYTAG': r"(?:a|b|dev|rc|post)?\d*",
+    # supported (but legacy)
     'year'       : r"\d{4}",
     'month'      : r"(?:0[0-9]|1[0-2])",
     'month_short': r"(?:1[0-2]|[1-9])",
@@ -100,25 +130,23 @@ PART_PATTERNS = {
     'dom_short'  : r"([1-9]|[1-2][0-9]|3[0-1])",
     'doy'        : r"(?:[0-2]\d\d|3[0-5][0-9]|36[0-6])",
     'doy_short'  : r"(?:[0-2]\d\d|3[0-5][0-9]|36[0-6])",
-    'MAJOR'      : r"\d+",
-    'MINOR'      : r"\d+",
-    'MM'         : r"\d{2,}",
-    'MMM'        : r"\d{3,}",
-    'MMMM'       : r"\d{4,}",
-    'MMMMM'      : r"\d{5,}",
-    'PATCH'      : r"\d+",
-    'PP'         : r"\d{2,}",
-    'PPP'        : r"\d{3,}",
-    'PPPP'       : r"\d{4,}",
-    'PPPPP'      : r"\d{5,}",
     'bid'        : r"\d{4,}",
-    'BID'        : r"[1-9]\d*",
-    'BB'         : r"[1-9]\d{1,}",
-    'BBB'        : r"[1-9]\d{2,}",
-    'BBBB'       : r"[1-9]\d{3,}",
-    'BBBBB'      : r"[1-9]\d{4,}",
-    'BBBBBB'     : r"[1-9]\d{5,}",
-    'BBBBBBB'    : r"[1-9]\d{6,}",
+    # dropped support (never documented)
+    # 'BID'        : r"[1-9]\d*",
+    # 'MM'         : r"\d{2,}",
+    # 'MMM'        : r"\d{3,}",
+    # 'MMMM'       : r"\d{4,}",
+    # 'MMMMM'      : r"\d{5,}",
+    # 'PP'         : r"\d{2,}",
+    # 'PPP'        : r"\d{3,}",
+    # 'PPPP'       : r"\d{4,}",
+    # 'PPPPP'      : r"\d{5,}",
+    # 'BB'         : r"[1-9]\d{1,}",
+    # 'BBB'        : r"[1-9]\d{2,}",
+    # 'BBBB'       : r"[1-9]\d{3,}",
+    # 'BBBBB'      : r"[1-9]\d{4,}",
+    # 'BBBBBB'     : r"[1-9]\d{5,}",
+    # 'BBBBBBB'    : r"[1-9]\d{6,}",
 }
 
 
@@ -130,7 +158,7 @@ FULL_PART_FORMATS = {
     'release_tag'    : "{tag}",
     'build'          : ".{bid}",
     # NOTE (mb 2019-01-04): since release is optional, it
-    # is treates specially in version.format
+    # is treated specially in version.format
     # 'release'       : "-{tag}",
     'month'      : "{month:02}",
     'month_short': "{month}",
@@ -144,36 +172,6 @@ FULL_PART_FORMATS = {
     # depricated
     'pep440_version': "{year}{month:02}.{BID}{pep440_tag}",
     'version'       : "v{year}{month:02}.{bid}{release}",
-}
-
-
-PART_FORMATS = {
-    'major'  : "[0-9]+",
-    'minor'  : "[0-9]{3,}",
-    'patch'  : "[0-9]{3,}",
-    'bid'    : "[0-9]{4,}",
-    'MAJOR'  : "[0-9]+",
-    'MINOR'  : "[0-9]+",
-    'MM'     : "[0-9]{2,}",
-    'MMM'    : "[0-9]{3,}",
-    'MMMM'   : "[0-9]{4,}",
-    'MMMMM'  : "[0-9]{5,}",
-    'MMMMMM' : "[0-9]{6,}",
-    'MMMMMMM': "[0-9]{7,}",
-    'PATCH'  : "[0-9]+",
-    'PP'     : "[0-9]{2,}",
-    'PPP'    : "[0-9]{3,}",
-    'PPPP'   : "[0-9]{4,}",
-    'PPPPP'  : "[0-9]{5,}",
-    'PPPPPP' : "[0-9]{6,}",
-    'PPPPPPP': "[0-9]{7,}",
-    'BID'    : "[1-9][0-9]*",
-    'BB'     : "[1-9][0-9]{1,}",
-    'BBB'    : "[1-9][0-9]{2,}",
-    'BBBB'   : "[1-9][0-9]{3,}",
-    'BBBBB'  : "[1-9][0-9]{4,}",
-    'BBBBBB' : "[1-9][0-9]{5,}",
-    'BBBBBBB': "[1-9][0-9]{6,}",
 }
 
 

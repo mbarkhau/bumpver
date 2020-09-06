@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # This file is part of the pycalver project
-# https://gitlab.com/mbarkhau/pycalver
+# https://github.com/mbarkhau/pycalver
 #
-# Copyright (c) 2019 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 """
 __main__ module for PyCalVer.

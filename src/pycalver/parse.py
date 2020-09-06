@@ -1,7 +1,7 @@
 # This file is part of the pycalver project
-# https://gitlab.com/mbarkhau/pycalver
+# https://github.com/mbarkhau/pycalver
 #
-# Copyright (c) 2019 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 """Parse PyCalVer strings from files."""
 
@@ -21,6 +21,8 @@ class PatternMatch(typ.NamedTuple):
 
 
 PatternMatches = typ.Iterable[PatternMatch]
+
+RegexpPatterns = typ.List[typ.Pattern[str]]
 
 
 def _iter_for_pattern(lines: typ.List[str], pattern: str) -> PatternMatches:
