@@ -14,6 +14,7 @@ import logging
 
 import pycalver2.rewrite as v2rewrite
 import pycalver2.version as v2version
+
 from pycalver import config
 
 logger = logging.getLogger("pycalver2.cli")

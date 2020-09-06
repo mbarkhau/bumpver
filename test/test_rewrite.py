@@ -3,11 +3,12 @@
 import copy
 from test import util
 
+from pycalver2 import rewrite as v2rewrite
+from pycalver2 import version as v2version
+
 from pycalver import config
 from pycalver import rewrite as v1rewrite
 from pycalver import version as v1version
-from pycalver2 import rewrite as v2rewrite
-from pycalver2 import version as v2version
 
 REWRITE_FIXTURE = """
 # SPDX-License-Identifier: MIT

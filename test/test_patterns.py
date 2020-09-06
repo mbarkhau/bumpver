@@ -1,9 +1,9 @@
 import re
 
 import pytest
+import pycalver2.patterns as v2patterns
 
 import pycalver.patterns as v1patterns
-import pycalver2.patterns as v2patterns
 
 # TODO (mb 2020-09-06): test for v2patterns
 

@@ -77,7 +77,9 @@ def iter_file_paths(
 
 
 def rewrite_lines(
-    pattern_strs: typ.List[str], new_vinfo: version.VersionInfo, old_lines: typ.List[str]
+    pattern_strs: typ.List[str],
+    new_vinfo   : version.VersionInfo,
+    old_lines   : typ.List[str],
 ) -> typ.List[str]:
     """Replace occurances of pattern_strs in old_lines with new_vinfo.
 
@@ -112,7 +114,9 @@ def rewrite_lines(
 
 
 def rfd_from_content(
-    pattern_strs: typ.List[str], new_vinfo: version.VersionInfo, content: str
+    pattern_strs: typ.List[str],
+    new_vinfo   : version.VersionInfo,
+    content     : str,
 ) -> RewrittenFileData:
     r"""Rewrite pattern occurrences with version string.
 
@@ -137,7 +141,8 @@ def rfd_from_content(
 
 
 def iter_rewritten(
-    file_patterns: config.PatternsByGlob, new_vinfo: version.VersionInfo
+    file_patterns: config.PatternsByGlob,
+    new_vinfo    : version.VersionInfo,
 ) -> typ.Iterable[RewrittenFileData]:
     r'''Iterate over files with version string replaced.
 

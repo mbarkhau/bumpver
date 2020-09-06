@@ -9,17 +9,20 @@ import io
 import typing as typ
 import logging
 
+from pycalver2 import version
+from pycalver2 import patterns
+
 from pycalver import parse
 from pycalver import config
 from pycalver import rewrite as v1rewrite
-from pycalver2 import version
-from pycalver2 import patterns
 
 logger = logging.getLogger("pycalver2.rewrite")
 
 
 def rewrite_lines(
-    pattern_strs: typ.List[str], new_vinfo: version.VersionInfo, old_lines: typ.List[str]
+    pattern_strs: typ.List[str],
+    new_vinfo   : version.VersionInfo,
+    old_lines   : typ.List[str],
 ) -> typ.List[str]:
     """TODO reenable doctest"""
     pass
@@ -38,8 +41,10 @@ def rewrite_lines(
     new_lines      = old_lines[:]
     found_patterns = set()
 
-    re_patterns = [patterns.compile_pattern(p) for p in pattern_strs]
-    for match in parse.iter_matches(old_lines, re_patterns):
+    # re_patterns = [patterns.compile_pattern(p) for p in pattern_strs]
+    # matches = parse.iter_matches(old_lines, re_patterns)
+    matches = parse.iter_matches(old_lines, pattern_strs)
+    for match in matches:
         found_patterns.add(match.pattern)
         replacement = version.format_version(new_vinfo, match.pattern)
         span_l, span_r = match.span
@@ -58,7 +63,9 @@ def rewrite_lines(
 
 
 def rfd_from_content(
-    pattern_strs: typ.List[str], new_vinfo: version.VersionInfo, content: str
+    pattern_strs: typ.List[str],
+    new_vinfo   : version.VersionInfo,
+    content     : str,
 ) -> v1rewrite.RewrittenFileData:
     """TODO reenable doctest"""
     pass
@@ -86,7 +93,8 @@ def rfd_from_content(
 
 
 def iter_rewritten(
-    file_patterns: config.PatternsByGlob, new_vinfo: version.VersionInfo
+    file_patterns: config.PatternsByGlob,
+    new_vinfo    : version.VersionInfo,
 ) -> typ.Iterable[v1rewrite.RewrittenFileData]:
     """TODO reenable doctest"""
     pass

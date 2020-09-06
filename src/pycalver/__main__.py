@@ -15,13 +15,14 @@ import logging
 import subprocess as sp
 
 import click
+import pycalver2.version as v2version
 
 import pycalver.cli as v1cli
-import pycalver2.cli as v2cli
 import pycalver.version as v1version
-import pycalver2.version as v2version
 from pycalver import vcs
 from pycalver import config
+
+# import pycalver2.cli as v2cli
 
 _VERBOSE = 0
 

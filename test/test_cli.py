@@ -8,10 +8,10 @@ import subprocess as sp
 
 import pytest
 import pathlib2 as pl
+import pycalver2.patterns as patterns
 from click.testing import CliRunner
 
 import pycalver.config as config
-import pycalver2.patterns as patterns
 from pycalver.__main__ import cli
 
 SETUP_CFG_FIXTURE = """
