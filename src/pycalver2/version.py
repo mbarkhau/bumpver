@@ -12,7 +12,8 @@ import datetime as dt
 import lexid
 import pkg_resources
 
-from . import patterns
+# import pycalver.patterns as v1patterns
+import pycalver2.patterns as v2patterns
 
 logger = logging.getLogger("pycalver.version")
 
@@ -300,7 +301,7 @@ class PatternError(Exception):
 def _parse_pattern_groups(pattern_groups: PatternGroups) -> FieldValues:
     for part_name in pattern_groups.keys():
         is_valid_part_name = (
-            part_name in patterns.COMPOSITE_PART_PATTERNS or part_name in PATTERN_PART_FIELDS
+            part_name in v2patterns.COMPOSITE_PART_PATTERNS or part_name in PATTERN_PART_FIELDS
         )
         if not is_valid_part_name:
             err_msg = f"Invalid part '{part_name}'"
@@ -361,7 +362,7 @@ def parse_version_info(version_str: str, pattern: str = "{pycalver}") -> Version
     >>> vnfo = parse_version_info("1.23.456", pattern="{semver}")
     >>> assert vnfo == _parse_version_info({'MAJOR': "1", 'MINOR': "23", 'PATCH': "456"})
     """
-    regex = patterns.compile_pattern(pattern)
+    regex = v2patterns.compile_pattern(pattern)
     match = regex.match(version_str)
     if match is None:
         err_msg = (
@@ -447,7 +448,7 @@ def _compile_format_template(pattern: str, kwargs: TemplateKwargs) -> str:
     # NOTE (mb 2020-09-04): Some parts are optional, we need the kwargs to
     #   determine if part is set to its zero value
     format_tmpl = pattern
-    for part_name, full_part_format in patterns.FULL_PART_FORMATS.items():
+    for part_name, full_part_format in v2patterns.FULL_PART_FORMATS.items():
         format_tmpl = format_tmpl.replace("{" + part_name + "}", full_part_format)
     return format_tmpl
 

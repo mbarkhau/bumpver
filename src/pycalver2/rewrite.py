@@ -9,12 +9,11 @@ import io
 import typing as typ
 import logging
 
-from pycalver2 import version
-from pycalver2 import patterns
-
 from pycalver import parse
 from pycalver import config
 from pycalver import rewrite as v1rewrite
+from pycalver2 import version
+from pycalver2 import patterns
 
 logger = logging.getLogger("pycalver2.rewrite")
 

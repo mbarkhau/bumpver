@@ -12,7 +12,7 @@ import datetime as dt
 import lexid
 import pkg_resources
 
-from . import patterns
+import pycalver.patterns as v1patterns
 
 logger = logging.getLogger("pycalver.version")
 
@@ -263,7 +263,7 @@ class PatternError(Exception):
 def _parse_pattern_groups(pattern_groups: PatternGroups) -> FieldValues:
     for part_name in pattern_groups.keys():
         is_valid_part_name = (
-            part_name in patterns.COMPOSITE_PART_PATTERNS or part_name in PATTERN_PART_FIELDS
+            part_name in v1patterns.COMPOSITE_PART_PATTERNS or part_name in PATTERN_PART_FIELDS
         )
         if not is_valid_part_name:
             err_msg = f"Invalid part '{part_name}'"
@@ -318,7 +318,7 @@ def parse_version_info(version_str: str, pattern: str = "{pycalver}") -> Version
     >>> vnfo = parse_version_info("1.23.456", pattern="{semver}")
     >>> assert vnfo == _parse_version_info({'MAJOR': "1", 'MINOR': "23", 'PATCH': "456"})
     """
-    regex = patterns.compile_pattern(pattern)
+    regex = v1patterns.compile_pattern(pattern)
     match = regex.match(version_str)
     if match is None:
         err_msg = (
@@ -414,7 +414,7 @@ def format_version(vinfo: VersionInfo, pattern: str) -> str:
     'v1.02.034'
     """
     full_pattern = pattern
-    for part_name, full_part_format in patterns.FULL_PART_FORMATS.items():
+    for part_name, full_part_format in v1patterns.FULL_PART_FORMATS.items():
         full_pattern = full_pattern.replace("{" + part_name + "}", full_part_format)
 
     kwargs: typ.Dict[str, typ.Union[str, int, None]] = vinfo._asdict()

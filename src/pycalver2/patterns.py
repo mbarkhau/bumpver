@@ -176,6 +176,8 @@ FULL_PART_FORMATS = {
 
 
 def _replace_pattern_parts(pattern: str) -> str:
+    # The pattern is escaped, so that everything besides the format
+    # string variables is treated literally.
     for part_name, part_pattern in PART_PATTERNS.items():
         named_part_pattern = f"(?P<{part_name}>{part_pattern})"
         placeholder        = "\u005c{" + part_name + "\u005c}"
