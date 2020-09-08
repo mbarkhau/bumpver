@@ -177,7 +177,18 @@ PART_FORMATS = {
 }
 
 
+class Pattern(typ.NamedTuple):
+
+    raw   : str  # "{pycalver}", "{year}.{month}", "YYYY0M.BUILD"
+    regexp: typ.Pattern[str]
+
+
+Patterns = typ.List[typ.Pattern[str]]
+
+
 def _replace_pattern_parts(pattern: str) -> str:
+    # The pattern is escaped, so that everything besides the format
+    # string variables is treated literally.
     for part_name, part_pattern in PART_PATTERNS.items():
         named_part_pattern = f"(?P<{part_name}>{part_pattern})"
         placeholder        = "\u005c{" + part_name + "\u005c}"
@@ -192,9 +203,10 @@ def compile_pattern_str(pattern: str) -> str:
     return _replace_pattern_parts(pattern)
 
 
-def compile_pattern(pattern: str) -> typ.Pattern[str]:
+def compile_pattern(pattern: str) -> Pattern:
     pattern_str = compile_pattern_str(pattern)
-    return re.compile(pattern_str)
+    pattern_re  = re.compile(pattern_str)
+    return Pattern(pattern, pattern_re)
 
 
 def _init_composite_patterns() -> None:

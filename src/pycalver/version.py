@@ -318,11 +318,12 @@ def parse_version_info(version_str: str, pattern: str = "{pycalver}") -> Version
     >>> vnfo = parse_version_info("1.23.456", pattern="{semver}")
     >>> assert vnfo == _parse_version_info({'MAJOR': "1", 'MINOR': "23", 'PATCH': "456"})
     """
-    regex = v1patterns.compile_pattern(pattern)
-    match = regex.match(version_str)
+    pattern_tup = v1patterns.compile_pattern(pattern)
+    match       = pattern_tup.regexp.match(version_str)
     if match is None:
         err_msg = (
-            f"Invalid version string '{version_str}' for pattern '{pattern}'/'{regex.pattern}'"
+            f"Invalid version string '{version_str}' "
+            f"for pattern '{pattern}'/'{pattern_tup.regexp.pattern}'"
         )
         raise PatternError(err_msg)
 

@@ -108,29 +108,27 @@ def _quarter_from_month(month: int) -> int:
 
 
 def cal_info(date: dt.date = None) -> CalendarInfo:
-    """TODO reenable doctest"""
-    pass
+    # TODO reenable doctest
+    # """Generate calendar components for current date.
 
-    """Generate calendar components for current date.
+    # >>> from datetime import date
 
-    >>> from datetime import date
+    # >>> c = cal_info(date(2019, 1, 5))
+    # >>> (c.year_y, c.quarter, c.month, c.dom, c.doy, c.iso_week, c.us_week)
+    # (2019, 1, 1, 5, 5, 0, 0)
 
-    >>> c = cal_info(date(2019, 1, 5))
-    >>> (c.year_y, c.quarter, c.month, c.dom, c.doy, c.iso_week, c.us_week)
-    (2019, 1, 1, 5, 5, 0, 0)
+    # >>> c = cal_info(date(2019, 1, 6))
+    # >>> (c.year_y, c.quarter, c.month, c.dom, c.doy, c.iso_week, c.us_week)
+    # (2019, 1, 1, 6, 6, 0, 1)
 
-    >>> c = cal_info(date(2019, 1, 6))
-    >>> (c.year_y, c.quarter, c.month, c.dom, c.doy, c.iso_week, c.us_week)
-    (2019, 1, 1, 6, 6, 0, 1)
+    # >>> c = cal_info(date(2019, 1, 7))
+    # >>> (c.year_y, c.quarter, c.month, c.dom, c.doy, c.iso_week, c.us_week)
+    # (2019, 1, 1, 7, 7, 1, 1)
 
-    >>> c = cal_info(date(2019, 1, 7))
-    >>> (c.year_y, c.quarter, c.month, c.dom, c.doy, c.iso_week, c.us_week)
-    (2019, 1, 1, 7, 7, 1, 1)
-
-    >>> c = cal_info(date(2019, 4, 7))
-    >>> (c.year_y, c.quarter, c.month, c.dom, c.doy, c.iso_week, c.us_week)
-    (2019, 2, 4, 7, 97, 13, 14)
-    """
+    # >>> c = cal_info(date(2019, 4, 7))
+    # >>> (c.year_y, c.quarter, c.month, c.dom, c.doy, c.iso_week, c.us_week)
+    # (2019, 2, 4, 7, 97, 13, 14)
+    # """
     if date is None:
         date = TODAY
 
@@ -250,22 +248,20 @@ def _parse_field_values(field_values: FieldValues) -> VersionInfo:
 
 
 def _is_calver(nfo: typ.Union[CalendarInfo, VersionInfo]) -> bool:
-    """TODO reenable doctest"""
-    pass
+    # TODO reenable doctest
+    # """Check pattern for any calendar based parts.
 
-    """Check pattern for any calendar based parts.
+    # >>> _is_calver(cal_info())
+    # True
 
-    >>> _is_calver(cal_info())
-    True
+    # >>> vnfo = _parse_version_info({'year': "2018", 'month': "11", 'bid': "0018"})
+    # >>> _is_calver(vnfo)
+    # True
 
-    >>> vnfo = _parse_version_info({'year': "2018", 'month': "11", 'bid': "0018"})
-    >>> _is_calver(vnfo)
-    True
-
-    >>> vnfo = _parse_version_info({'MAJOR': "1", 'MINOR': "023", 'PATCH': "45"})
-    >>> _is_calver(vnfo)
-    False
-    """
+    # >>> vnfo = _parse_version_info({'MAJOR': "1", 'MINOR': "023", 'PATCH': "45"})
+    # >>> _is_calver(vnfo)
+    # False
+    # """
     for field in CalendarInfo._fields:
         maybe_val: typ.Any = getattr(nfo, field, None)
         if isinstance(maybe_val, int):
@@ -325,48 +321,45 @@ def _parse_pattern_groups(pattern_groups: PatternGroups) -> FieldValues:
 
 
 def _parse_version_info(pattern_groups: PatternGroups) -> VersionInfo:
-    """TODO reenable doctest"""
-    pass
+    # TODO reenable doctest
+    # """Parse normalized VersionInfo from groups of a matched pattern.
 
-    """Parse normalized VersionInfo from groups of a matched pattern.
+    # >>> vnfo = _parse_version_info({'year': "2018", 'month': "11", 'bid': "0099"})
+    # >>> (vnfo.year_y, vnfo.month, vnfo.quarter, vnfo.bid, vnfo.tag)
+    # (2018, 11, 4, '0099', 'final')
 
-    >>> vnfo = _parse_version_info({'year': "2018", 'month': "11", 'bid': "0099"})
-    >>> (vnfo.year_y, vnfo.month, vnfo.quarter, vnfo.bid, vnfo.tag)
-    (2018, 11, 4, '0099', 'final')
+    # >>> vnfo = _parse_version_info({'year': "2018", 'doy': "11", 'bid': "099", 'tag': "b"})
+    # >>> (vnfo.year_y, vnfo.month, vnfo.dom, vnfo.bid, vnfo.tag)
+    # (2018, 1, 11, '099', 'beta')
 
-    >>> vnfo = _parse_version_info({'year': "2018", 'doy': "11", 'bid': "099", 'tag': "b"})
-    >>> (vnfo.year_y, vnfo.month, vnfo.dom, vnfo.bid, vnfo.tag)
-    (2018, 1, 11, '099', 'beta')
+    # >>> vnfo = _parse_version_info({'MAJOR': "1", 'MINOR': "23", 'PATCH': "45"})
+    # >>> (vnfo.major, vnfo.minor, vnfo.patch)
+    # (1, 23, 45)
 
-    >>> vnfo = _parse_version_info({'MAJOR': "1", 'MINOR': "23", 'PATCH': "45"})
-    >>> (vnfo.major, vnfo.minor, vnfo.patch)
-    (1, 23, 45)
-
-    >>> vnfo = _parse_version_info({'MAJOR': "1", 'MMM': "023", 'PPPP': "0045"})
-    >>> (vnfo.major, vnfo.minor, vnfo.patch)
-    (1, 23, 45)
-    """
+    # >>> vnfo = _parse_version_info({'MAJOR': "1", 'MMM': "023", 'PPPP': "0045"})
+    # >>> (vnfo.major, vnfo.minor, vnfo.patch)
+    # (1, 23, 45)
+    # """
     field_values = _parse_pattern_groups(pattern_groups)
     return _parse_field_values(field_values)
 
 
 def parse_version_info(version_str: str, pattern: str = "{pycalver}") -> VersionInfo:
-    """TODO reenable doctest"""
-    pass
+    # TODO reenable doctest
+    # """Parse normalized VersionInfo.
 
-    """Parse normalized VersionInfo.
+    # >>> vnfo = parse_version_info("v201712.0033-beta", pattern="{pycalver}")
+    # >>> assert vnfo == _parse_version_info({'year': 2017, 'month': 12, 'bid': "0033", 'tag': "beta"})
 
-    >>> vnfo = parse_version_info("v201712.0033-beta", pattern="{pycalver}")
-    >>> assert vnfo == _parse_version_info({'year': 2017, 'month': 12, 'bid': "0033", 'tag': "beta"})
-
-    >>> vnfo = parse_version_info("1.23.456", pattern="{semver}")
-    >>> assert vnfo == _parse_version_info({'MAJOR': "1", 'MINOR': "23", 'PATCH': "456"})
-    """
-    regex = v2patterns.compile_pattern(pattern)
-    match = regex.match(version_str)
+    # >>> vnfo = parse_version_info("1.23.456", pattern="{semver}")
+    # >>> assert vnfo == _parse_version_info({'MAJOR': "1", 'MINOR': "23", 'PATCH': "456"})
+    # """
+    pattern_tup = v2patterns.compile_pattern(pattern)
+    match       = pattern_tup.regexp.match(version_str)
     if match is None:
         err_msg = (
-            f"Invalid version string '{version_str}' for pattern '{pattern}'/'{regex.pattern}'"
+            f"Invalid version string '{version_str}' "
+            f"for pattern '{pattern}'/'{pattern_tup.regexp.pattern}'"
         )
         raise PatternError(err_msg)
 
@@ -374,20 +367,18 @@ def parse_version_info(version_str: str, pattern: str = "{pycalver}") -> Version
 
 
 def is_valid(version_str: str, pattern: str = "{pycalver}") -> bool:
-    """TODO reenable doctest"""
-    pass
+    # TODO reenable doctest
+    # """Check if a version matches a pattern.
 
-    """Check if a version matches a pattern.
-
-    >>> is_valid("v201712.0033-beta", pattern="{pycalver}")
-    True
-    >>> is_valid("v201712.0033-beta", pattern="{semver}")
-    False
-    >>> is_valid("1.2.3", pattern="{semver}")
-    True
-    >>> is_valid("v201712.0033-beta", pattern="{semver}")
-    False
-    """
+    # >>> is_valid("v201712.0033-beta", pattern="{pycalver}")
+    # True
+    # >>> is_valid("v201712.0033-beta", pattern="{semver}")
+    # False
+    # >>> is_valid("1.2.3", pattern="{semver}")
+    # True
+    # >>> is_valid("v201712.0033-beta", pattern="{semver}")
+    # False
+    # """
     try:
         parse_version_info(version_str, pattern)
         return True
@@ -454,77 +445,75 @@ def _compile_format_template(pattern: str, kwargs: TemplateKwargs) -> str:
 
 
 def format_version(vinfo: VersionInfo, pattern: str) -> str:
-    """TODO reenable doctest"""
-    pass
+    # TODO reenable doctest
+    # """Generate version string.
 
-    """Generate version string.
+    # >>> import datetime as dt
+    # >>> vinfo = parse_version_info("v201712.0033-beta", pattern="{pycalver}")
+    # >>> vinfo_a = vinfo._replace(**cal_info(date=dt.date(2017, 1, 1))._asdict())
+    # >>> vinfo_b = vinfo._replace(**cal_info(date=dt.date(2017, 12, 31))._asdict())
 
-    >>> import datetime as dt
-    >>> vinfo = parse_version_info("v201712.0033-beta", pattern="{pycalver}")
-    >>> vinfo_a = vinfo._replace(**cal_info(date=dt.date(2017, 1, 1))._asdict())
-    >>> vinfo_b = vinfo._replace(**cal_info(date=dt.date(2017, 12, 31))._asdict())
+    # >>> format_version(vinfo_a, pattern="v{yy}.{BID}{release}")
+    # 'v17.33-beta'
+    # >>> format_version(vinfo_a, pattern="vYY.BUILD[-TAG]")
+    # 'v17.33-beta'
+    # >>> format_version(vinfo_a, pattern="YYYY0M.BUILD[PYTAG]")
+    # '201701.33b0'
 
-    >>> format_version(vinfo_a, pattern="v{yy}.{BID}{release}")
-    'v17.33-beta'
-    >>> format_version(vinfo_a, pattern="vYY.BUILD[-TAG]")
-    'v17.33-beta'
-    >>> format_version(vinfo_a, pattern="YYYY0M.BUILD[PYTAG]")
-    '201701.33b0'
+    # >>> format_version(vinfo_a, pattern="{pycalver}")
+    # 'v201701.0033-beta'
+    # >>> format_version(vinfo_b, pattern="{pycalver}")
+    # 'v201712.0033-beta'
 
-    >>> format_version(vinfo_a, pattern="{pycalver}")
-    'v201701.0033-beta'
-    >>> format_version(vinfo_b, pattern="{pycalver}")
-    'v201712.0033-beta'
+    # >>> format_version(vinfo_a, pattern="v{year}w{iso_week}.{BID}{release}")
+    # 'v2017w00.33-beta'
+    # >>> format_version(vinfo_a, pattern="vYYYYwWW.BUILD[-TAG]")
+    # 'v2017w00.33-beta'
+    # >>> format_version(vinfo_b, pattern="v{year}w{iso_week}.{BID}{release}")
+    # 'v2017w52.33-beta'
+    # >>> format_version(vinfo_b, pattern="vYYYYwWW.BUILD[-TAG]")
+    # 'v2017w52.33-beta'
 
-    >>> format_version(vinfo_a, pattern="v{year}w{iso_week}.{BID}{release}")
-    'v2017w00.33-beta'
-    >>> format_version(vinfo_a, pattern="vYYYYwWW.BUILD[-TAG]")
-    'v2017w00.33-beta'
-    >>> format_version(vinfo_b, pattern="v{year}w{iso_week}.{BID}{release}")
-    'v2017w52.33-beta'
-    >>> format_version(vinfo_b, pattern="vYYYYwWW.BUILD[-TAG]")
-    'v2017w52.33-beta'
+    # >>> format_version(vinfo_a, pattern="v{year}d{doy}.{bid}{release}")
+    # 'v2017d001.0033-beta'
+    # >>> format_version(vinfo_b, pattern="v{year}d{doy}.{bid}{release}")
+    # 'v2017d365.0033-beta'
+    # >>> format_version(vinfo_a, pattern="vYYYYdJJJ.BUILD[-TAG]")
+    # 'v2017d001.0033-beta'
+    # >>> format_version(vinfo_b, pattern="vYYYYdJJJ.BUILD[-TAG]")
+    # 'v2017d365.0033-beta'
 
-    >>> format_version(vinfo_a, pattern="v{year}d{doy}.{bid}{release}")
-    'v2017d001.0033-beta'
-    >>> format_version(vinfo_b, pattern="v{year}d{doy}.{bid}{release}")
-    'v2017d365.0033-beta'
-    >>> format_version(vinfo_a, pattern="vYYYYdJJJ.BUILD[-TAG]")
-    'v2017d001.0033-beta'
-    >>> format_version(vinfo_b, pattern="vYYYYdJJJ.BUILD[-TAG]")
-    'v2017d365.0033-beta'
+    # >>> format_version(vinfo_a, pattern="vGGGGwVV.BUILD[-TAG]")
+    # 'v2016w52.0033-beta'
 
-    >>> format_version(vinfo_a, pattern="vGGGGwVV.BUILD[-TAG]")
-    'v2016w52.0033-beta'
+    # >>> vinfo_c = vinfo_b._replace(major=1, minor=2, patch=34, tag='final')
 
-    >>> vinfo_c = vinfo_b._replace(major=1, minor=2, patch=34, tag='final')
+    # >>> format_version(vinfo_c, pattern="v{year}w{iso_week}.{BID}-{tag}")
+    # 'v2017w52.33-final'
+    # >>> format_version(vinfo_c, pattern="v{year}w{iso_week}.{BID}{release}")
+    # 'v2017w52.33'
+    # >>> format_version(vinfo_c, pattern="vYYYYwWW.BUILD-TAG")
+    # 'v2017w52.33-final'
+    # >>> format_version(vinfo_c, pattern="vYYYYwWW.BUILD[-TAG]")
+    # 'v2017w52.33'
 
-    >>> format_version(vinfo_c, pattern="v{year}w{iso_week}.{BID}-{tag}")
-    'v2017w52.33-final'
-    >>> format_version(vinfo_c, pattern="v{year}w{iso_week}.{BID}{release}")
-    'v2017w52.33'
-    >>> format_version(vinfo_c, pattern="vYYYYwWW.BUILD-TAG")
-    'v2017w52.33-final'
-    >>> format_version(vinfo_c, pattern="vYYYYwWW.BUILD[-TAG]")
-    'v2017w52.33'
+    # >>> format_version(vinfo_c, pattern="v{MAJOR}.{MINOR}.{PATCH}")
+    # 'v1.2.34'
+    # >>> format_version(vinfo_c, pattern="vMAJOR.MINOR.PATCH")
+    # 'v1.2.34'
 
-    >>> format_version(vinfo_c, pattern="v{MAJOR}.{MINOR}.{PATCH}")
-    'v1.2.34'
-    >>> format_version(vinfo_c, pattern="vMAJOR.MINOR.PATCH")
-    'v1.2.34'
-
-    >>> vinfo_d = vinfo_b._replace(major=1, minor=0, patch=0, tag='final')
-    >>> format_version(vinfo_d, pattern="vMAJOR.MINOR.PATCH-TAG")
-    'v1.0.0-final'
-    >>> format_version(vinfo_d, pattern="vMAJOR.MINOR.PATCH[-TAG]")
-    'v1.0.0'
-    >>> format_version(vinfo_d, pattern="vMAJOR.MINOR[.PATCH[-TAG]]")
-    'v1.0'
-    >>> format_version(vinfo_d, pattern="vMAJOR.MINOR[.MICRO[-TAG]]")
-    'v1.0'
-    >>> format_version(vinfo_d, pattern="vMAJOR[.MINOR[.PATCH[-TAG]]]")
-    'v1'
-    """
+    # >>> vinfo_d = vinfo_b._replace(major=1, minor=0, patch=0, tag='final')
+    # >>> format_version(vinfo_d, pattern="vMAJOR.MINOR.PATCH-TAG")
+    # 'v1.0.0-final'
+    # >>> format_version(vinfo_d, pattern="vMAJOR.MINOR.PATCH[-TAG]")
+    # 'v1.0.0'
+    # >>> format_version(vinfo_d, pattern="vMAJOR.MINOR[.PATCH[-TAG]]")
+    # 'v1.0'
+    # >>> format_version(vinfo_d, pattern="vMAJOR.MINOR[.MICRO[-TAG]]")
+    # 'v1.0'
+    # >>> format_version(vinfo_d, pattern="vMAJOR[.MINOR[.PATCH[-TAG]]]")
+    # 'v1'
+    # """
     kwargs      = _derive_template_kwargs(vinfo)
     format_tmpl = _compile_format_template(pattern, kwargs)
 

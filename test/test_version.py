@@ -136,15 +136,18 @@ def test_part_field_mapping():
     b_names = set(patterns.PART_PATTERNS.keys())
     c_names = set(patterns.COMPOSITE_PART_PATTERNS.keys())
 
-    extra_names = a_names - b_names
-    assert not any(extra_names)
-    missing_names = b_names - a_names
-    assert missing_names == c_names
+    a_extra_names = a_names - b_names
+    assert not any(a_extra_names), sorted(a_extra_names)
+    b_extra_names = b_names - (a_names | c_names)
+    assert not any(b_extra_names), sorted(b_extra_names)
 
     a_fields = set(version.PATTERN_PART_FIELDS.values())
     b_fields = set(version.VersionInfo._fields)
 
-    assert a_fields == b_fields
+    a_extra_fields = a_fields - b_fields
+    b_extra_fields = b_fields - a_fields
+    assert not any(a_extra_fields), sorted(a_extra_fields)
+    assert not any(b_extra_fields), sorted(b_extra_fields)
 
 
 def vnfo(**field_values):
@@ -152,6 +155,8 @@ def vnfo(**field_values):
 
 
 PARSE_VERSION_TEST_CASES = [
+    # TODO (mb 2020-09-06): add tests for new style patterns
+    # ["YYYY.MM.DD"                      , "2017.06.07", vnfo(year="2017", month="06", dom="07")],
     ["{year}.{month}.{dom}"            , "2017.06.07", vnfo(year="2017", month="06", dom="07")],
     ["{year}.{month}.{dom_short}"      , "2017.06.7" , vnfo(year="2017", month="06", dom="7" )],
     ["{year}.{month}.{dom_short}"      , "2017.06.7" , vnfo(year="2017", month="06", dom="7" )],
@@ -169,8 +174,8 @@ PARSE_VERSION_TEST_CASES = [
 
 @pytest.mark.parametrize("pattern_str, line, expected_vinfo", PARSE_VERSION_TEST_CASES)
 def test_parse_versions(pattern_str, line, expected_vinfo):
-    pattern_re    = patterns.compile_pattern(pattern_str)
-    version_match = pattern_re.search(line)
+    pattern       = patterns.compile_pattern(pattern_str)
+    version_match = pattern.regexp.search(line)
 
     if expected_vinfo is None:
         assert version_match is None

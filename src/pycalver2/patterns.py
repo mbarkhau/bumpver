@@ -33,6 +33,8 @@
 import re
 import typing as typ
 
+import pycalver.patterns as v1patterns
+
 # https://regex101.com/r/fnj60p/10
 PYCALVER_PATTERN = r"""
 \b
@@ -192,9 +194,10 @@ def compile_pattern_str(pattern: str) -> str:
     return _replace_pattern_parts(pattern)
 
 
-def compile_pattern(pattern: str) -> typ.Pattern[str]:
+def compile_pattern(pattern: str) -> v1patterns.Pattern:
     pattern_str = compile_pattern_str(pattern)
-    return re.compile(pattern_str)
+    pattern_re  = re.compile(pattern_str)
+    return v1patterns.Pattern(pattern, pattern_re)
 
 
 def _init_composite_patterns() -> None:

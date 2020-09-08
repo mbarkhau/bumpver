@@ -7,7 +7,7 @@
 
 import typing as typ
 
-from .patterns import compile_pattern
+import pycalver.patterns as v1patterns
 
 
 class PatternMatch(typ.NamedTuple):
@@ -15,37 +15,33 @@ class PatternMatch(typ.NamedTuple):
 
     lineno : int  # zero based
     line   : str
-    pattern: str
+    pattern: v1patterns.Pattern
     span   : typ.Tuple[int, int]
     match  : str
 
 
 PatternMatches = typ.Iterable[PatternMatch]
 
-RegexpPatterns = typ.List[typ.Pattern[str]]
 
-
-def _iter_for_pattern(lines: typ.List[str], pattern: str) -> PatternMatches:
-    # The pattern is escaped, so that everything besides the format
-    # string variables is treated literally.
-    pattern_re = compile_pattern(pattern)
-
+def _iter_for_pattern(lines: typ.List[str], pattern: v1patterns.Pattern) -> PatternMatches:
     for lineno, line in enumerate(lines):
-        match = pattern_re.search(line)
+        match = pattern.regexp.search(line)
         if match:
             yield PatternMatch(lineno, line, pattern, match.span(), match.group(0))
 
 
-def iter_matches(lines: typ.List[str], patterns: typ.List[str]) -> PatternMatches:
+def iter_matches(lines: typ.List[str], patterns: typ.List[v1patterns.Pattern]) -> PatternMatches:
     """Iterate over all matches of any pattern on any line.
 
+    >>> import pycalver.patterns as v1patterns
     >>> lines = ["__version__ = 'v201712.0002-alpha'"]
     >>> patterns = ["{pycalver}", "{pep440_pycalver}"]
+    >>> patterns = [v1patterns.compile_pattern(p) for p in patterns]
     >>> matches = list(iter_matches(lines, patterns))
     >>> assert matches[0] == PatternMatch(
     ...     lineno = 0,
     ...     line   = "__version__ = 'v201712.0002-alpha'",
-    ...     pattern= "{pycalver}",
+    ...     pattern= v1patterns.compile_pattern("{pycalver}"),
     ...     span   = (15, 33),
     ...     match  = "v201712.0002-alpha",
     ... )

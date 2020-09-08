@@ -67,8 +67,8 @@ PATTERN_CASES = [
 
 @pytest.mark.parametrize("pattern_str, line, expected", PATTERN_CASES)
 def test_patterns(pattern_str, line, expected):
-    pattern_re = v1patterns.compile_pattern(pattern_str)
-    result     = pattern_re.search(line)
+    pattern = v1patterns.compile_pattern(pattern_str)
+    result  = pattern.regexp.search(line)
     if result is None:
         assert expected is None, (pattern_str, line)
     else:
@@ -84,10 +84,10 @@ CLI_MAIN_FIXTURE = """
 
 
 def test_pattern_escapes():
-    pattern    = 'click.version_option(version="{pycalver}")'
-    pattern_re = v1patterns.compile_pattern(pattern)
-    match      = pattern_re.search(CLI_MAIN_FIXTURE)
-    expected   = 'click.version_option(version="v201812.0123-beta")'
+    pattern_str = 'click.version_option(version="{pycalver}")'
+    pattern     = v1patterns.compile_pattern(pattern_str)
+    match       = pattern.regexp.search(CLI_MAIN_FIXTURE)
+    expected    = 'click.version_option(version="v201812.0123-beta")'
     assert match.group(0) == expected
 
 
@@ -97,8 +97,8 @@ package_metadata = {"name": "mypackage", "version": "v201812.0123-beta"}
 
 
 def test_curly_escapes():
-    pattern    = 'package_metadata = {"name": "mypackage", "version": "{pycalver}"}'
-    pattern_re = v1patterns.compile_pattern(pattern)
-    match      = pattern_re.search(CURLY_BRACE_FIXTURE)
-    expected   = 'package_metadata = {"name": "mypackage", "version": "v201812.0123-beta"}'
+    pattern_str = 'package_metadata = {"name": "mypackage", "version": "{pycalver}"}'
+    pattern     = v1patterns.compile_pattern(pattern_str)
+    match       = pattern.regexp.search(CURLY_BRACE_FIXTURE)
+    expected    = 'package_metadata = {"name": "mypackage", "version": "v201812.0123-beta"}'
     assert match.group(0) == expected

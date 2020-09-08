@@ -94,9 +94,11 @@ def rewrite_lines(
     new_lines      = old_lines[:]
     found_patterns = set()
 
-    for match in parse.iter_matches(old_lines, pattern_strs):
-        found_patterns.add(match.pattern)
-        replacement = v1version.format_version(new_vinfo, match.pattern)
+    patterns = [v1patterns.compile_pattern(p) for p in pattern_strs]
+    matches  = parse.iter_matches(old_lines, patterns)
+    for match in matches:
+        found_patterns.add(match.pattern.raw)
+        replacement = v1version.format_version(new_vinfo, match.pattern.raw)
         span_l, span_r = match.span
         new_line = match.line[:span_l] + replacement + match.line[span_r:]
         new_lines[match.lineno] = new_line
