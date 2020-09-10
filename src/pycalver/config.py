@@ -11,7 +11,6 @@ import logging
 import datetime as dt
 import configparser
 
-import six
 import toml
 import pathlib2 as pl
 
@@ -168,7 +167,7 @@ def _parse_cfg(cfg_buffer: typ.IO[str]) -> RawConfig:
 
     for option, default_val in BOOL_OPTIONS.items():
         val: OptionVal = raw_cfg.get(option, default_val)
-        if isinstance(val, six.text_type):
+        if isinstance(val, (bytes, str)):
             val = val.lower() in ("yes", "true", "1", "on")
         raw_cfg[option] = val
 

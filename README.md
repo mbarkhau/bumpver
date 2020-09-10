@@ -77,7 +77,7 @@ The fastest way to setup a project is to use `pycalver init`.
 ```shell
 $ pip install pycalver
 ...
-Installing collected packages: click pathlib2 typing toml six pycalver
+Installing collected packages: click pathlib2 typing toml pycalver
 Successfully installed pycalver-202007.36
 
 $ pycalver --version

@@ -11,5 +11,4 @@ pathlib2
 typing; python_version < "3.5"
 click
 toml
-six
 lexid
