@@ -245,8 +245,8 @@ def _parse_pattern_groups(pattern_groups: PatternGroups) -> FieldValues:
     if any(duplicate_fields):
         err_msg = f"Multiple parts for same field {duplicate_fields}."
         raise PatternError(err_msg)
-
-    return dict(field_value_items)
+    else:
+        return dict(field_value_items)
 
 
 def _parse_version_info(pattern_groups: PatternGroups) -> VersionInfo:
@@ -289,8 +289,8 @@ def parse_version_info(version_str: str, pattern: str = "{pycalver}") -> Version
             f"for pattern '{pattern}'/'{pattern_tup.regexp.pattern}'"
         )
         raise PatternError(err_msg)
-
-    return _parse_version_info(match.groupdict())
+    else:
+        return _parse_version_info(match.groupdict())
 
 
 def is_valid(version_str: str, pattern: str = "{pycalver}") -> bool:
