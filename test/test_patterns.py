@@ -129,8 +129,25 @@ V2_PART_PATTERN_CASES = [
     (['0V'], "53", "53"),
     (['0V'], "54", None),
     (['MAJOR', 'MINOR', 'PATCH', 'MICRO'], "0", "0"),
-    # ('TAG', ""),
-    # ('PYTAG', ""),
+    (['TAG'  ], "alpha" , "alpha"),
+    (['TAG'  ], "alfa"  , None),
+    (['TAG'  ], "beta"  , "beta"),
+    (['TAG'  ], "dev"   , "dev"),
+    (['TAG'  ], "rc"    , "rc"),
+    (['TAG'  ], "post"  , "post"),
+    (['TAG'  ], "final" , "final"),
+    (['TAG'  ], "latest", None),
+    (['PYTAG'], "a"     , "a"),
+    (['PYTAG'], "b"     , "b"),
+    (['PYTAG'], "dev"   , "dev"),
+    (['PYTAG'], "rc"    , "rc"),
+    (['PYTAG'], "post"  , "post"),
+    (['PYTAG'], "post"  , "post"),
+    (['PYTAG'], "x"     , None),
+    (['NUM'  ], "a"     , None),
+    (['NUM'  ], "0"     , "0"),
+    (['NUM'  ], "1"     , "1"),
+    (['NUM'  ], "10"    , "10"),
 ]
 
 
@@ -191,16 +208,16 @@ def test_re_pattern_parts(part_name, line, expected):
         assert result_val == expected, (part_name, line)
 
 
-PATTERN_CASES = [
+PATTERN_V1_CASES = [
     (r"v{year}.{month}.{MINOR}"      , "v2017.11.1" , "v2017.11.1"),
     (r"v{year}.{month}.{MINOR}"      , "v2017.07.12", "v2017.07.12"),
-    (r"v{year}.{month_short}.{MINOR}", "v2017.11.1" , "v2017.11.1"),
-    (r"v{year}.{month_short}.{MINOR}", "v2017.7.12" , "v2017.7.12"),
+    (r"v{year}.{month_short}.{PATCH}", "v2017.11.1" , "v2017.11.1"),
+    (r"v{year}.{month_short}.{PATCH}", "v2017.7.12" , "v2017.7.12"),
 ]
 
 
-@pytest.mark.parametrize("pattern_str, line, expected", PATTERN_CASES)
-def test_patterns(pattern_str, line, expected):
+@pytest.mark.parametrize("pattern_str, line, expected", PATTERN_V1_CASES)
+def test_patterns_v1(pattern_str, line, expected):
     pattern = v1patterns.compile_pattern(pattern_str)
     result  = pattern.regexp.search(line)
     if result is None:
@@ -208,6 +225,24 @@ def test_patterns(pattern_str, line, expected):
     else:
         result_val = result.group(0)
         assert result_val == expected, (pattern_str, line)
+
+
+PATTERN_V2_CASES = [
+    ("vYYYY.0M.MINOR" , "v2017.11.1" , "v2017.11.1"),
+    ("vYYYY.0M.MINOR" , "v2017.07.12", "v2017.07.12"),
+    ("YYYY.MM[.PATCH]", "2017.11.1"  , "2017.11.1"),
+    ("YYYY.MM[.PATCH]", "2017.7.12"  , "2017.7.12"),
+    ("YYYY.MM[.PATCH]", "2017.7"     , "2017.7"),
+    ("YYYY0M.BUILD"   , "201707.1000", "201707.1000"),
+]
+
+
+@pytest.mark.parametrize("pattern_str, line, expected", PATTERN_V2_CASES)
+def test_patterns_v2(pattern_str, line, expected):
+    pattern    = v2patterns.compile_pattern(pattern_str)
+    result     = pattern.regexp.search(line)
+    result_val = None if result is None else result.group(0)
+    assert result_val == expected, (pattern_str, line, pattern.regexp.pattern)
 
 
 CLI_MAIN_FIXTURE = """
