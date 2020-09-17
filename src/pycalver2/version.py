@@ -486,7 +486,12 @@ def incr(
     else:
         logger.warning(f"Version appears to be from the future '{old_version}'")
 
-    cur_vinfo = cur_vinfo._replace(bid=lexid.incr(cur_vinfo.bid))
+    _bid = cur_vinfo.bid
+    if int(_bid) < 1000:
+        # prevent truncation of leading zeros
+        _bid = str(int(_bid) + 1000)
+
+    cur_vinfo = cur_vinfo._replace(bid=lexid.incr(_bid))
 
     if major:
         cur_vinfo = cur_vinfo._replace(major=cur_vinfo.major + 1, minor=0, patch=0)
