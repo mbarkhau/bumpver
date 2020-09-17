@@ -1,5 +1,8 @@
-# pylint:disable=redefined-outer-name ; pytest fixtures
-# pylint:disable=protected-access ; allowed for test code
+# -*- coding: utf-8 -*-
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import time
@@ -13,6 +16,10 @@ from click.testing import CliRunner
 import pycalver.config as config
 import pycalver.patterns as v1patterns
 from pycalver.__main__ import cli
+
+# pylint:disable=redefined-outer-name ; pytest fixtures
+# pylint:disable=protected-access ; allowed for test code
+
 
 SETUP_CFG_FIXTURE = """
 [metadata]

@@ -1,4 +1,8 @@
-# pylint:disable=protected-access ; allowed for test code
+# -*- coding: utf-8 -*-
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import copy
 from test import util
@@ -8,6 +12,9 @@ from pycalver import rewrite as v1rewrite
 from pycalver import version as v1version
 from pycalver2 import rewrite as v2rewrite
 from pycalver2 import version as v2version
+
+# pylint:disable=protected-access ; allowed for test code
+
 
 REWRITE_FIXTURE = """
 # SPDX-License-Identifier: MIT

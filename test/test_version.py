@@ -1,4 +1,8 @@
-# pylint:disable=protected-access ; allowed for test code
+# -*- coding: utf-8 -*-
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import random
 import datetime as dt
@@ -9,6 +13,8 @@ import pycalver.version as v1version
 import pycalver2.version as v2version
 import pycalver.patterns as v1patterns
 import pycalver2.patterns as v2patterns
+
+# pylint:disable=protected-access ; allowed for test code
 
 
 def test_bump_beta():
