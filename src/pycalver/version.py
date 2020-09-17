@@ -21,44 +21,6 @@ logger = logging.getLogger("pycalver.version")
 TODAY = dt.datetime.utcnow().date()
 
 
-PATTERN_PART_FIELDS = {
-    'year'       : 'year',
-    'month'      : 'month',
-    'month_short': 'month',
-    'pep440_tag' : 'tag',
-    'tag'        : 'tag',
-    'yy'         : 'year',
-    'yyyy'       : 'year',
-    'quarter'    : 'quarter',
-    'iso_week'   : 'iso_week',
-    'us_week'    : 'us_week',
-    'dom'        : 'dom',
-    'doy'        : 'doy',
-    'dom_short'  : 'dom',
-    'doy_short'  : 'doy',
-    'MAJOR'      : 'major',
-    'MINOR'      : 'minor',
-    'MM'         : 'minor',
-    'MMM'        : 'minor',
-    'MMMM'       : 'minor',
-    'MMMMM'      : 'minor',
-    'PP'         : 'patch',
-    'PPP'        : 'patch',
-    'PPPP'       : 'patch',
-    'PPPPP'      : 'patch',
-    'PATCH'      : 'patch',
-    'build_no'   : 'bid',
-    'bid'        : 'bid',
-    'BID'        : 'bid',
-    'BB'         : 'bid',
-    'BBB'        : 'bid',
-    'BBBB'       : 'bid',
-    'BBBBB'      : 'bid',
-    'BBBBBB'     : 'bid',
-    'BBBBBBB'    : 'bid',
-}
-
-
 class CalendarInfo(typ.NamedTuple):
     """Container for calendar components of version strings."""
 
@@ -263,7 +225,8 @@ class PatternError(Exception):
 def _parse_pattern_groups(pattern_groups: PatternGroups) -> FieldValues:
     for part_name in pattern_groups.keys():
         is_valid_part_name = (
-            part_name in v1patterns.COMPOSITE_PART_PATTERNS or part_name in PATTERN_PART_FIELDS
+            part_name    in v1patterns.COMPOSITE_PART_PATTERNS
+            or part_name in v1patterns.PATTERN_PART_FIELDS
         )
         if not is_valid_part_name:
             err_msg = f"Invalid part '{part_name}'"
@@ -271,7 +234,7 @@ def _parse_pattern_groups(pattern_groups: PatternGroups) -> FieldValues:
 
     field_value_items = [
         (field_name, pattern_groups[part_name])
-        for part_name, field_name in PATTERN_PART_FIELDS.items()
+        for part_name, field_name in v1patterns.PATTERN_PART_FIELDS.items()
         if part_name in pattern_groups.keys()
     ]
 

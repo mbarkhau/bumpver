@@ -122,6 +122,44 @@ PART_PATTERNS = {
 }
 
 
+PATTERN_PART_FIELDS = {
+    'year'       : 'year',
+    'month'      : 'month',
+    'month_short': 'month',
+    'pep440_tag' : 'tag',
+    'tag'        : 'tag',
+    'yy'         : 'year',
+    'yyyy'       : 'year',
+    'quarter'    : 'quarter',
+    'iso_week'   : 'iso_week',
+    'us_week'    : 'us_week',
+    'dom'        : 'dom',
+    'doy'        : 'doy',
+    'dom_short'  : 'dom',
+    'doy_short'  : 'doy',
+    'MAJOR'      : 'major',
+    'MINOR'      : 'minor',
+    'MM'         : 'minor',
+    'MMM'        : 'minor',
+    'MMMM'       : 'minor',
+    'MMMMM'      : 'minor',
+    'PP'         : 'patch',
+    'PPP'        : 'patch',
+    'PPPP'       : 'patch',
+    'PPPPP'      : 'patch',
+    'PATCH'      : 'patch',
+    'build_no'   : 'bid',
+    'bid'        : 'bid',
+    'BID'        : 'bid',
+    'BB'         : 'bid',
+    'BBB'        : 'bid',
+    'BBBB'       : 'bid',
+    'BBBBB'      : 'bid',
+    'BBBBBB'     : 'bid',
+    'BBBBBBB'    : 'bid',
+}
+
+
 FULL_PART_FORMATS = {
     'pep440_pycalver': "{year}{month:02}.{BID}{pep440_tag}",
     'pycalver'       : "v{year}{month:02}.{bid}{release}",

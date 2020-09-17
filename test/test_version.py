@@ -10,9 +10,10 @@ import datetime as dt
 import pytest
 
 import pycalver.version as v1version
-import pycalver2.version as v2version
 import pycalver.patterns as v1patterns
-import pycalver2.patterns as v2patterns
+
+# import pycalver2.version as v2version
+# import pycalver2.patterns as v2patterns
 
 # pylint:disable=protected-access ; allowed for test code
 
@@ -140,7 +141,7 @@ def test_parse_error_nopadding():
 
 
 def test_part_field_mapping_v1():
-    a_names = set(v1version.PATTERN_PART_FIELDS.keys())
+    a_names = set(v1patterns.PATTERN_PART_FIELDS.keys())
     b_names = set(v1patterns.PART_PATTERNS.keys())
     c_names = set(v1patterns.COMPOSITE_PART_PATTERNS.keys())
 
@@ -149,23 +150,13 @@ def test_part_field_mapping_v1():
     b_extra_names = b_names - (a_names | c_names)
     assert not any(b_extra_names), sorted(b_extra_names)
 
-    a_fields = set(v1version.PATTERN_PART_FIELDS.values())
+    a_fields = set(v1patterns.PATTERN_PART_FIELDS.values())
     b_fields = set(v1version.VersionInfo._fields)
 
     a_extra_fields = a_fields - b_fields
     b_extra_fields = b_fields - a_fields
     assert not any(a_extra_fields), sorted(a_extra_fields)
     assert not any(b_extra_fields), sorted(b_extra_fields)
-
-
-def test_part_field_mapping_v2():
-    a_names = set(v2version.PATTERN_PART_FIELDS.keys())
-    b_names = set(v2patterns.PART_PATTERNS.keys())
-
-    a_extra_names = a_names - b_names
-    assert not any(a_extra_names), sorted(a_extra_names)
-    b_extra_names = b_names - a_names
-    assert not any(b_extra_names), sorted(b_extra_names)
 
 
 def vnfo(**field_values):

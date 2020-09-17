@@ -22,35 +22,6 @@ logger = logging.getLogger("pycalver.version")
 TODAY = dt.datetime.utcnow().date()
 
 
-PATTERN_PART_FIELDS = {
-    'YYYY' : 'year_y',
-    'YY'   : 'year_y',
-    '0Y'   : 'year_y',
-    'Q'    : 'quarter',
-    'MM'   : 'month',
-    '0M'   : 'month',
-    'DD'   : 'dom',
-    '0D'   : 'dom',
-    'JJJ'  : 'doy',
-    '00J'  : 'doy',
-    'MAJOR': 'major',
-    'MINOR': 'minor',
-    'PATCH': 'patch',
-    'MICRO': 'patch',
-    'BUILD': 'bid',
-    'TAG'  : 'tag',
-    'PYTAG': 'pytag',
-    'WW'   : 'week_w',
-    '0W'   : 'week_w',
-    'UU'   : 'week_u',
-    '0U'   : 'week_u',
-    'VV'   : 'week_v',
-    '0V'   : 'week_v',
-    'GGGG' : 'year_g',
-    'GG'   : 'year_g',
-    '0G'   : 'year_g',
-}
-
 ID_FIELDS_BY_PART = {
     'MAJOR': 'major',
     'MINOR': 'minor',

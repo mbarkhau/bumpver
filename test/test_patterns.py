@@ -236,3 +236,13 @@ def test_curly_escapes():
     match       = pattern.regexp.search(CURLY_BRACE_FIXTURE)
     expected    = 'package_metadata = {"name": "mypackage", "version": "v201812.0123-beta"}'
     assert match.group(0) == expected
+
+
+def test_part_field_mapping_v2():
+    a_names = set(v2patterns.PATTERN_PART_FIELDS.keys())
+    b_names = set(v2patterns.PART_PATTERNS.keys())
+
+    a_extra_names = a_names - b_names
+    assert not any(a_extra_names), sorted(a_extra_names)
+    b_extra_names = b_names - a_names
+    assert not any(b_extra_names), sorted(b_extra_names)
