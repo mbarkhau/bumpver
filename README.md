@@ -212,9 +212,107 @@ The internally used regular expression is also shown, which you can use to debug
 
 ### Pattern Search and Replacement
 
-The `pycalver:file_patterns` section of the configuration is used both to search
-and also to replace version strings in your projects files. Everything except
+The neat thing about PyCalVer is that you don't have to separately declare the search pattern and the replacement template. You declare one pattern that is used to derive both.
+
 for valid placeholders is treated as literal text. Available placeholders are:
+
+You define your pattern in the `pycalver:version_pattern` option of your config.
+
+You can also define custom patterns in the items of the `pycalver:file_patterns` section of your configuration, but usually it will be easier to just use the special `{version}` and `{pep440_version}` patterns, which are derived from what you configure as your `version_pattern`. is used both to search and also to replace version strings in your projects files. Everything except for valid placeholders is treated as literal text. Available placeholders are:
+
+These patterns are closely based on https://calver.org/
+
+| placeholder |  range / example(s) |       comment        |
+|-------------|---------------------|----------------------|
+| YYYY        | 2019, 2020...       | `%Y`                 |
+| YY          | 18, 19..99, 1, 2    | `int(%y)`            |
+| 0Y          | 18, 19..99, 01, 02  | `%y`                 |
+| Q           | 1, 2, 3, 4          | quarter              |
+| MM          | 9, 10, 11, 12       | `int(%m)`            |
+| 0M          | 09, 10, 11, 12      | `%m`                 |
+| DD          | 1, 2, 3..31         | `int(%d)`            |
+| 0D          | 01, 02, 03..31      | `%d`                 |
+| JJJ         | 1,2,3..366          | `int(%j)`            |
+| 00J         | 001, 002..366       | `%j`                 |
+| BUILD       | 1001, 1002, 23456   | build number (lexid) |
+| TAG         | alpha, beta, rc     | `--release=<tag>`    |
+| PYTAG       | a0, b0, rc          | `--release=<tag>`    |
+| MAJOR       | 0..9, 10..99, 100.. | `--major`            |
+| MINOR       | 0..9, 10..99, 100.. | `--minor`            |
+| PATCH       | 0..9, 10..99, 100.. | `--patch`            |
+| MICRO       | 0..9, 10..99, 100.. | Synonym for PATCH    |
+
+
+### Week Numbering
+
+Week numbering is a bit special, as it depends on your definition of "week":
+
+- Does it start on a Monday or a Sunday?
+- Range from 0-52 or 1-53 ?
+- At the beginning/end of the year, do you have partial weeks or do you have a week that span mutliple years?
+- If a week spans multiple years, what is the year number?
+
+| placeholder |  range / example(s) |                          comment                           |
+|-------------|---------------------|------------------------------------------------------------|
+| `WW`        | 0, 1, 2..52         | `int(%W)`                                                  |
+| `0W`        | 00, 01, 02..52      | `%W`                                                       |
+| `UU`        | 0, 1, 2..52         | `int(%U)`   us_week                                        |
+| `0U`        | 00, 01, 02..52      | `%U`   us_week                                             |
+| `VV`        | 1, 2..53            | `int(%V)`   iso week                                       |
+| `0V`        | 01, 02..53          | `%U`   iso_week                                            |
+| `GGGG`      | 2019, 2020...       | ISO 8601 week-based year (corresponds to `strftime("%G")`) |
+| `GG`        | 19, 20...99, 0, 1   | Short ISO 8601 week-based year                             |
+| `0G`        | 19, 20...99, 00, 01 | Zero-padded ISO 8601 week-based year                       |
+
+
+### Normalization Caveats
+
+Since other tools parse your version numbers, they may not care about your choice of formatting. In the case of Python, the packaging tools (such as pypi.org) follow [PEP440 normalization rules][pep_440_normalzation_ref].
+
+According to these rules:
+
+- Any non-numerical prefix (such as `v`) is removed
+- Leading zeros in parts are truncated `XX.08` -> `XX.8`
+- Tags are converted to a short form (`-alpha` -> `a0`)
+
+For example:
+
+- Pattern: `vYY.0M.0D[-TAG]`
+- Version: `v20.08.02-beta`
+- PEP440 : `20.8.2b0`
+
+It may be confusing to your users to see versions displayed in two different forms. It is not immediately obvious that `v20.08.02-beta` is the same `20.8.2b0` on pypi. If you wish to avoid this, you should usa a pattern which is as close as possible to the normalized form of your version.
+
+|        pattern        | example | lexical | PEP440 | lexical |
+|-----------------------|---------|---------|--------|---------|
+| `YYYY.0M`             |         | yes     |        | no      |
+| `YYYY.MM`             |         | no      |        | no      |
+| `vYYYY.0W`            |         | yes     |        | no      |
+| `vYYYY.WW`            |         | no      |        | no      |
+| `YYYY.0M.0D`          |         | yes     |        | no      |
+| `YYYY.MM.DD`          |         | no      |        | no      |
+| `YYYY0M.BUILD[-TAG]`  |         | yes     |        | yes     |
+| `YY0M.BUILD[-TAG]`    |         | yes¹    |        | yes¹    |
+| `YYYY.BUILD[-TAG]`    |         | yes     |        | yes     |
+| `YYYY0M.MINOR[-TAG]`  |         | yes²    |        | yes     |
+| `YYYY.MM.MINOR[-TAG]` |         | no      |        | no      |
+| `YYYY.0M.MINOR[-TAG]` |         | yes²    |        | no      |
+| `YYYY.WW.MINOR[-TAG]` |         | no      |        | no      |
+| `YYYY.0W.MINOR[-TAG]` |         | yes²    |        | no      |
+
+- ¹ Until 2099. If your project has new releases after 2099, future maintainers can change `YY`/`0Y` -> `YYYY` so that they don't release `00.xx`.
+- ² As long as `MINOR <= 9`
+
+
+### Legacy Patterns
+
+> These patterns use curly braces `{}` and were the initial implementation. They are still supported and still follow their original semantics.
+
+The `pycalver:file_patterns` section of the configuration uses a different set
+of placeholders and does not use curly braces to mark placeholders. It is still
+supported, but we don't recomend you use it.
+
+Available placeholders are:
 
 
 |     placeholder     |  range / example(s) |     comment     |
@@ -298,29 +396,29 @@ bump` to update the components that are not updated automatically (eg.
 based on the calendar).
 
 ```shell
-$ pycalver test 'v18.1.1' 'v{yy}.{MINOR}.{PATCH}'
+$ pycalver test 'v18.1.1' 'vYY.MINOR.PATCH'
 New Version: v19.1.1
 PEP440     : 19.1.1
 
-$ pycalver test 'v18.1.1' 'v{yy}.{MINOR}.{PATCH}' --patch
+$ pycalver test 'v18.1.1' 'vYY.MINOR.PATCH' --patch
 New Version: v19.1.2
 PEP440     : 19.1.2
 
-$ pycalver test 'v18.1.2' 'v{yy}.{MINOR}.{PATCH}' --minor
+$ pycalver test 'v18.1.2' 'vYY.MINOR.PATCH' --minor
 New Version: v19.2.0
 PEP440     : 19.2.0
 
-$ pycalver test 'v201811.0051-beta' '{pycalver}'
-New Version: v201902.0052-beta
-PEP440     : 201902.52b0
+$ pycalver test 'v201811.1051-beta' 'vYYYYMM.BUILD[-TAG]'
+New Version: v201902.1052-beta
+PEP440     : 201902.1052b0
 
-$ pycalver test 'v201811.0051-beta' '{pycalver}' --release rc
-New Version: v201902.0052-rc
-PEP440     : 201902.52rc0
+$ pycalver test 'v201811.0051-beta' 'vYYYYMM.BUILD[-TAG]' --release rc
+New Version: v201902.1052-rc
+PEP440     : 201902.1052rc0
 
-$ pycalver test 'v201811.0051-beta' '{pycalver}' --release final
-New Version: v201902.0052
-PEP440     : 201902.52
+$ pycalver test 'v201811.0051-beta' 'vYYYYMM.BUILD[-TAG]' --release final
+New Version: v201902.1052
+PEP440     : 201902.1052
 ```
 
 Note that pypi/setuptools/pip will normalize version strings to a format
@@ -391,8 +489,8 @@ section:
 
 ```ini
 [pycalver]
-current_version = "v201812.0006-beta"
-version_pattern = "{pycalver}"
+current_version = "202008.1006-beta"
+version_pattern = "YYYY0M.BUILD[-TAG]"
 commit = True
 tag = True
 push = True
@@ -429,8 +527,8 @@ $ pycalver bump --dry
 @@ -65,7 +65,7 @@
 
  [pycalver]
--current_version = v201812.0005-beta
-+current_version = v201812.0006-beta
+-current_version = v202008.1005-beta
++current_version = v202008.1006-beta
  commit = True
  tag = True
  push = True
@@ -442,11 +540,11 @@ If everything looks OK, you can do `pycalver bump`.
 ```
 $ pycalver bump --verbose
 INFO    - fetching tags from remote (to turn off use: -n / --no-fetch)
-INFO    - Old Version: v201812.0005-beta
-INFO    - New Version: v201812.0006-beta
+INFO    - Old Version: v202008.0005-beta
+INFO    - New Version: v202008.0006-beta
 INFO    - git commit --file /tmp/tmpph_npey9
-INFO    - git tag --annotate v201812.0006-beta --message v201812.0006-beta
-INFO    - git push origin v201812.0006-beta
+INFO    - git tag --annotate v202008.0006-beta --message v202008.0006-beta
+INFO    - git push origin v202008.0006-beta
 ```
 
 
@@ -461,7 +559,7 @@ The PyCalVer format for version strings has three parts:
     |       |      o Release Tag (optional)
     |       |      |
  ---+---  --+--  --+--
- v201812  .0123  -beta
+ v202008  .0123  -beta
 
 
 ```

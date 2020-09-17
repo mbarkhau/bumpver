@@ -5,28 +5,30 @@ import datetime as dt
 
 import pytest
 
-from pycalver import version
-from pycalver import patterns
+import pycalver.version as v1version
+import pycalver2.version as v2version
+import pycalver.patterns as v1patterns
+import pycalver2.patterns as v2patterns
 
 
 def test_bump_beta():
     cur_version = "v201712.0001-beta"
-    assert cur_version < version.incr(cur_version)
-    assert version.incr(cur_version).endswith("-beta")
-    assert version.incr(cur_version, release="alpha").endswith("-alpha")
-    assert version.incr(cur_version, release="final").endswith("0002")
+    assert cur_version < v1version.incr(cur_version)
+    assert v1version.incr(cur_version).endswith("-beta")
+    assert v1version.incr(cur_version, release="alpha").endswith("-alpha")
+    assert v1version.incr(cur_version, release="final").endswith("0002")
 
 
 def test_bump_final():
     cur_version = "v201712.0001"
-    assert cur_version < version.incr(cur_version)
-    assert version.incr(cur_version).endswith(".0002")
-    assert version.incr(cur_version, release="alpha").endswith("-alpha")
+    assert cur_version < v1version.incr(cur_version)
+    assert v1version.incr(cur_version).endswith(".0002")
+    assert v1version.incr(cur_version, release="alpha").endswith("-alpha")
 
-    assert version.incr(cur_version, release="final").endswith(".0002")
+    assert v1version.incr(cur_version, release="final").endswith(".0002")
 
     pre_version = cur_version + "-beta"
-    assert version.incr(pre_version, release="final").endswith(".0002")
+    assert v1version.incr(pre_version, release="final").endswith(".0002")
 
 
 def test_bump_future():
@@ -34,7 +36,7 @@ def test_bump_future():
     future_date   = dt.datetime.today() + dt.timedelta(days=300)
     future_calver = future_date.strftime("v%Y%m")
     cur_version   = future_calver + ".0001"
-    new_version   = version.incr(cur_version)
+    new_version   = v1version.incr(cur_version)
     assert cur_version < new_version
 
 
@@ -42,11 +44,11 @@ def test_bump_random(monkeypatch):
     cur_date    = dt.date(2016, 1, 1) + dt.timedelta(days=random.randint(1, 2000))
     cur_version = cur_date.strftime("v%Y%m") + ".0001-dev"
 
-    monkeypatch.setattr(version, 'TODAY', cur_date)
+    monkeypatch.setattr(v1version, 'TODAY', cur_date)
 
     for _ in range(1000):
         cur_date += dt.timedelta(days=int((1 + random.random()) ** 10))
-        new_version = version.incr(
+        new_version = v1version.incr(
             cur_version, release=random.choice([None, "alpha", "beta", "rc", "final", "post"])
         )
         assert cur_version < new_version
@@ -55,7 +57,7 @@ def test_bump_random(monkeypatch):
 
 def test_parse_version_info():
     version_str  = "v201712.0001-alpha"
-    version_info = version.parse_version_info(version_str)
+    version_info = v1version.parse_version_info(version_str)
 
     # assert version_info.pep440_version == "201712.1a0"
     # assert version_info.version        == "v201712.0001-alpha"
@@ -65,7 +67,7 @@ def test_parse_version_info():
     assert version_info.tag   == "alpha"
 
     version_str  = "v201712.0001"
-    version_info = version.parse_version_info(version_str)
+    version_info = v1version.parse_version_info(version_str)
 
     # assert version_info.pep440_version == "201712.1"
     # assert version_info.version        == "v201712.0001"
@@ -77,7 +79,7 @@ def test_parse_version_info():
 
 def test_readme_pycalver1():
     version_str  = "v201712.0001-alpha"
-    version_info = patterns.PYCALVER_RE.match(version_str).groupdict()
+    version_info = v1patterns.PYCALVER_RE.match(version_str).groupdict()
 
     assert version_info == {
         'pycalver'   : "v201712.0001-alpha",
@@ -93,7 +95,7 @@ def test_readme_pycalver1():
 
 def test_readme_pycalver2():
     version_str  = "v201712.0033"
-    version_info = patterns.PYCALVER_RE.match(version_str).groupdict()
+    version_info = v1patterns.PYCALVER_RE.match(version_str).groupdict()
 
     assert version_info == {
         'pycalver'   : "v201712.0033",
@@ -109,40 +111,40 @@ def test_readme_pycalver2():
 
 def test_parse_error_empty():
     try:
-        version.parse_version_info("")
+        v1version.parse_version_info("")
         assert False
-    except version.PatternError as err:
+    except v1version.PatternError as err:
         assert "Invalid version string" in str(err)
 
 
 def test_parse_error_noprefix():
     try:
-        version.parse_version_info("201809.0002")
+        v1version.parse_version_info("201809.0002")
         assert False
-    except version.PatternError as err:
+    except v1version.PatternError as err:
         assert "Invalid version string" in str(err)
 
 
 def test_parse_error_nopadding():
     try:
-        version.parse_version_info("v201809.2b0")
+        v1version.parse_version_info("v201809.2b0")
         assert False
-    except version.PatternError as err:
+    except v1version.PatternError as err:
         assert "Invalid version string" in str(err)
 
 
-def test_part_field_mapping():
-    a_names = set(version.PATTERN_PART_FIELDS.keys())
-    b_names = set(patterns.PART_PATTERNS.keys())
-    c_names = set(patterns.COMPOSITE_PART_PATTERNS.keys())
+def test_part_field_mapping_v1():
+    a_names = set(v1version.PATTERN_PART_FIELDS.keys())
+    b_names = set(v1patterns.PART_PATTERNS.keys())
+    c_names = set(v1patterns.COMPOSITE_PART_PATTERNS.keys())
 
     a_extra_names = a_names - b_names
     assert not any(a_extra_names), sorted(a_extra_names)
     b_extra_names = b_names - (a_names | c_names)
     assert not any(b_extra_names), sorted(b_extra_names)
 
-    a_fields = set(version.PATTERN_PART_FIELDS.values())
-    b_fields = set(version.VersionInfo._fields)
+    a_fields = set(v1version.PATTERN_PART_FIELDS.values())
+    b_fields = set(v1version.VersionInfo._fields)
 
     a_extra_fields = a_fields - b_fields
     b_extra_fields = b_fields - a_fields
@@ -150,8 +152,18 @@ def test_part_field_mapping():
     assert not any(b_extra_fields), sorted(b_extra_fields)
 
 
+def test_part_field_mapping_v2():
+    a_names = set(v2version.PATTERN_PART_FIELDS.keys())
+    b_names = set(v2patterns.PART_PATTERNS.keys())
+
+    a_extra_names = a_names - b_names
+    assert not any(a_extra_names), sorted(a_extra_names)
+    b_extra_names = b_names - a_names
+    assert not any(b_extra_names), sorted(b_extra_names)
+
+
 def vnfo(**field_values):
-    return version._parse_field_values(field_values)
+    return v1version._parse_field_values(field_values)
 
 
 PARSE_VERSION_TEST_CASES = [
@@ -174,7 +186,7 @@ PARSE_VERSION_TEST_CASES = [
 
 @pytest.mark.parametrize("pattern_str, line, expected_vinfo", PARSE_VERSION_TEST_CASES)
 def test_parse_versions(pattern_str, line, expected_vinfo):
-    pattern       = patterns.compile_pattern(pattern_str)
+    pattern       = v1patterns.compile_pattern(pattern_str)
     version_match = pattern.regexp.search(line)
 
     if expected_vinfo is None:
@@ -184,6 +196,6 @@ def test_parse_versions(pattern_str, line, expected_vinfo):
     assert version_match is not None
 
     version_str  = version_match.group(0)
-    version_info = version.parse_version_info(version_str, pattern_str)
+    version_info = v1version.parse_version_info(version_str, pattern_str)
 
     assert version_info == expected_vinfo

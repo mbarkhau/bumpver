@@ -344,14 +344,13 @@ def _parse_version_info(pattern_groups: PatternGroups) -> VersionInfo:
     return _parse_field_values(field_values)
 
 
-def parse_version_info(version_str: str, pattern: str = "{pycalver}") -> VersionInfo:
-    # TODO reenable doctest
+def parse_version_info(version_str: str, pattern: str = "vYYYY0M.BUILD[-TAG]") -> VersionInfo:
     # """Parse normalized VersionInfo.
 
-    # >>> vnfo = parse_version_info("v201712.0033-beta", pattern="{pycalver}")
+    # >>> vnfo = parse_version_info("v201712.0033-beta", pattern="vYYYY0M.BUILD[-TAG]")
     # >>> assert vnfo == _parse_version_info({'year': 2017, 'month': 12, 'bid': "0033", 'tag': "beta"})
 
-    # >>> vnfo = parse_version_info("1.23.456", pattern="{semver}")
+    # >>> vnfo = parse_version_info("1.23.456", pattern="MAJOR.MINOR.PATCH")
     # >>> assert vnfo == _parse_version_info({'MAJOR': "1", 'MINOR': "23", 'PATCH': "456"})
     # """
     pattern_tup = v2patterns.compile_pattern(pattern)

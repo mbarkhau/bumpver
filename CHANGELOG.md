@@ -1,6 +1,16 @@
 # Changelog for https://gitlab.com/mbarkhau/pycalver
 
 
+## NEXT
+
+ - New gitlab #7: New style patterns, to be in line with CalVer.org
+     - Better support for week numbering.
+     - Better support for optional parts.
+ - New gitlab #10: `--pin-date` to keep date parts unchanged, and only increment non-date parts.
+ - Fix gitlab #8: Push tags only pushed tags, not actual commit.
+ - Fix gitlab #9: Make commit message configurable.
+
+
 ## v201907.0036
 
  - Fix: Don't use git/hg command if `commit=False` is configured (thanks @valentin87)

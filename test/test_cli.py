@@ -11,7 +11,7 @@ import pathlib2 as pl
 from click.testing import CliRunner
 
 import pycalver.config as config
-import pycalver2.patterns as patterns
+import pycalver.patterns as v1patterns
 from pycalver.__main__ import cli
 
 SETUP_CFG_FIXTURE = """
@@ -81,7 +81,7 @@ def test_version(runner):
     result = runner.invoke(cli, ['--version', "-vv"])
     assert result.exit_code == 0
     assert " version v20" in result.output
-    match = patterns.PYCALVER_RE.search(result.output)
+    match = v1patterns.PYCALVER_RE.search(result.output)
     assert match
 
 
