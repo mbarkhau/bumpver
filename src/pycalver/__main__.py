@@ -73,6 +73,7 @@ def _validate_release_tag(release: str) -> None:
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 def cli(verbose: int = 0) -> None:
     """Automatically update PyCalVer version strings on python projects."""
+    # pylint:disable=global-statement; global flag is global.
     global _VERBOSE
     _VERBOSE = verbose
 
@@ -164,6 +165,8 @@ def _try_print_diff(cfg: config.Config, new_version: str) -> None:
         else:
             click.echo(diff)
     except Exception as ex:
+        # pylint:disable=broad-except; Mostly we expect IOError here, but
+        #   could be other things and there's no option to recover anyway.
         logger.error(str(ex), exc_info=True)
         sys.exit(1)
 

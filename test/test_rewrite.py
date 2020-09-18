@@ -5,7 +5,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import copy
-import datetime as dt
 from test import util
 
 from pycalver import config

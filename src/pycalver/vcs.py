@@ -75,7 +75,7 @@ class VCSAPI:
             logger.debug(cmd_str)
         output_data: bytes = sp.check_output(cmd_str.split(), env=env, stderr=sp.STDOUT)
 
-        # TODO (mb 2018-11-15): Detect encoding of output?
+        # TODO (mb 2018-11-15): Detect encoding of output? Use chardet?
         _encoding = "utf-8"
         return output_data.decode(_encoding)
 
@@ -99,11 +99,13 @@ class VCSAPI:
 
     @property
     def has_remote(self) -> bool:
+        # pylint:disable=broad-except;  Not sure how to anticipate all cases.
         try:
             output = self('show_remotes')
             if output.strip() == "":
                 return False
-            return True
+            else:
+                return True
         except Exception:
             return False
 

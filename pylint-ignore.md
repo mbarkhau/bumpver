@@ -23,197 +23,145 @@ The recommended approach to using `pylint-ignore` is:
 
 # Overview
 
- - [W0511: fixme (5x)](#w0511-fixme)
- - [W0603: global-statement (1x)](#w0603-global-statement)
- - [W0613: unused-argument (1x)](#w0613-unused-argument)
- - [W0703: broad-except (2x)](#w0703-broad-except)
- - [C0412: ungrouped-imports (2x)](#c0412-ungrouped-imports)
+ - [W0511: fixme (7x)](#w0511-fixme)
+ - [W0703: broad-except (1x)](#w0703-broad-except)
 
 
 # W0511: fixme
 
+## File test/test_patterns.py - Line 14 - W0511 (fixme)
+
+- `message: TODO (mb 2020-09-06): test for v2patterns`
+- `author : Manuel Barkhau <mbarkhau@gmail.com>`
+- `date   : 2020-09-18T17:01:05`
+
+```
+  12: import pycalver2.patterns as v2patterns
+  13:
+> 14: # TODO (mb 2020-09-06): test for v2patterns
+  15:
+  16: V2_PART_PATTERN_CASES = [
+```
+
+
 ## File src/pycalver/vcs.py - Line 78 - W0511 (fixme)
 
-- `message: TODO (mb 2018-11-15): Detect encoding of output?`
+- `message: TODO (mb 2018-11-15): Detect encoding of output? Use chardet?`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-07-19T18:50:33`
+- `date   : 2020-09-18T17:24:49`
 
 ```
   68:     def __call__(self, cmd_name: str, env: Env = None, **kwargs: str) -> str:
   ...
   76:         output_data: bytes = sp.check_output(cmd_str.split(), env=env, stderr=sp.STDOUT)
   77:
-> 78:         # TODO (mb 2018-11-15): Detect encoding of output?
+> 78:         # TODO (mb 2018-11-15): Detect encoding of output? Use chardet?
   79:         _encoding = "utf-8"
   80:         return output_data.decode(_encoding)
 ```
 
 
-## File src/pycalver2/version.py - Line 184 - W0511 (fixme)
+## File test/test_version.py - Line 167 - W0511 (fixme)
 
-- `message: TODO (mb 2020-09-05): pytag`
+- `message: TODO (mb 2020-09-06): add tests for new style patterns`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-05T14:30:17`
+- `date   : 2020-09-18T17:01:05`
 
 ```
-  176: def _parse_field_values(field_values: FieldValues) -> VersionInfo:
+  162: def vnfo(**field_values):
   ...
-  182:     tag = TAG_ALIASES.get(tag, tag)
-  183:     assert tag is not None
-> 184:     # TODO (mb 2020-09-05): pytag
-  185:     pytag = ""
-  186:
+  165:
+  166: PARSE_VERSION_TEST_CASES = [
+> 167:     # TODO (mb 2020-09-06): add tests for new style patterns
+  168:     # ["YYYY.MM.DD"                      , "2017.06.07", vnfo(year="2017", month="06", dom="07")],
+  169:     ["{year}.{month}.{dom}"            , "2017.06.07", vnfo(year="2017", month="06", dom="07")],
 ```
 
 
-## File src/pycalver/__main__.py - Line 220 - W0511 (fixme)
+## File src/pycalver/__main__.py - Line 229 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-05): version switch`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-05T14:30:17`
 
 ```
-  200: def _bump(
+  209: def _bump(
   ...
-  218:
-  219:     try:
-> 220:         # TODO (mb 2020-09-05): version switch
-  221:         v1cli.rewrite(cfg, new_version)
-  222:         v2cli.rewrite(cfg, new_version)
+  227:
+  228:     try:
+> 229:         # TODO (mb 2020-09-05): version switch
+  230:         v1cli.rewrite(cfg, new_version)
+  231:         # v2cli.rewrite(cfg, new_version)
 ```
 
 
-## File src/pycalver/__main__.py - Line 274 - W0511 (fixme)
+## File src/pycalver/config.py - Line 236 - W0511 (fixme)
+
+- `message: TODO (mb 2020-09-06): new style pattern by default`
+- `author : Manuel Barkhau <mbarkhau@gmail.com>`
+- `date   : 2020-09-18T17:01:05`
+
+```
+  227: def _parse_config(raw_cfg: RawConfig) -> Config:
+  ...
+  234:     version_str = raw_cfg['current_version'] = version_str.strip("'\" ")
+  235:
+> 236:     # TODO (mb 2020-09-06): new style pattern by default
+  237:     # version_pattern: str = raw_cfg.get('version_pattern', "vYYYY0M.BUILD[-TAG]")
+  238:     version_pattern: str = raw_cfg.get('version_pattern', "{pycalver}")
+```
+
+
+## File src/pycalver/__main__.py - Line 285 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-05): version switch`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-05T14:30:17`
 
 ```
-  272:
-  273: def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
-> 274:     # TODO (mb 2020-09-05): version switch
-  275:     all_tags = vcs.get_tags(fetch=fetch)
-  276:
+  282: def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
+  ...
+  283:     all_tags = vcs.get_tags(fetch=fetch)
+  284:
+> 285:     # TODO (mb 2020-09-05): version switch
+  286:     cfg = v1cli.update_cfg_from_vcs(cfg, all_tags)
+  287:     # cfg = v2cli.update_cfg_from_vcs(cfg, all_tags)
 ```
 
 
-## File src/pycalver/__main__.py - Line 378 - W0511 (fixme)
+## File src/pycalver/__main__.py - Line 392 - W0511 (fixme)
 
 - `message: # TODO (mb 2020-09-05): format from config`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-05T14:30:17`
 
 ```
-  324: def bump(
+  336: def bump(
   ...
-  376:         return
-  377:
-> 378:     # # TODO (mb 2020-09-05): format from config
-  379:     # commit_message_kwargs = {
-  380:     #     new_version
-```
-
-
-# W0603: global-statement
-
-## File src/pycalver/__main__.py - Line 75 - W0603 (global-statement)
-
-- `message: Using the global statement`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-05T14:30:17`
-
-```
-  73: def cli(verbose: int = 0) -> None:
-  74:     """Automatically update PyCalVer version strings on python projects."""
-> 75:     global _VERBOSE
-  76:     _VERBOSE = verbose
-  77:
-```
-
-
-# W0613: unused-argument
-
-## File src/pycalver2/version.py - Line 431 - W0613 (unused-argument)
-
-- `message: Unused argument 'kwargs'`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-05T14:30:17`
-
-```
-  429:
-  430:
-> 431: def _compile_format_template(pattern: str, kwargs: TemplateKwargs) -> str:
-  432:     # NOTE (mb 2020-09-04): Some parts are optional, we need the kwargs to
-  433:     #   determine if part is set to its zero value
+  390:         return
+  391:
+> 392:     # # TODO (mb 2020-09-05): format from config
+  393:     # commit_message_kwargs = {
+  394:     #     new_version
 ```
 
 
 # W0703: broad-except
 
-## File src/pycalver/vcs.py - Line 107 - W0703 (broad-except)
-
-- `message: Catching too general exception Exception`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-07-19T18:50:33`
-
-```
-  101:     def has_remote(self) -> bool:
-  ...
-  105:                 return False
-  106:             return True
-> 107:         except Exception:
-  108:             return False
-  109:
-```
-
-
-## File src/pycalver/__main__.py - Line 223 - W0703 (broad-except)
+## File src/pycalver/__main__.py - Line 232 - W0703 (broad-except)
 
 - `message: Catching too general exception Exception`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-05T14:30:17`
 
 ```
-  200: def _bump(
+  209: def _bump(
   ...
-  221:         v1cli.rewrite(cfg, new_version)
-  222:         v2cli.rewrite(cfg, new_version)
-> 223:     except Exception as ex:
-  224:         logger.error(str(ex))
-  225:         sys.exit(1)
-```
-
-
-# C0412: ungrouped-imports
-
-## File src/pycalver/__main__.py - Line 21 - C0412 (ungrouped-imports)
-
-- `message: Imports from package pycalver are not grouped`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-05T14:30:17`
-
-```
-  19: import pycalver.cli as v1cli
-  20: import pycalver2.cli as v2cli
-> 21: import pycalver.version as v1version
-  22: import pycalver2.version as v2version
-  23: from pycalver import vcs
-```
-
-
-## File src/pycalver/__main__.py - Line 22 - C0412 (ungrouped-imports)
-
-- `message: Imports from package pycalver2 are not grouped`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-05T14:30:17`
-
-```
-  20: import pycalver2.cli as v2cli
-  21: import pycalver.version as v1version
-> 22: import pycalver2.version as v2version
-  23: from pycalver import vcs
-  24: from pycalver import config
+  230:         v1cli.rewrite(cfg, new_version)
+  231:         # v2cli.rewrite(cfg, new_version)
+> 232:     except Exception as ex:
+  233:         logger.error(str(ex))
+  234:         sys.exit(1)
 ```
 
 

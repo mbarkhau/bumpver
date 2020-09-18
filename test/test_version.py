@@ -200,9 +200,9 @@ def test_v1_parse_versions(pattern_str, line, expected_vinfo):
 
 # def test_v2_parse_versions(pattern_str, line, expected_vinfo):
 def test_v2_parse_versions():
-    vnfo  = v2version.parse_version_info("v201712.0033", pattern="vYYYY0M.BUILD[-TAG[NUM]]")
+    _vnfo = v2version.parse_version_info("v201712.0033", pattern="vYYYY0M.BUILD[-TAG[NUM]]")
     fvals = {'year_y': 2017, 'month': 12, 'bid': "0033"}
-    assert vnfo == v2version._parse_version_info(fvals)
+    assert _vnfo == v2version._parse_version_info(fvals)
 
 
 def test_make_segments():

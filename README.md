@@ -242,7 +242,6 @@ These patterns are closely based on https://calver.org/
 | `MAJOR`     | 0..9, 10..99, 100..  | `--major`              |
 | `MINOR`     | 0..9, 10..99, 100..  | `--minor`              |
 | `PATCH`     | 0..9, 10..99, 100..  | `--patch`              |
-| `MICRO`     | 0..9, 10..99, 100..  | Synonym for `PATCH`    |
 
 
 ### Week Numbering

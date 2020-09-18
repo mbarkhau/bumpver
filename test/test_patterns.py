@@ -128,7 +128,7 @@ V2_PART_PATTERN_CASES = [
     (['0V'], "52", "52"),
     (['0V'], "53", "53"),
     (['0V'], "54", None),
-    (['MAJOR', 'MINOR', 'PATCH', 'MICRO'], "0", "0"),
+    (['MAJOR', 'MINOR', 'PATCH'], "0", "0"),
     (['TAG'  ], "alpha" , "alpha"),
     (['TAG'  ], "alfa"  , None),
     (['TAG'  ], "beta"  , "beta"),

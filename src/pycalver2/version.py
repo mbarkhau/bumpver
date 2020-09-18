@@ -28,7 +28,6 @@ ZERO_VALUES = {
     'MAJOR': "0",
     'MINOR': "0",
     'PATCH': "0",
-    'MICRO': "0",
     'TAG'  : "final",
     'PYTAG': "",
     'NUM'  : "0",
@@ -67,18 +66,56 @@ assert set(TAG_BY_PEP440_TAG.values()) < set(PEP440_TAG_BY_TAG.keys())
 # }
 
 
+MaybeInt = typ.Optional[int]
+
+
 class CalendarInfo(typ.NamedTuple):
     """Container for calendar components of version strings."""
 
-    year_y : int
-    year_g : int
-    quarter: int
-    month  : int
-    dom    : int
-    doy    : int
-    week_w : int
-    week_u : int
-    week_v : int
+    year_y : MaybeInt
+    year_g : MaybeInt
+    quarter: MaybeInt
+    month  : MaybeInt
+    dom    : MaybeInt
+    doy    : MaybeInt
+    week_w : MaybeInt
+    week_u : MaybeInt
+    week_v : MaybeInt
+
+
+class VersionInfo(typ.NamedTuple):
+    """Container for parsed version string."""
+
+    year_y : MaybeInt
+    year_g : MaybeInt
+    quarter: MaybeInt
+    month  : MaybeInt
+    dom    : MaybeInt
+    doy    : MaybeInt
+    week_w : MaybeInt
+    week_u : MaybeInt
+    week_v : MaybeInt
+    major  : int
+    minor  : int
+    patch  : int
+    num    : int
+    bid    : str
+    tag    : str
+    pytag  : str
+
+
+def _ver_to_cal_info(vinfo: VersionInfo) -> CalendarInfo:
+    return CalendarInfo(
+        vinfo.year_y,
+        vinfo.year_g,
+        vinfo.quarter,
+        vinfo.month,
+        vinfo.dom,
+        vinfo.doy,
+        vinfo.week_w,
+        vinfo.week_u,
+        vinfo.week_v,
+    )
 
 
 def _date_from_doy(year: int, doy: int) -> dt.date:
@@ -145,30 +182,6 @@ def cal_info(date: dt.date = None) -> CalendarInfo:
     return CalendarInfo(**kwargs)
 
 
-MaybeInt = typ.Optional[int]
-
-
-class VersionInfo(typ.NamedTuple):
-    """Container for parsed version string."""
-
-    year_y : MaybeInt
-    year_g : MaybeInt
-    quarter: MaybeInt
-    month  : MaybeInt
-    dom    : MaybeInt
-    doy    : MaybeInt
-    week_w : MaybeInt
-    week_u : MaybeInt
-    week_v : MaybeInt
-    major  : int
-    minor  : int
-    patch  : int
-    num    : int
-    bid    : str
-    tag    : str
-    pytag  : str
-
-
 VALID_FIELD_KEYS = set(VersionInfo._fields) | {'version'}
 
 FieldKey      = str
@@ -215,7 +228,7 @@ def _parse_version_info(field_values: FieldValues) -> VersionInfo:
     >>> vnfo = _parse_version_info({'year_y': "2021", 'month': "01", 'dom': "03"})
     >>> (vnfo.year_y, vnfo.month, vnfo.dom, vnfo.tag)
     (2021, 1, 3, 'final')
-    >>> (vnfo.year_y, vnfo.week_w,vnfo.year_y, vnfo.week_u,vnfo.year_g, vnfo.week_v)
+    >>> (vnfo.year_y, vnfo.week_w, vnfo.year_y, vnfo.week_u,vnfo.year_g, vnfo.week_v)
     (2021, 0, 2021, 1, 2020, 53)
     """
     for key in field_values:
@@ -542,8 +555,6 @@ def format_version(vinfo: VersionInfo, pattern: str) -> str:
     'v1.0.0'
     >>> format_version(vinfo_d, pattern="vMAJOR.MINOR[.PATCH[-TAG]]")
     'v1.0'
-    >>> format_version(vinfo_d, pattern="vMAJOR.MINOR[.MICRO[-TAG]]")
-    'v1.0'
     >>> format_version(vinfo_d, pattern="vMAJOR[.MINOR[.PATCH[-TAG]]]")
     'v1'
 
@@ -594,8 +605,8 @@ def incr(
 
     cur_cal_nfo = cal_info()
 
-    old_date = (old_vinfo.year_y or 0, old_vinfo.month or 0, old_vinfo.dom or 0)
-    cur_date = (cur_cal_nfo.year_y   , cur_cal_nfo.month   , cur_cal_nfo.dom)
+    old_date = (old_vinfo.year_y or 0  , old_vinfo.month or 0  , old_vinfo.dom or 0)
+    cur_date = (cur_cal_nfo.year_y or 0, cur_cal_nfo.month or 0, cur_cal_nfo.dom or 0)
 
     if old_date <= cur_date:
         cur_vinfo = cur_vinfo._replace(**cur_cal_nfo._asdict())

@@ -21,16 +21,48 @@ logger = logging.getLogger("pycalver.version")
 TODAY = dt.datetime.utcnow().date()
 
 
+MaybeInt = typ.Optional[int]
+
+
 class CalendarInfo(typ.NamedTuple):
     """Container for calendar components of version strings."""
 
-    year    : int
-    quarter : int
-    month   : int
-    dom     : int
-    doy     : int
-    iso_week: int
-    us_week : int
+    year    : MaybeInt
+    quarter : MaybeInt
+    month   : MaybeInt
+    dom     : MaybeInt
+    doy     : MaybeInt
+    iso_week: MaybeInt
+    us_week : MaybeInt
+
+
+class VersionInfo(typ.NamedTuple):
+    """Container for parsed version string."""
+
+    year    : MaybeInt
+    quarter : MaybeInt
+    month   : MaybeInt
+    dom     : MaybeInt
+    doy     : MaybeInt
+    iso_week: MaybeInt
+    us_week : MaybeInt
+    major   : int
+    minor   : int
+    patch   : int
+    bid     : str
+    tag     : str
+
+
+def _ver_to_cal_info(vinfo: VersionInfo) -> CalendarInfo:
+    return CalendarInfo(
+        vinfo.year,
+        vinfo.quarter,
+        vinfo.month,
+        vinfo.dom,
+        vinfo.doy,
+        vinfo.iso_week,
+        vinfo.us_week,
+    )
 
 
 def _date_from_doy(year: int, doy: int) -> dt.date:
@@ -93,23 +125,6 @@ def cal_info(date: dt.date = None) -> CalendarInfo:
     }
 
     return CalendarInfo(**kwargs)
-
-
-class VersionInfo(typ.NamedTuple):
-    """Container for parsed version string."""
-
-    year    : typ.Optional[int]
-    quarter : typ.Optional[int]
-    month   : typ.Optional[int]
-    dom     : typ.Optional[int]
-    doy     : typ.Optional[int]
-    iso_week: typ.Optional[int]
-    us_week : typ.Optional[int]
-    major   : int
-    minor   : int
-    patch   : int
-    bid     : str
-    tag     : str
 
 
 FieldKey      = str
@@ -438,8 +453,8 @@ def incr(
 
     cur_cal_nfo = cal_info()
 
-    old_date = (old_vinfo.year or 0, old_vinfo.month or 0, old_vinfo.dom or 0)
-    cur_date = (cur_cal_nfo.year   , cur_cal_nfo.month   , cur_cal_nfo.dom)
+    old_date = (old_vinfo.year or 0  , old_vinfo.month or 0  , old_vinfo.dom or 0)
+    cur_date = (cur_cal_nfo.year or 0, cur_cal_nfo.month or 0, cur_cal_nfo.dom or 0)
 
     if old_date <= cur_date:
         cur_vinfo = cur_vinfo._replace(**cur_cal_nfo._asdict())
