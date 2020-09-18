@@ -205,6 +205,17 @@ def test_v2_parse_versions():
     assert vnfo == v2version._parse_version_info(fvals)
 
 
+def test_make_segments():
+    segs = v2version._make_segments("vYYYY0M.BUILD[-TAG[NUM]]")
+    assert segs == ["vYYYY0M.BUILD", "-TAG", "NUM", "", ""]
+
+    segs = v2version._make_segments('__version__ = "YYYY0M.BLD[PYTAGNUM]"')
+    assert segs == ['__version__ = "YYYY0M.BLD', 'PYTAGNUM', '"']
+
+    segs = v2version._make_segments('__version__ = "YYYY.BUILD[-TAG]"')
+    assert segs == ['__version__ = "YYYY.BUILD', '-TAG', '"']
+
+
 def test_v2_format_version():
     pattern    = "vYYYY0M.BUILD[-TAG[NUM]]"
     in_version = "v200701.0033-beta"
@@ -218,3 +229,12 @@ def test_v2_format_version():
 
     result = v2version.format_version(vinfo, pattern="vYY.BLD[-TAG]")
     assert result == "v7.33-beta"
+
+    result = v2version.format_version(vinfo, pattern="vYY.BLD-TAG")
+    assert result == "v7.33-beta"
+
+    result = v2version.format_version(vinfo, pattern='__version__ = "YYYY.BUILD[-TAG]"')
+    assert result == '__version__ = "2007.0033-beta"'
+
+    result = v2version.format_version(vinfo, pattern='__version__ = "YYYY.BLD"')
+    assert result == '__version__ = "2007.33"'

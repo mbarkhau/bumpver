@@ -23,18 +23,23 @@ def rewrite_lines(
     new_vinfo   : v2version.VersionInfo,
     old_lines   : typ.List[str],
 ) -> typ.List[str]:
-    # TODO reenable doctest
-    # """Replace occurances of pattern_strs in old_lines with new_vinfo.
+    """Replace occurances of pattern_strs in old_lines with new_vinfo.
 
-    # >>> new_vinfo = version.parse_version_info("v201811.0123-beta")
-    # >>> pattern_strs = ['__version__ = "{pycalver}"']
-    # >>> rewrite_lines(pattern_strs, new_vinfo, ['__version__ = "v201809.0002-beta"'])
-    # ['__version__ = "v201811.0123-beta"']
+    >>> new_vinfo = v2version.parse_version_info("v201811.0123-beta")
+    >>> pattern_strs = ['__version__ = "vYYYY0M.BUILD[-TAG]"']
+    >>> old_lines = ['__version__ = "v201809.0002-alpha"   ']
+    >>> rewrite_lines(pattern_strs, new_vinfo, old_lines)
+    ['__version__ = "v201811.0123-beta"   ']
 
-    # >>> pattern_strs = ['__version__ = "{pep440_version}"']
-    # >>> rewrite_lines(pattern_strs, new_vinfo, ['__version__ = "201809.2b0"'])
-    # ['__version__ = "201811.123b0"']
-    # """
+    >>> old_lines = ['__version__ = "v201809.0002-alpha"    # comment']
+    >>> rewrite_lines(pattern_strs, new_vinfo, old_lines)
+    ['__version__ = "v201811.0123-beta"    # comment']
+
+    >>> pattern_strs = ['__version__ = "YYYY0M.BLD[PYTAGNUM]"']
+    >>> old_lines = ['__version__ = "201809.2a0"']
+    >>> rewrite_lines(pattern_strs, new_vinfo, old_lines)
+    ['__version__ = "201811.123b0"']
+    """
     new_lines      = old_lines[:]
     found_patterns = set()
 

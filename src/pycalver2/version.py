@@ -411,10 +411,70 @@ def _make_segments(pattern: str) -> typ.List[str]:
         pattern_segs_r.append(seg_r)
 
     pattern_segs_l.append(pattern_rest)
+    return pattern_segs_l + list(reversed(pattern_segs_r))
 
-    # NOTE (mb 2020-09-18): The pivot makes subsequent code a bit more simple
-    pivot = [""]
-    return pattern_segs_l + pivot + list(reversed(pattern_segs_r))
+
+def _clear_zero_segments(
+    formatted_segs: typ.List[str], is_zero_segment: typ.List[bool]
+) -> typ.List[str]:
+    non_zero_segs = list(formatted_segs)
+
+    has_val_to_right = False
+    for idx, is_zero in reversed(list(enumerate(is_zero_segment))):
+        is_optional = 0 < idx < len(formatted_segs) - 1
+        if is_optional:
+            if is_zero and not has_val_to_right:
+                non_zero_segs[idx] = ""
+            else:
+                has_val_to_right = True
+
+    return non_zero_segs
+
+
+def _format_segments(
+    vinfo       : VersionInfo,
+    pattern_segs: typ.List[str],
+) -> typ.List[str]:
+    kwargs      = _format_part_values(vinfo)
+    part_values = sorted(kwargs.items(), key=lambda item: -len(item[0]))
+
+    is_zero_segment = [True] * len(pattern_segs)
+
+    formatted_segs_l: typ.List[str] = []
+    formatted_segs_r: typ.List[str] = []
+
+    idx_l = 0
+    idx_r = len(pattern_segs) - 1
+    while idx_l <= idx_r:
+        # NOTE (mb 2020-09-18): All segments are optional,
+        #   except the most left and the most right,
+        #   i.e the ones NOT surrounded by braces.
+        #   Empty string is a valid segment.
+        is_optional = idx_l > 0
+
+        seg_l = pattern_segs[idx_l]
+        seg_r = pattern_segs[idx_r]
+
+        for part, part_value in part_values:
+            if part in seg_l:
+                seg_l = seg_l.replace(part, part_value)
+                if not (is_optional and str(part_value) == ZERO_VALUES.get(part)):
+                    is_zero_segment[idx_l] = False
+
+            if part in seg_r:
+                seg_r = seg_r.replace(part, part_value)
+                if not (is_optional and str(part_value) == ZERO_VALUES[part]):
+                    is_zero_segment[idx_r] = False
+
+        formatted_segs_l.append(seg_l)
+        if idx_l < idx_r:
+            formatted_segs_r.append(seg_r)
+
+        idx_l += 1
+        idx_r -= 1
+
+    formatted_segs = formatted_segs_l + list(reversed(formatted_segs_r))
+    return _clear_zero_segments(formatted_segs, is_zero_segment)
 
 
 def format_version(vinfo: VersionInfo, pattern: str) -> str:
@@ -500,57 +560,13 @@ def format_version(vinfo: VersionInfo, pattern: str) -> str:
     >>> vinfo_d = vinfo_b._replace(major=1, minor=0, patch=0, tag='rc', num=2)
     >>> format_version(vinfo_d, pattern="vMAJOR[.MINOR[.PATCH[-TAG[NUM]]]]")
     'v1.0.0-rc2'
+
+    >>> vinfo_d = vinfo_b._replace(major=1, minor=0, patch=0, tag='rc', num=2)
+    >>> format_version(vinfo_d, pattern='__version__ = "vMAJOR[.MINOR[.PATCH[-TAG[NUM]]]]"')
+    '__version__ = "v1.0.0-rc2"'
     """
-    kwargs      = _format_part_values(vinfo)
-    part_values = sorted(kwargs.items(), key=lambda item: -len(item[0]))
-
-    pattern_segs = _make_segments(pattern)
-
-    iszero_segment = [True] * len(pattern_segs)
-    formatted_segs_l: typ.List[str] = []
-    formatted_segs_r: typ.List[str] = []
-
-    used_part_values = []
-
-    idx_l = 0
-    idx_r = len(pattern_segs) - 1
-    while idx_l < idx_r:
-        # NOTE (mb 2020-09-18): All segments are optional,
-        #   except the most left and the most right,
-        #   i.e the ones NOT surrounded by braces.
-        #   Empty string is a valid segment.
-        is_optional = idx_l > 0
-
-        seg_l = pattern_segs[idx_l]
-        seg_r = pattern_segs[idx_r]
-
-        for part, part_value in part_values:
-            if part in seg_l:
-                used_part_values.append(part + "=" + part_value)
-                seg_l = seg_l.replace(part, part_value)
-                if not (is_optional and str(part_value) == ZERO_VALUES.get(part)):
-                    iszero_segment[idx_l] = False
-
-            if part in seg_r:
-                used_part_values.append(part + "=" + part_value)
-                seg_r = seg_r.replace(part, part_value)
-                if not (is_optional and str(part_value) == ZERO_VALUES[part]):
-                    iszero_segment[idx_r] = False
-
-        formatted_segs_l.append(seg_l)
-        formatted_segs_r.append(seg_r)
-
-        idx_l += 1
-        idx_r -= 1
-
-    formatted_segs = formatted_segs_l + list(reversed(formatted_segs_r))
-
-    has_val_to_right = False
-    for idx, is_zero in reversed(list(enumerate(iszero_segment))):
-        if is_zero and not has_val_to_right:
-            formatted_segs[idx] = ""
-        else:
-            has_val_to_right = True
+    pattern_segs   = _make_segments(pattern)
+    formatted_segs = _format_segments(vinfo, pattern_segs)
 
     return "".join(formatted_segs)
 
