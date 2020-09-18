@@ -9,11 +9,11 @@ import io
 import typing as typ
 import logging
 
+import pycalver.rewrite as v1rewrite
 import pycalver2.version as v2version
 import pycalver2.patterns as v2patterns
 from pycalver import parse
 from pycalver import config
-from pycalver import rewrite as v1rewrite
 
 logger = logging.getLogger("pycalver2.rewrite")
 
@@ -68,23 +68,22 @@ def rfd_from_content(
     new_vinfo   : v2version.VersionInfo,
     content     : str,
 ) -> v1rewrite.RewrittenFileData:
-    # TODO reenable doctest
-    # r"""Rewrite pattern occurrences with version string.
+    r"""Rewrite pattern occurrences with version string.
 
-    # >>> new_vinfo = version.parse_version_info("v201809.0123")
-    # >>> pattern_strs = ['__version__ = "{pycalver}"']
-    # >>> content = '__version__ = "v201809.0001-alpha"'
-    # >>> rfd = rfd_from_content(pattern_strs, new_vinfo, content)
-    # >>> rfd.new_lines
-    # ['__version__ = "v201809.0123"']
-    # >>>
-    # >>> new_vinfo = version.parse_version_info("v1.2.3", "v{semver}")
-    # >>> pattern_strs = ['__version__ = "v{semver}"']
-    # >>> content = '__version__ = "v1.2.2"'
-    # >>> rfd = rfd_from_content(pattern_strs, new_vinfo, content)
-    # >>> rfd.new_lines
-    # ['__version__ = "v1.2.3"']
-    # """
+    >>> new_vinfo = v2version.parse_version_info("v201809.0123")
+    >>> pattern_strs = ['__version__ = "vYYYY0M.BUILD[-TAG]"']
+    >>> content = '__version__ = "v201809.0001-alpha"'
+    >>> rfd = rfd_from_content(pattern_strs, new_vinfo, content)
+    >>> rfd.new_lines
+    ['__version__ = "v201809.0123"']
+    >>>
+    >>> new_vinfo = v2version.parse_version_info("v1.2.3", "vMAJOR.MINOR.PATCH")
+    >>> pattern_strs = ['__version__ = "vMAJOR.MINOR.PATCH"']
+    >>> content = '__version__ = "v1.2.2"'
+    >>> rfd = rfd_from_content(pattern_strs, new_vinfo, content)
+    >>> rfd.new_lines
+    ['__version__ = "v1.2.3"']
+    """
     line_sep  = v1rewrite.detect_line_sep(content)
     old_lines = content.split(line_sep)
     new_lines = rewrite_lines(pattern_strs, new_vinfo, old_lines)
@@ -95,26 +94,25 @@ def iter_rewritten(
     file_patterns: config.PatternsByGlob,
     new_vinfo    : v2version.VersionInfo,
 ) -> typ.Iterable[v1rewrite.RewrittenFileData]:
-    # TODO reenable doctest
-    # r'''Iterate over files with version string replaced.
+    r'''Iterate over files with version string replaced.
 
-    # >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "{pycalver}"']}
-    # >>> new_vinfo = version.parse_version_info("v201809.0123")
-    # >>> rewritten_datas = iter_rewritten(file_patterns, new_vinfo)
-    # >>> rfd = list(rewritten_datas)[0]
-    # >>> assert rfd.new_lines == [
-    # ...     '# This file is part of the pycalver project',
-    # ...     '# https://gitlab.com/mbarkhau/pycalver',
-    # ...     '#',
-    # ...     '# Copyright (c) 2019 Manuel Barkhau (mbarkhau@gmail.com) - MIT License',
-    # ...     '# SPDX-License-Identifier: MIT',
-    # ...     '"""PyCalVer: CalVer for Python Packages."""',
-    # ...     '',
-    # ...     '__version__ = "v201809.0123"',
-    # ...     '',
-    # ... ]
-    # >>>
-    # '''
+    >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "vYYYY0M.BUILD[-TAG]"']}
+    >>> new_vinfo = v2version.parse_version_info("v201809.0123")
+    >>> rewritten_datas = iter_rewritten(file_patterns, new_vinfo)
+    >>> rfd = list(rewritten_datas)[0]
+    >>> assert rfd.new_lines == [
+    ...     '# This file is part of the pycalver project',
+    ...     '# https://github.com/mbarkhau/pycalver',
+    ...     '#',
+    ...     '# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License',
+    ...     '# SPDX-License-Identifier: MIT',
+    ...     '"""PyCalVer: CalVer for Python Packages."""',
+    ...     '',
+    ...     '__version__ = "v201809.0123"',
+    ...     '',
+    ... ]
+    >>>
+    '''
 
     fobj: typ.IO[str]
 
@@ -130,20 +128,19 @@ def diff(
     new_vinfo    : v2version.VersionInfo,
     file_patterns: config.PatternsByGlob,
 ) -> str:
-    # TODO reenable doctest
-    # r"""Generate diffs of rewritten files.
+    r"""Generate diffs of rewritten files.
 
-    # >>> new_vinfo = version.parse_version_info("v201809.0123")
-    # >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "{pycalver}"']}
-    # >>> diff_str = diff(new_vinfo, file_patterns)
-    # >>> lines = diff_str.split("\n")
-    # >>> lines[:2]
-    # ['--- src/pycalver/__init__.py', '+++ src/pycalver/__init__.py']
-    # >>> assert lines[6].startswith('-__version__ = "v2')
-    # >>> assert not lines[6].startswith('-__version__ = "v201809.0123"')
-    # >>> lines[7]
-    # '+__version__ = "v201809.0123"'
-    # """
+    >>> new_vinfo = v2version.parse_version_info("v201809.0123")
+    >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "vYYYY0M.BUILD[-TAG]"']}
+    >>> diff_str = diff(new_vinfo, file_patterns)
+    >>> lines = diff_str.split("\n")
+    >>> lines[:2]
+    ['--- src/pycalver/__init__.py', '+++ src/pycalver/__init__.py']
+    >>> assert lines[6].startswith('-__version__ = "v2')
+    >>> assert not lines[6].startswith('-__version__ = "v201809.0123"')
+    >>> lines[7]
+    '+__version__ = "v201809.0123"'
+    """
 
     full_diff = ""
     fobj: typ.IO[str]

@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import copy
+import datetime as dt
 from test import util
 
 from pycalver import config
@@ -130,6 +131,29 @@ def test_v1_optional_release():
 
     new_vinfo = v1version.parse_version_info("2019.0004-beta", pattern)
     new_lines = v1rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
+
+    # make sure optional release tag is added back on
+    assert len(new_lines) == len(old_lines)
+    assert "2019.0004-beta" not in "\n".join(old_lines)
+    assert "2019.0004-beta" in "\n".join(new_lines)
+
+
+def test_v2_optional_release():
+    old_lines = OPTIONAL_RELEASE_FIXTURE.splitlines()
+    pattern   = "YYYY.BUILD[-TAG]"
+    patterns  = ['__version__ = "YYYY.BUILD[-TAG]"']
+
+    new_vinfo = v2version.parse_version_info("2019.0003", pattern)
+    new_lines = v2rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
+
+    assert len(new_lines) == len(old_lines)
+    assert "2019.0003" not in "\n".join(old_lines)
+    new_text = "\n".join(new_lines)
+    assert "2019.0003" in new_text
+    assert '__version__ = "2019.0003"' in new_text
+
+    new_vinfo = v2version.parse_version_info("2019.0004-beta", pattern)
+    new_lines = v2rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
 
     # make sure optional release tag is added back on
     assert len(new_lines) == len(old_lines)
