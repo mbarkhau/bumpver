@@ -19,7 +19,7 @@ Project/Repo:
 
 [![MIT License][license_img]][license_ref]
 [![Supported Python Versions][pyversions_img]][pyversions_ref]
-[![PyCalVer v202007.0036][version_img]][version_ref]
+[![PyCalVer v202007.1036][version_img]][version_ref]
 [![PyPI Releases][pypi_img]][pypi_ref]
 [![PyPI Downloads][downloads_img]][downloads_ref]
 
@@ -89,8 +89,9 @@ WARNING - File not found: pycalver.toml
 Exiting because of '--dry'. Would have written to pycalver.toml:
 
     [pycalver]
-    current_version = "v201902.0001-alpha"
-    version_pattern = "{pycalver}"
+    current_version = "v202010.1001-alpha"
+    version_pattern = "vYYYY0M.BUILD[-TAG]"
+    commit_message = "bump version to {new_version}"
     commit = true
     tag = true
     push = true
@@ -123,8 +124,9 @@ This will add the something like the following to your `setup.cfg`
 ```ini
 # setup.cfg
 [pycalver]
-current_version = "v201902.0001-alpha"
-version_pattern = "{pycalver}"
+current_version = "v201902.1001-alpha"
+version_pattern = "vYYYY0M.BUILD[-TAG]"
+commit_message = "bump version to {new_version}"
 commit = True
 tag = True
 push = True
@@ -164,35 +166,35 @@ it would have made.
 
 ```shell
 $ pycalver bump --dry --no-fetch
-INFO    - Old Version: v201901.0001-beta
-INFO    - New Version: v201902.0002-beta
+INFO    - Old Version: v201901.1001-beta
+INFO    - New Version: v201902.1002-beta
 --- README.md
 +++ README.md
 @@ -11,7 +11,7 @@
 
  [![Supported Python Versions][pyversions_img]][pyversions_ref]
--[![Version v201901.0001][version_img]][version_ref]
-+[![Version v201902.0002][version_img]][version_ref]
+-[![Version v201901.1001-beta][version_img]][version_ref]
++[![Version v201902.1002-beta][version_img]][version_ref]
  [![PyPI Releases][pypi_img]][pypi_ref]
 
 --- src/mymodule_v1/__init__.py
 +++ src/mymodule_v1/__init__.py
 @@ -1,1 +1,1 @@
--__version__ = "v201901.0001-beta"
-+__version__ = "v201902.0002-beta"
+-__version__ = "v201901.1001-beta"
++__version__ = "v201902.1002-beta"
 
 --- src/mymodule_v2/__init__.py
 +++ src/mymodule_v2/__init__.py
 @@ -1,1 +1,1 @@
--__version__ = "v201901.0001-beta"
-+__version__ = "v201902.0002-beta"
+-__version__ = "v201901.1001-beta"
++__version__ = "v201902.1002-beta"
 
 --- setup.py
 +++ setup.py
 @@ -44,7 +44,7 @@
      name="myproject",
--    version="201901.1b0",
-+    version="201902.2b0",
+-    version="201901.1001b0",
++    version="201902.1002b0",
      license="MIT",
 ```
 
@@ -485,10 +487,10 @@ maintainer and no build system) this is a non-issue and you can always use
 ```shell
 $ time pycalver show --verbose
 INFO    - fetching tags from remote (to turn off use: -n / --no-fetch)
-INFO    - Working dir version        : v201812.0018
-INFO    - Latest version from git tag: v201901.0019-beta
-Current Version: v201901.0019-beta
-PEP440         : 201901.19b0
+INFO    - Working dir version        : v202010.1018
+INFO    - Latest version from git tag: v202010.1019-beta
+Current Version: v202010.1019-beta
+PEP440         : 202010.1019b0
 
 real    0m4,254s
 
@@ -506,8 +508,9 @@ section:
 
 ```ini
 [pycalver]
-current_version = "202008.1006-beta"
-version_pattern = "YYYY0M.BUILD[-TAG]"
+current_version = "v202010.1006-beta"
+version_pattern = "vYYYY0M.BUILD[-TAG]"
+commit_message = "bump version to {new_version}"
 commit = True
 tag = True
 push = True
@@ -544,11 +547,11 @@ $ pycalver bump --dry
 @@ -65,7 +65,7 @@
 
  [pycalver]
--current_version = v202008.1005-beta
-+current_version = v202008.1006-beta
+-current_version = v202010.1005-beta
++current_version = v202010.1006-beta
+ version_pattern = "vYYYY0M.BUILD[-TAG]"
+ commit_message = "bump version to {new_version}"
  commit = True
- tag = True
- push = True
 ...
 ```
 
@@ -557,12 +560,46 @@ If everything looks OK, you can do `pycalver bump`.
 ```
 $ pycalver bump --verbose
 INFO    - fetching tags from remote (to turn off use: -n / --no-fetch)
-INFO    - Old Version: v202008.0005-beta
-INFO    - New Version: v202008.0006-beta
-INFO    - git commit --file /tmp/tmpph_npey9
-INFO    - git tag --annotate v202008.0006-beta --message v202008.0006-beta
-INFO    - git push origin v202008.0006-beta
+INFO    - Old Version: v202010.1005-beta
+INFO    - New Version: v202010.1006-beta
+INFO    - git commit --message 'bump version to v202010.1006-beta'
+INFO    - git tag --annotate v202010.1006-beta --message v202010.1006-beta
+INFO    - git push origin v202010.1006-beta
 ```
+
+### Config Parameters
+
+TODO: Descriptions
+
+|  Config Parameter |   Type  |         Description          |
+|-------------------|---------|------------------------------|
+| `current_version` | string  |                              |
+| `version_pattern` | string  |                              |
+| `commit_message`  | string  | ¹Template fro commit message |
+| `commit`          | boolean |                              |
+| `tag`             | boolean |                              |
+| `push`            | boolean |                              |
+
+- ¹ Available placeholders:
+  - `{new_version}`
+  - `{old_version}`
+  - `{new_version_pep440}`
+  - `{old_version_pep440}`
+
+
+### CLI Arguments
+
+TODO: Descriptions
+
+|  CLI Argument | Description |
+|---------------|-------------|
+| --major       |             |
+| --minor       |             |
+| --patch       |             |
+| --pin-date    |             |
+| --no-fetch    |             |
+| --dry         |             |
+| --allow-dirty |             |
 
 
 ## The PyCalVer Format

@@ -33,7 +33,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'ls_tags'     : "git tag --list",
         'status'      : "git status --porcelain",
         'add_path'    : "git add --update {path}",
-        'commit'      : "git commit --file {path}",
+        'commit'      : "git commit --message '{message}'",
         'tag'         : "git tag --annotate {tag} --message {tag}",
         'push_tag'    : "git push origin --follow-tags {tag}",
         'show_remotes': "git config --get remote.origin.url",
@@ -144,20 +144,25 @@ class VCSAPI:
 
     def commit(self, message: str) -> None:
         """Commit added files."""
-        message_data = message.encode("utf-8")
-
-        tmp_file = tempfile.NamedTemporaryFile("wb", delete=False)
-        assert " " not in tmp_file.name
-
-        fobj: typ.IO[bytes]
-
-        with tmp_file as fobj:
-            fobj.write(message_data)
-
         env: Env = os.environ.copy()
-        env['HGENCODING'] = "utf-8"
-        self('commit', env=env, path=tmp_file.name)
-        os.unlink(tmp_file.name)
+
+        if self.name == 'git':
+            self('commit', env=env, message=message)
+        else:
+            message_data = message.encode("utf-8")
+            tmp_file     = tempfile.NamedTemporaryFile("wb", delete=False)
+            try:
+                assert " " not in tmp_file.name
+
+                fobj: typ.IO[bytes]
+
+                with tmp_file as fobj:
+                    fobj.write(message_data)
+
+                env['HGENCODING'] = "utf-8"
+                self('commit', env=env, path=tmp_file.name)
+            finally:
+                os.unlink(tmp_file.name)
 
     def tag(self, tag_name: str) -> None:
         """Create an annotated tag."""

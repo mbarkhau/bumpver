@@ -392,15 +392,13 @@ def bump(
     if dry:
         return
 
-    # # TODO (mb 2020-09-05): format from config
-    # commit_message_kwargs = {
-    #     new_version
-    #     old_version
-    #     pep440_new_version
-    #     pep440_old_version
-    # }
-    # cfg.commit_message =
-    commit_message = f"bump version to {new_version}"
+    commit_message_kwargs = {
+        'new_version'       : new_version,
+        'old_version'       : old_version,
+        'new_version_pep440': v1version.to_pep440(new_version),
+        'old_version_pep440': v1version.to_pep440(old_version),
+    }
+    commit_message = cfg.commit_message.format(**commit_message_kwargs)
 
     _try_bump(cfg, new_version, commit_message, allow_dirty)
 

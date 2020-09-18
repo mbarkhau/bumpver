@@ -23,6 +23,8 @@ PatternsByGlob = typ.Dict[str, Patterns]
 
 SUPPORTED_CONFIGS = ["setup.cfg", "pyproject.toml", "pycalver.toml"]
 
+DEFAULT_COMMIT_MESSAGE = "bump version to {new_version}"
+
 
 class ProjectContext(typ.NamedTuple):
     """Container class for project info."""
@@ -78,6 +80,7 @@ class Config(typ.NamedTuple):
     current_version: str
     version_pattern: str
     pep440_version : str
+    commit_message : str
 
     commit: bool
     tag   : bool
@@ -92,6 +95,7 @@ def _debug_str(cfg: Config) -> str:
         f"current_version='{cfg.current_version}'",
         "version_pattern='{pycalver}'",
         f"pep440_version='{cfg.pep440_version}'",
+        f"commit_message='{cfg.commit_message}'",
         f"commit={cfg.commit}",
         f"tag={cfg.tag}",
         f"push={cfg.push}",
@@ -238,6 +242,8 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     version_pattern: str = raw_cfg.get('version_pattern', "{pycalver}")
     version_pattern = raw_cfg['version_pattern'] = version_pattern.strip("'\" ")
 
+    commit_message: str = raw_cfg.get('commit_message', DEFAULT_COMMIT_MESSAGE)
+    commit_message = raw_cfg['commit_message'] = commit_message.strip("'\" ")
     # NOTE (mb 2019-01-05): Provoke ValueError if version_pattern
     #   and current_version are not compatible.
     version.parse_version_info(version_str, version_pattern)
@@ -265,6 +271,7 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
         current_version=version_str,
         version_pattern=version_pattern,
         pep440_version=pep440_version,
+        commit_message=commit_message,
         commit=commit,
         tag=tag,
         push=push,
@@ -333,6 +340,7 @@ DEFAULT_CONFIGPARSER_BASE_TMPL = """
 [pycalver]
 current_version = "{initial_version}"
 version_pattern = "{{pycalver}}"
+commit_message = "bump version to {{new_version}}"
 commit = True
 tag = True
 push = True
@@ -372,6 +380,7 @@ DEFAULT_TOML_BASE_TMPL = """
 [pycalver]
 current_version = "{initial_version}"
 version_pattern = "{{pycalver}}"
+commit_message = "bump version to {{new_version}}"
 commit = true
 tag = true
 push = true
