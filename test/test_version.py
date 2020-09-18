@@ -10,9 +10,9 @@ import datetime as dt
 import pytest
 
 import pycalver.version as v1version
+import pycalver2.version as v2version
 import pycalver.patterns as v1patterns
 
-# import pycalver2.version as v2version
 # import pycalver2.patterns as v2patterns
 
 # pylint:disable=protected-access ; allowed for test code
@@ -182,7 +182,7 @@ PARSE_VERSION_TEST_CASES = [
 
 
 @pytest.mark.parametrize("pattern_str, line, expected_vinfo", PARSE_VERSION_TEST_CASES)
-def test_parse_versions(pattern_str, line, expected_vinfo):
+def test_v1_parse_versions(pattern_str, line, expected_vinfo):
     pattern       = v1patterns.compile_pattern(pattern_str)
     version_match = pattern.regexp.search(line)
 
@@ -196,3 +196,25 @@ def test_parse_versions(pattern_str, line, expected_vinfo):
     version_info = v1version.parse_version_info(version_str, pattern_str)
 
     assert version_info == expected_vinfo
+
+
+# def test_v2_parse_versions(pattern_str, line, expected_vinfo):
+def test_v2_parse_versions():
+    vnfo  = v2version.parse_version_info("v201712.0033", pattern="vYYYY0M.BUILD[-TAG[NUM]]")
+    fvals = {'year_y': 2017, 'month': 12, 'bid': "0033"}
+    assert vnfo == v2version._parse_version_info(fvals)
+
+
+def test_v2_format_version():
+    pattern    = "vYYYY0M.BUILD[-TAG[NUM]]"
+    in_version = "v200701.0033-beta"
+
+    vinfo       = v2version.parse_version_info(in_version, pattern=pattern)
+    out_version = v2version.format_version(vinfo, pattern=pattern)
+    assert in_version == out_version
+
+    result = v2version.format_version(vinfo, pattern="v0Y.BUILD[-TAG]")
+    assert result == "v07.0033-beta"
+
+    result = v2version.format_version(vinfo, pattern="vYY.BLD[-TAG]")
+    assert result == "v7.33-beta"

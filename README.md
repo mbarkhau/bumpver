@@ -222,25 +222,27 @@ You can also define custom patterns in the items of the `pycalver:file_patterns`
 
 These patterns are closely based on https://calver.org/
 
-| placeholder |  range / example(s) |       comment        |
-|-------------|---------------------|----------------------|
-| YYYY        | 2019, 2020...       | `%Y`                 |
-| YY          | 18, 19..99, 1, 2    | `int(%y)`            |
-| 0Y          | 18, 19..99, 01, 02  | `%y`                 |
-| Q           | 1, 2, 3, 4          | quarter              |
-| MM          | 9, 10, 11, 12       | `int(%m)`            |
-| 0M          | 09, 10, 11, 12      | `%m`                 |
-| DD          | 1, 2, 3..31         | `int(%d)`            |
-| 0D          | 01, 02, 03..31      | `%d`                 |
-| JJJ         | 1,2,3..366          | `int(%j)`            |
-| 00J         | 001, 002..366       | `%j`                 |
-| BUILD       | 1001, 1002, 23456   | build number (lexid) |
-| TAG         | alpha, beta, rc     | `--release=<tag>`    |
-| PYTAG       | a0, b0, rc          | `--release=<tag>`    |
-| MAJOR       | 0..9, 10..99, 100.. | `--major`            |
-| MINOR       | 0..9, 10..99, 100.. | `--minor`            |
-| PATCH       | 0..9, 10..99, 100.. | `--patch`            |
-| MICRO       | 0..9, 10..99, 100.. | Synonym for PATCH    |
+| placeholder |  range / example(s)  |        comment         |
+|-------------|----------------------|------------------------|
+| `YYYY`      | 2019, 2020...        | `%Y`                   |
+| `YY`        | 18, 19..99, 1, 2     | `int(%y)`              |
+| `0Y`        | 18, 19..99, 01, 02   | `%y`                   |
+| `Q`         | 1, 2, 3, 4           | quarter                |
+| `MM`        | 9, 10, 11, 12        | `int(%m)`              |
+| `0M`        | 09, 10, 11, 12       | `%m`                   |
+| `DD`        | 1, 2, 3..31          | `int(%d)`              |
+| `0D`        | 01, 02, 03..31       | `%d`                   |
+| `JJJ`       | 1,2,3..366           | `int(%j)`              |
+| `00J`       | 001, 002..366        | `%j`                   |
+| `BUILD`     | 0011, 1001, 1002, .. | build number (lexid)   |
+| `BLD`       | 11, 1001, 1002, ..   | zero truncated `BUILD` |
+| `TAG`       | alpha, beta, rc      | `--release=<tag>`      |
+| `PYTAG`     | a, b, rc             | `--release=<tag>`      |
+| `NUM`       | 0, 1, 2...           | release tag number     |
+| `MAJOR`     | 0..9, 10..99, 100..  | `--major`              |
+| `MINOR`     | 0..9, 10..99, 100..  | `--minor`              |
+| `PATCH`     | 0..9, 10..99, 100..  | `--patch`              |
+| `MICRO`     | 0..9, 10..99, 100..  | Synonym for `PATCH`    |
 
 
 ### Week Numbering
@@ -252,17 +254,17 @@ Week numbering is a bit special, as it depends on your definition of "week":
 - At the beginning/end of the year, do you have partial weeks or do you have a week that span mutliple years?
 - If a week spans multiple years, what is the year number?
 
-| placeholder |  range / example(s) |                          comment                           |
-|-------------|---------------------|------------------------------------------------------------|
-| `WW`        | 0, 1, 2..52         | `int(%W)`                                                  |
-| `0W`        | 00, 01, 02..52      | `%W`                                                       |
-| `UU`        | 0, 1, 2..52         | `int(%U)`   us_week                                        |
-| `0U`        | 00, 01, 02..52      | `%U`   us_week                                             |
-| `VV`        | 1, 2..53            | `int(%V)`   iso week                                       |
-| `0V`        | 01, 02..53          | `%U`   iso_week                                            |
-| `GGGG`      | 2019, 2020...       | ISO 8601 week-based year (corresponds to `strftime("%G")`) |
-| `GG`        | 19, 20...99, 0, 1   | Short ISO 8601 week-based year                             |
-| `0G`        | 19, 20...99, 00, 01 | Zero-padded ISO 8601 week-based year                       |
+| placeholder |  range / example(s) |                  comment                  |
+|-------------|---------------------|-------------------------------------------|
+| `WW`        | 0, 1, 2..52         | `int(%W)`                                 |
+| `0W`        | 00, 01, 02..52      | `%W`                                      |
+| `UU`        | 0, 1, 2..52         | `int(%U)`   us_week                       |
+| `0U`        | 00, 01, 02..52      | `%U`   us_week                            |
+| `VV`        | 1, 2..53            | `int(%V)`   iso week                      |
+| `0V`        | 01, 02..53          | `%V`   iso_week                           |
+| `GGGG`      | 2019, 2020...       | `strftime("%G")` ISO 8601 week-based year |
+| `GG`        | 19, 20...99, 0, 1   | Short ISO 8601 week-based year            |
+| `0G`        | 19, 20...99, 00, 01 | Zero-padded ISO 8601 week-based year      |
 
 
 ### Normalization Caveats
@@ -283,22 +285,34 @@ For example:
 
 It may be confusing to your users to see versions displayed in two different forms. It is not immediately obvious that `v20.08.02-beta` is the same `20.8.2b0` on pypi. If you wish to avoid this, you should usa a pattern which is as close as possible to the normalized form of your version.
 
-|        pattern        | example | lexical | PEP440 | lexical |
-|-----------------------|---------|---------|--------|---------|
-| `YYYY.0M`             |         | yes     |        | no      |
-| `YYYY.MM`             |         | no      |        | no      |
-| `vYYYY.0W`            |         | yes     |        | no      |
-| `vYYYY.WW`            |         | no      |        | no      |
-| `YYYY.0M.0D`          |         | yes     |        | no      |
-| `YYYY.MM.DD`          |         | no      |        | no      |
-| `YYYY0M.BUILD[-TAG]`  |         | yes     |        | yes     |
-| `YY0M.BUILD[-TAG]`    |         | yes¹    |        | yes¹    |
-| `YYYY.BUILD[-TAG]`    |         | yes     |        | yes     |
-| `YYYY0M.MINOR[-TAG]`  |         | yes²    |        | yes     |
-| `YYYY.MM.MINOR[-TAG]` |         | no      |        | no      |
-| `YYYY.0M.MINOR[-TAG]` |         | yes²    |        | no      |
-| `YYYY.WW.MINOR[-TAG]` |         | no      |        | no      |
-| `YYYY.0W.MINOR[-TAG]` |         | yes²    |        | no      |
+It may also be confusing to your users if they a list of version numbers, sorted lexiographically by some tool (e.g. a list of git tags) and a newer version is listed after older versions like this:
+
+```
+3.9.1
+3.8.1
+3.8.0
+3.10.0
+```
+
+If you wish to avoid this, you should use a pattern which maintains lexiographical ordering.
+
+
+|        pattern        | example | lexio. | PEP440 | lexio. |
+|-----------------------|---------|--------|--------|--------|
+| `YYYY0M.BUILD[-TAG]`  |         | yes    |        | yes    |
+| `YYYY.BUILD[-TAG]`    |         | yes    |        | yes    |
+| `YYYY0M.MINOR[-TAG]`  |         | yes²   |        | yes    |
+| `YY0M.BUILD[-TAG]`    |         | yes¹   |        | yes¹   |
+| `YYYY.MM.MINOR[-TAG]` |         | no     |        | no     |
+| `YYYY.0M.MINOR[-TAG]` |         | yes²   |        | no     |
+| `YYYY.WW.MINOR[-TAG]` |         | no     |        | no     |
+| `YYYY.0W.MINOR[-TAG]` |         | yes²   |        | no     |
+| `YYYY.0M.0D`          |         | yes    |        | no     |
+| `YYYY.MM.DD`          |         | no     |        | no     |
+| `vYYYY.0W`            |         | yes    |        | no     |
+| `vYYYY.WW`            |         | no     |        | no     |
+| `YYYY.0M`             |         | yes    |        | no     |
+| `YYYY.MM`             |         | no     |        | no     |
 
 - ¹ Until 2099. If your project has new releases after 2099, future maintainers can change `YY`/`0Y` -> `YYYY` so that they don't release `00.xx`.
 - ² As long as `MINOR <= 9`
@@ -317,8 +331,6 @@ Available placeholders are:
 
 |     placeholder     |  range / example(s) |     comment     |
 |---------------------|---------------------|-----------------|
-| `{pycalver}`        | v201902.0001-beta   |                 |
-| `{pep440_pycalver}` | 201902.1b0          |                 |
 | `{year}`            | 2019...             | `%Y`            |
 | `{yy}`              | 18, 19..99, 01, 02  | `%y`            |
 | `{quarter}`         | 1, 2, 3, 4          |                 |
@@ -327,15 +339,21 @@ Available placeholders are:
 | `{us_week}`         | 00..53              | `%U`            |
 | `{dom}`             | 01..31              | `%d`            |
 | `{doy}`             | 001..366            | `%j`            |
-| `{build}`           | .0123               | lexical id      |
-| `{build_no}`        | 0123, 12345         | ...             |
+| `{build}`           | .1023               | lexical id      |
+| `{build_no}`        | 1023, 20345         | ...             |
 | `{release}`         | -alpha, -beta, -rc  | --release=<tag> |
 | `{release_tag}`     | alpha, beta, rc     | ...             |
-| `{semver}`          | 1.2.3               |                 |
-| `{MAJOR}`           | 1..9, 10..99, 100.. | --major         |
-| `{MINOR}`           | 1..9, 10..99, 100.. | --minor         |
-| `{PATCH}`           | 1..9, 10..99, 100.. | --patch         |
 
+
+
+|     placeholder     |  range / example(s) |     comment     |
+|---------------------|---------------------|-----------------|
+| `{pycalver}`        | v201902.1001-beta   |                 |
+| `{pep440_pycalver}` | 201902.1b0          |                 |
+| `{semver}`          | 1.2.3               |                 |
+
+
+### Pattern Usage
 
 There are some limitations to keep in mind:
 

@@ -86,6 +86,7 @@ PART_PATTERNS = {
     'PATCH': r"[0-9]+",
     'MICRO': r"[0-9]+",
     'BUILD': r"[0-9]+",
+    'BLD'  : r"[1-9][0-9]*",
     'TAG'  : r"(?:alpha|beta|dev|pre|rc|post|final)",
     'PYTAG': r"(?:a|b|dev|rc|post)",
     'NUM'  : r"[0-9]+",
@@ -111,6 +112,7 @@ PATTERN_PART_FIELDS = {
     'PATCH': 'patch',
     'MICRO': 'patch',
     'BUILD': 'bid',
+    'BLD'  : 'bid',
     'TAG'  : 'tag',
     'PYTAG': 'pytag',
     'NUM'  : 'num',
@@ -128,6 +130,10 @@ FieldValue = typ.Union[str, int]
 
 def _fmt_num(val: FieldValue) -> str:
     return str(val)
+
+
+def _fmt_bld(val: FieldValue) -> str:
+    return str(int(val))
 
 
 def _fmt_yy(year_y: FieldValue) -> str:
@@ -189,6 +195,7 @@ PART_FORMATS: typ.Dict[str, typ.Callable[[FieldValue], str]] = {
     'PATCH': _fmt_num,
     'MICRO': _fmt_num,
     'BUILD': _fmt_num,
+    'BLD'  : _fmt_bld,
     'TAG'  : _fmt_num,
     'PYTAG': _fmt_num,
     'NUM'  : _fmt_num,
