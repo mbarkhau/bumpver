@@ -12,6 +12,7 @@ Provided subcommands: show, test, init, bump
 import typing as typ
 import logging
 
+import pycalver.version as v1version
 import pycalver2.rewrite as v2rewrite
 import pycalver2.version as v2version
 from pycalver import config
@@ -28,7 +29,7 @@ def update_cfg_from_vcs(cfg: config.Config, all_tags: typ.List[str]) -> config.C
     version_tags.sort(reverse=True)
     logger.debug(f"found {len(version_tags)} tags: {version_tags[:2]}")
     latest_version_tag    = version_tags[0]
-    latest_version_pep440 = v2version.to_pep440(latest_version_tag)
+    latest_version_pep440 = v1version.to_pep440(latest_version_tag)
     if latest_version_tag <= cfg.current_version:
         return cfg
 

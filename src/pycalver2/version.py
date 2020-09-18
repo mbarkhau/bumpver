@@ -10,7 +10,6 @@ import logging
 import datetime as dt
 
 import lexid
-import pkg_resources
 
 import pycalver2.patterns as v2patterns
 
@@ -637,12 +636,3 @@ def incr(
         return None
     else:
         return new_version
-
-
-def to_pep440(version: str) -> str:
-    """Derive pep440 compliant version string from PyCalVer version string.
-
-    >>> to_pep440("v201811.0007-beta")
-    '201811.7b0'
-    """
-    return str(pkg_resources.parse_version(version))
