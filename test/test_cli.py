@@ -102,6 +102,13 @@ def test_incr_default(runner):
     assert f"Version: {new_version}\n" in result.output
 
 
+def test_incr_pin_date(runner):
+    old_version = "v201701.0999-alpha"
+    result      = runner.invoke(cli, ['test', "-vv", "--pin-date", old_version])
+    assert result.exit_code == 0
+    assert "Version: v201701.11000-alpha\n" in result.output
+
+
 def test_incr_semver(runner):
     semver_pattern = "{MAJOR}.{MINOR}.{PATCH}"
     old_version    = "0.1.0"

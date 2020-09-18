@@ -586,10 +586,11 @@ def incr(
     old_version: str,
     pattern    : str = "vYYYY0M.BUILD[-TAG]",
     *,
-    release: str  = None,
-    major  : bool = False,
-    minor  : bool = False,
-    patch  : bool = False,
+    release : str  = None,
+    major   : bool = False,
+    minor   : bool = False,
+    patch   : bool = False,
+    pin_date: bool = False,
 ) -> typ.Optional[str]:
     """Increment version string.
 
@@ -603,7 +604,7 @@ def incr(
 
     cur_vinfo = old_vinfo
 
-    cur_cal_nfo = cal_info()
+    cur_cal_nfo = _ver_to_cal_info(old_vinfo) if pin_date else cal_info()
 
     old_date = (old_vinfo.year_y or 0  , old_vinfo.month or 0  , old_vinfo.dom or 0)
     cur_date = (cur_cal_nfo.year_y or 0, cur_cal_nfo.month or 0, cur_cal_nfo.dom or 0)
