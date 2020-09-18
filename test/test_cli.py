@@ -98,7 +98,7 @@ def test_incr_default(runner):
 
     result = runner.invoke(cli, ['test', "-vv", old_version])
     assert result.exit_code == 0
-    new_version = initial_version.replace(".0001-alpha", ".11000-alpha")
+    new_version = initial_version.replace(".1001-alpha", ".11000-alpha")
     assert f"Version: {new_version}\n" in result.output
 
 
@@ -152,7 +152,7 @@ def test_incr_to_beta(runner):
 
     result = runner.invoke(cli, ['test', old_version, "-vv", "--release", "beta"])
     assert result.exit_code == 0
-    new_version = initial_version.replace(".0001-alpha", ".11000-beta")
+    new_version = initial_version.replace(".1001-alpha", ".11000-beta")
     assert f"Version: {new_version}\n" in result.output
 
 
@@ -162,7 +162,7 @@ def test_incr_to_final(runner):
 
     result = runner.invoke(cli, ['test', old_version, "-vv", "--release", "final"])
     assert result.exit_code == 0
-    new_version = initial_version.replace(".0001-alpha", ".11000")
+    new_version = initial_version.replace(".1001-alpha", ".11000")
     assert f"Version: {new_version}\n" in result.output
 
 
@@ -178,8 +178,8 @@ def _add_project_files(*files):
         with pl.Path("README.md").open(mode="wt", encoding="utf-8") as fobj:
             fobj.write(
                 """
-                Hello World v201701.0002-alpha !
-                aka. 201701.2a0 !
+                Hello World v201701.1002-alpha !
+                aka. 201701.1002a0 !
             """
             )
 
@@ -337,8 +337,8 @@ def test_git_tag_eval(runner):
     result = runner.invoke(cli, ['init', "-vv"])
     assert result.exit_code == 0
     initial_version    = config._initial_version()
-    tag_version        = initial_version.replace(".0001-alpha", ".0123-beta")
-    tag_version_pep440 = tag_version[1:7] + ".123b0"
+    tag_version        = initial_version.replace(".1001-alpha", ".1123-beta")
+    tag_version_pep440 = tag_version[1:7] + ".1123b0"
 
     shell("git", "tag", "--annotate", tag_version, "--message", f"bump version to {tag_version}")
 
@@ -357,8 +357,8 @@ def test_hg_tag_eval(runner):
     result = runner.invoke(cli, ['init', "-vv"])
     assert result.exit_code == 0
     initial_version    = config._initial_version()
-    tag_version        = initial_version.replace(".0001-alpha", ".0123-beta")
-    tag_version_pep440 = tag_version[1:7] + ".123b0"
+    tag_version        = initial_version.replace(".1001-alpha", ".1123-beta")
+    tag_version_pep440 = tag_version[1:7] + ".1123b0"
 
     shell("hg", "tag", tag_version, "--message", f"bump version to {tag_version}")
 
@@ -377,20 +377,20 @@ def test_novcs_bump(runner):
     result = runner.invoke(cli, ['bump', "-vv"])
     assert result.exit_code == 0
 
-    calver = config._initial_version()[:7]
+    calver = config._initial_version().split(".")[0]
 
     with pl.Path("README.md").open() as fobj:
         content = fobj.read()
-        assert calver + ".0002-alpha !\n" in content
-        assert calver[1:] + ".2a0 !\n" in content
+        assert calver + ".1002-alpha !\n" in content
+        assert calver[1:] + ".1002a0 !\n" in content
 
     result = runner.invoke(cli, ['bump', "-vv", "--release", "beta"])
     assert result.exit_code == 0
 
     with pl.Path("README.md").open() as fobj:
         content = fobj.read()
-        assert calver + ".0003-beta !\n" in content
-        assert calver[1:] + ".3b0 !\n" in content
+        assert calver + ".1003-beta !\n" in content
+        assert calver[1:] + ".1003b0 !\n" in content
 
 
 def test_git_bump(runner):
@@ -410,7 +410,7 @@ def test_git_bump(runner):
 
     with pl.Path("README.md").open() as fobj:
         content = fobj.read()
-        assert calver + ".0002-alpha !\n" in content
+        assert calver + ".1002-alpha !\n" in content
 
 
 def test_hg_bump(runner):
@@ -430,7 +430,7 @@ def test_hg_bump(runner):
 
     with pl.Path("README.md").open() as fobj:
         content = fobj.read()
-        assert calver + ".0002-alpha !\n" in content
+        assert calver + ".1002-alpha !\n" in content
 
 
 def test_empty_git_bump(runner, caplog):
@@ -530,3 +530,8 @@ def test_bump_semver_diff(runner, caplog):
         assert "+++ setup.cfg" in out_lines
         assert "-current_version = \"0.1.0\"" in out_lines
         assert f"+current_version = \"{expected}\"" in out_lines
+
+
+# def test_custom_commit_message(runner):
+#     # TODO (mb 2020-09-18):
+#     assert False

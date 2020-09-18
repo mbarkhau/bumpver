@@ -236,7 +236,7 @@ def _replace_pattern_parts(pattern: str) -> str:
             )
             last_start_idx = start_idx
 
-    return "(?P<version>" + result_pattern + ")"
+    return result_pattern
 
 
 def compile_pattern_str(pattern: str) -> str:

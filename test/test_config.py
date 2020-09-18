@@ -63,6 +63,26 @@ setup.cfg =
 """
 
 
+NEW_PATTERN_CFG_FIXTURE = """
+[pycalver]
+current_version = "v201808.1456-beta"
+version_pattern = "vYYYY0M.BUILD[-TAG]"
+commit_message = "bump version to {new_version}"
+commit = True
+tag = True
+push = True
+
+[pycalver:file_patterns]
+setup.py =
+    {version}
+    {pep440_version}
+setup.cfg =
+    current_version = "{version}"
+src/project/*.py =
+    Copyright (c) 2018-YYYY
+"""
+
+
 def mk_buf(text):
     buf = io.StringIO()
     buf.write(text)
@@ -104,7 +124,7 @@ def test_parse_toml_2():
     assert cfg.file_patterns["pycalver.toml"] == ['current_version = "{semver}"']
 
 
-def test_parse_cfg():
+def test_parse_v1_cfg():
     buf = mk_buf(SETUP_CFG_FIXTURE)
 
     raw_cfg = config._parse_cfg(buf)
@@ -118,6 +138,25 @@ def test_parse_cfg():
     assert "setup.cfg" in cfg.file_patterns
     assert cfg.file_patterns["setup.py" ] == ["{pycalver}", "{pep440_pycalver}"]
     assert cfg.file_patterns["setup.cfg"] == ['current_version = "{pycalver}"']
+
+
+def test_parse_v2_cfg():
+    buf = mk_buf(NEW_PATTERN_CFG_FIXTURE)
+
+    raw_cfg = config._parse_cfg(buf)
+    cfg     = config._parse_config(raw_cfg)
+    assert cfg.current_version == "v201808.1456-beta"
+    assert cfg.commit_message  == "bump version to {new_version}"
+    assert cfg.commit is True
+    assert cfg.tag    is True
+    assert cfg.push   is True
+
+    assert "setup.py" in cfg.file_patterns
+    assert "setup.cfg" in cfg.file_patterns
+    # TODO (mb 2020-09-18):
+    # assert cfg.file_patterns["setup.py"        ] == ["vYYYY0M.BUILD[-TAG]", "YYYY0M.BLD[PYTAGNUM]"]
+    # assert cfg.file_patterns["setup.cfg"       ] == ['current_version = "vYYYY0M.BUILD[-TAG]"']
+    # assert cfg.file_patterns["src/project/*.py"] == ['Copyright (c) 2018-YYYY"']
 
 
 def test_parse_default_toml():
@@ -295,7 +334,7 @@ def test_parse_missing_version(tmpdir):
         "\n".join(
             (
                 "[pycalver]",
-                # f"current_version = v201808.0001-dev",
+                # f"current_version = v201808.1001-dev",
                 "commit = False",
             )
         )

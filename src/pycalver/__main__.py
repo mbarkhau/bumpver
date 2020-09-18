@@ -17,12 +17,13 @@ import subprocess as sp
 import click
 
 import pycalver.cli as v1cli
+import pycalver2.cli as v2cli
 import pycalver.version as v1version
 import pycalver2.version as v2version
+import pycalver.rewrite as v1rewrite
+
 from pycalver import vcs
 from pycalver import config
-
-# import pycalver2.cli as v2cli
 
 _VERBOSE = 0
 
@@ -149,31 +150,21 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
     click.echo(f"PEP440         : {cfg.pep440_version}")
 
 
-def _try_print_diff(cfg: config.Config, new_version: str) -> None:
-    try:
-        # TODO (mb 2020-09-05): version switch
-        diff = v1cli.get_diff(cfg, new_version)
-        # diff = v2cli.get_diff(cfg, new_version)
-
-        if sys.stdout.isatty():
-            for line in diff.splitlines():
-                if line.startswith("+++") or line.startswith("---"):
-                    click.echo(line)
-                elif line.startswith("+"):
-                    click.echo("\u001b[32m" + line + "\u001b[0m")
-                elif line.startswith("-"):
-                    click.echo("\u001b[31m" + line + "\u001b[0m")
-                elif line.startswith("@"):
-                    click.echo("\u001b[36m" + line + "\u001b[0m")
-                else:
-                    click.echo(line)
-        else:
-            click.echo(diff)
-    except Exception as ex:
-        # pylint:disable=broad-except; Mostly we expect IOError here, but
-        #   could be other things and there's no option to recover anyway.
-        logger.error(str(ex), exc_info=True)
-        sys.exit(1)
+def _print_diff(diff: str) -> None:
+    if sys.stdout.isatty():
+        for line in diff.splitlines():
+            if line.startswith("+++") or line.startswith("---"):
+                click.echo(line)
+            elif line.startswith("+"):
+                click.echo("\u001b[32m" + line + "\u001b[0m")
+            elif line.startswith("-"):
+                click.echo("\u001b[31m" + line + "\u001b[0m")
+            elif line.startswith("@"):
+                click.echo("\u001b[36m" + line + "\u001b[0m")
+            else:
+                click.echo(line)
+    else:
+        click.echo(diff)
 
 
 def _incr(
@@ -229,10 +220,15 @@ def _bump(
         vcs.assert_not_dirty(vcs_api, filepaths, allow_dirty)
 
     try:
-        # TODO (mb 2020-09-05): version switch
-        v1cli.rewrite(cfg, new_version)
-        # v2cli.rewrite(cfg, new_version)
+        if cfg.is_new_pattern:
+            v2cli.rewrite(cfg, new_version)
+        else:
+            v1cli.rewrite(cfg, new_version)
+    except v1rewrite.NoPatternMatch as ex:
+        logger.error(str(ex))
+        sys.exit(1)
     except Exception as ex:
+        # TODO (mb 2020-09-18): Investigate error messages
         logger.error(str(ex))
         sys.exit(1)
 
@@ -285,10 +281,10 @@ def init(verbose: int = 0, dry: bool = False) -> None:
 def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     all_tags = vcs.get_tags(fetch=fetch)
 
-    # TODO (mb 2020-09-05): version switch
-    cfg = v1cli.update_cfg_from_vcs(cfg, all_tags)
-    # cfg = v2cli.update_cfg_from_vcs(cfg, all_tags)
-    return cfg
+    if cfg.is_new_pattern:
+        return v2cli.update_cfg_from_vcs(cfg, all_tags)
+    else:
+        return v1cli.update_cfg_from_vcs(cfg, all_tags)
 
 
 @cli.command()
@@ -375,7 +371,11 @@ def bump(
     )
 
     if new_version is None:
-        is_semver      = "{semver}" in cfg.version_pattern
+        is_semver = "{semver}" in cfg.version_pattern or (
+            "MAJOR" in cfg.version_pattern
+            and "MAJOR" in cfg.version_pattern
+            and "PATCH" in cfg.version_pattern
+        )
         has_semver_inc = major or minor or patch
         if is_semver and not has_semver_inc:
             logger.warning("bump --major/--minor/--patch required when using semver.")
@@ -387,7 +387,20 @@ def bump(
     logger.info(f"New Version: {new_version}")
 
     if dry or verbose >= 2:
-        _try_print_diff(cfg, new_version)
+        try:
+            if cfg.is_new_pattern:
+                diff = v2cli.get_diff(cfg, new_version)
+            else:
+                diff = v1cli.get_diff(cfg, new_version)
+            _print_diff(diff)
+        except v1rewrite.NoPatternMatch as ex:
+            logger.error(str(ex))
+            sys.exit(1)
+        except Exception as ex:
+            # pylint:disable=broad-except; Mostly we expect IOError here, but
+            #   could be other things and there's no option to recover anyway.
+            logger.error(str(ex))
+            sys.exit(1)
 
     if dry:
         return

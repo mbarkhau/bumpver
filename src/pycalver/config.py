@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: MIT
 """Parse setup.cfg or pycalver.cfg files."""
 
-import os
+import glob
 import typing as typ
 import logging
 import datetime as dt
@@ -14,7 +14,8 @@ import configparser
 import toml
 import pathlib2 as pl
 
-from . import version
+import pycalver.version as v1version
+import pycalver2.version as v2version
 
 logger = logging.getLogger("pycalver.config")
 
@@ -82,9 +83,10 @@ class Config(typ.NamedTuple):
     pep440_version : str
     commit_message : str
 
-    commit: bool
-    tag   : bool
-    push  : bool
+    commit        : bool
+    tag           : bool
+    push          : bool
+    is_new_pattern: bool
 
     file_patterns: PatternsByGlob
 
@@ -93,12 +95,13 @@ def _debug_str(cfg: Config) -> str:
     cfg_str_parts = [
         "Config Parsed: Config(",
         f"current_version='{cfg.current_version}'",
-        "version_pattern='{pycalver}'",
+        f"version_pattern='{cfg.version_pattern}'",
         f"pep440_version='{cfg.pep440_version}'",
         f"commit_message='{cfg.commit_message}'",
         f"commit={cfg.commit}",
         f"tag={cfg.tag}",
         f"push={cfg.push}",
+        f"is_new_pattern={cfg.is_new_pattern}",
         "file_patterns={",
     ]
 
@@ -197,7 +200,7 @@ def _normalize_file_patterns(raw_cfg: RawConfig) -> FilePatterns:
     """
     version_str    : str = raw_cfg['current_version']
     version_pattern: str = raw_cfg['version_pattern']
-    pep440_version : str = version.to_pep440(version_str)
+    pep440_version : str = v1version.to_pep440(version_str)
 
     file_patterns: FilePatterns
     if 'file_patterns' in raw_cfg:
@@ -205,9 +208,12 @@ def _normalize_file_patterns(raw_cfg: RawConfig) -> FilePatterns:
     else:
         file_patterns = {}
 
-    for filepath, patterns in list(file_patterns.items()):
-        if not os.path.exists(filepath):
-            logger.warning(f"Invalid config, no such file: {filepath}")
+    for filepath_glob, patterns in list(file_patterns.items()):
+        filepaths = glob.glob(filepath_glob)
+        if not filepaths:
+            logger.warning(f"Invalid config, no such file: {filepath_glob}")
+            # fallback to treating it as a simple path
+            filepaths = [filepath_glob]
 
         normalized_patterns: typ.List[str] = []
         for pattern in patterns:
@@ -219,11 +225,12 @@ def _normalize_file_patterns(raw_cfg: RawConfig) -> FilePatterns:
             elif version_pattern == "{semver}":
                 normalized_pattern = normalized_pattern.replace("{pep440_version}", "{semver}")
             elif "{pep440_version}" in pattern:
-                logger.warning(f"Invalid config, cannot match '{pattern}' for '{filepath}'.")
+                logger.warning(f"Invalid config, cannot match '{pattern}' for '{filepath_glob}'.")
                 logger.warning(f"No mapping of '{version_pattern}' to '{pep440_version}'")
             normalized_patterns.append(normalized_pattern)
 
-        file_patterns[filepath] = normalized_patterns
+        for filepath in filepaths:
+            file_patterns[filepath] = normalized_patterns
 
     return file_patterns
 
@@ -237,18 +244,27 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     version_str: str = raw_cfg['current_version']
     version_str = raw_cfg['current_version'] = version_str.strip("'\" ")
 
-    # TODO (mb 2020-09-06): new style pattern by default
-    # version_pattern: str = raw_cfg.get('version_pattern', "vYYYY0M.BUILD[-TAG]")
     version_pattern: str = raw_cfg.get('version_pattern', "{pycalver}")
     version_pattern = raw_cfg['version_pattern'] = version_pattern.strip("'\" ")
 
     commit_message: str = raw_cfg.get('commit_message', DEFAULT_COMMIT_MESSAGE)
     commit_message = raw_cfg['commit_message'] = commit_message.strip("'\" ")
+
+    is_new_pattern = not ("{" in version_pattern or "}" in version_pattern)
+
+    # TODO (mb 2020-09-18): Validate Pattern
+    #   detect YY with WW or UU -> suggest GG with VV
+    #   detect YYMM -> suggest YY0M
+    #   detect YYWW -> suggest YY0W
+
     # NOTE (mb 2019-01-05): Provoke ValueError if version_pattern
     #   and current_version are not compatible.
-    version.parse_version_info(version_str, version_pattern)
+    if is_new_pattern:
+        v2version.parse_version_info(version_str, version_pattern)
+    else:
+        v1version.parse_version_info(version_str, version_pattern)
 
-    pep440_version = version.to_pep440(version_str)
+    pep440_version = v1version.to_pep440(version_str)
 
     commit = raw_cfg['commit']
     tag    = raw_cfg['tag']
@@ -275,6 +291,7 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
         commit=commit,
         tag=tag,
         push=push,
+        is_new_pattern=is_new_pattern,
         file_patterns=file_patterns,
     )
     logger.debug(_debug_str(cfg))
