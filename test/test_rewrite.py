@@ -8,10 +8,11 @@ import copy
 from test import util
 
 from pycalver import config
-from pycalver import rewrite as v1rewrite
-from pycalver import version as v1version
-from pycalver2 import rewrite as v2rewrite
-from pycalver2 import version as v2version
+from pycalver import rewrite
+from pycalver import v1rewrite
+from pycalver import v1version
+from pycalver import v2rewrite
+from pycalver import v2version
 
 # pylint:disable=protected-access ; allowed for test code
 
@@ -54,7 +55,7 @@ def test_iter_file_paths():
         cfg = config.parse(ctx)
         assert cfg
 
-        _paths_and_patterns = v1rewrite.iter_file_paths(cfg.file_patterns)
+        _paths_and_patterns = rewrite.iter_path_patterns_items(cfg.file_patterns)
         file_paths          = {str(file_path) for file_path, patterns in _paths_and_patterns}
 
     assert file_paths == {"pycalver.toml", "README.md"}
@@ -66,7 +67,7 @@ def test_iter_file_globs():
         cfg = config.parse(ctx)
         assert cfg
 
-        _paths_and_patterns = v1rewrite.iter_file_paths(cfg.file_patterns)
+        _paths_and_patterns = rewrite.iter_path_patterns_items(cfg.file_patterns)
         file_paths          = {str(file_path) for file_path, patterns in _paths_and_patterns}
 
     assert file_paths == {
@@ -86,7 +87,7 @@ def test_error_bad_path():
 
         (project.dir / "setup.py").unlink()
         try:
-            list(v1rewrite.iter_file_paths(cfg.file_patterns))
+            list(rewrite.iter_path_patterns_items(cfg.file_patterns))
             assert False, "expected IOError"
         except IOError as ex:
             assert "setup.py" in str(ex)
@@ -102,10 +103,11 @@ def test_error_bad_pattern():
         patterns["setup.py"] = patterns["setup.py"][0] + "invalid"
 
         try:
+            old_vinfo = v1version.parse_version_info("v201808.0233")
             new_vinfo = v1version.parse_version_info("v201809.1234")
-            list(v1rewrite.diff(new_vinfo, patterns))
-            assert False, "expected v1rewrite.NoPatternMatch"
-        except v1rewrite.NoPatternMatch as ex:
+            list(v1rewrite.diff(old_vinfo, new_vinfo, patterns))
+            assert False, "expected rewrite.NoPatternMatch"
+        except rewrite.NoPatternMatch as ex:
             assert "setup.py" in str(ex)
 
 

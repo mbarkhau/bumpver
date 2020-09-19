@@ -8,8 +8,8 @@ import re
 
 import pytest
 
-import pycalver.patterns as v1patterns
-import pycalver2.patterns as v2patterns
+from pycalver import v1patterns
+from pycalver import v2patterns
 
 # TODO (mb 2020-09-06): test for v2patterns
 

@@ -9,102 +9,28 @@ import typing as typ
 import logging
 import datetime as dt
 
-import lexid
+from . import version
+from . import v2patterns
 
-import pycalver2.patterns as v2patterns
-
-# import pycalver.version as v1version
-# import pycalver.patterns as v1patterns
-
-logger = logging.getLogger("pycalver.version")
+logger = logging.getLogger("pycalver.v2version")
 
 
-# The test suite may replace this.
-TODAY = dt.datetime.utcnow().date()
+CalInfo = typ.Union[version.V2CalendarInfo, version.V2VersionInfo]
 
 
-ZERO_VALUES = {
-    'MAJOR': "0",
-    'MINOR': "0",
-    'PATCH': "0",
-    'TAG'  : "final",
-    'PYTAG': "",
-    'NUM'  : "0",
-}
+def _is_later_than(old: CalInfo, new: CalInfo) -> bool:
+    """Is old > new based on non None fields."""
+    for field in version.V1CalendarInfo._fields:
+        aval = getattr(old, field)
+        bval = getattr(new, field)
+        if not (aval is None or bval is None):
+            if aval > bval:
+                return True
+    return False
 
 
-TAG_BY_PEP440_TAG = {
-    'a'   : 'alpha',
-    'b'   : 'beta',
-    ""    : 'final',
-    'rc'  : 'rc',
-    'dev' : 'dev',
-    'post': 'post',
-}
-
-
-PEP440_TAG_BY_TAG = {
-    'alpha': "a",
-    'beta' : "b",
-    'final': "",
-    'pre'  : "rc",
-    'rc'   : "rc",
-    'dev'  : "dev",
-    'post' : "post",
-}
-
-assert set(TAG_BY_PEP440_TAG.keys()) == set(PEP440_TAG_BY_TAG.values())
-assert set(TAG_BY_PEP440_TAG.values()) < set(PEP440_TAG_BY_TAG.keys())
-
-# PEP440_TAGS_REVERSE = {
-#     "a"   : 'alpha',
-#     "b"   : 'beta',
-#     "rc"  : 'rc',
-#     "dev" : 'dev',
-#     "post": 'post',
-# }
-
-
-MaybeInt = typ.Optional[int]
-
-
-class CalendarInfo(typ.NamedTuple):
-    """Container for calendar components of version strings."""
-
-    year_y : MaybeInt
-    year_g : MaybeInt
-    quarter: MaybeInt
-    month  : MaybeInt
-    dom    : MaybeInt
-    doy    : MaybeInt
-    week_w : MaybeInt
-    week_u : MaybeInt
-    week_v : MaybeInt
-
-
-class VersionInfo(typ.NamedTuple):
-    """Container for parsed version string."""
-
-    year_y : MaybeInt
-    year_g : MaybeInt
-    quarter: MaybeInt
-    month  : MaybeInt
-    dom    : MaybeInt
-    doy    : MaybeInt
-    week_w : MaybeInt
-    week_u : MaybeInt
-    week_v : MaybeInt
-    major  : int
-    minor  : int
-    patch  : int
-    num    : int
-    bid    : str
-    tag    : str
-    pytag  : str
-
-
-def _ver_to_cal_info(vinfo: VersionInfo) -> CalendarInfo:
-    return CalendarInfo(
+def _ver_to_cal_info(vinfo: version.V2VersionInfo) -> version.V2CalendarInfo:
+    return version.V2CalendarInfo(
         vinfo.year_y,
         vinfo.year_g,
         vinfo.quarter,
@@ -117,32 +43,7 @@ def _ver_to_cal_info(vinfo: VersionInfo) -> CalendarInfo:
     )
 
 
-def _date_from_doy(year: int, doy: int) -> dt.date:
-    """Parse date from year and day of year (1 indexed).
-
-    >>> cases = [
-    ...     (2016, 1), (2016, 31), (2016, 31 + 1), (2016, 31 + 29), (2016, 31 + 30),
-    ...     (2017, 1), (2017, 31), (2017, 31 + 1), (2017, 31 + 28), (2017, 31 + 29),
-    ... ]
-    >>> dates = [_date_from_doy(year, month) for year, month in cases]
-    >>> assert [(d.month, d.day) for d in dates] == [
-    ...     (1, 1), (1, 31), (2, 1), (2, 29), (3, 1),
-    ...     (1, 1), (1, 31), (2, 1), (2, 28), (3, 1),
-    ... ]
-    """
-    return dt.date(year, 1, 1) + dt.timedelta(days=doy - 1)
-
-
-def _quarter_from_month(month: int) -> int:
-    """Calculate quarter (1 indexed) from month (1 indexed).
-
-    >>> [_quarter_from_month(month) for month in range(1, 13)]
-    [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4]
-    """
-    return ((month - 1) // 3) + 1
-
-
-def cal_info(date: dt.date = None) -> CalendarInfo:
+def cal_info(date: dt.date = None) -> version.V2CalendarInfo:
     """Generate calendar components for current date.
 
     >>> import datetime as dt
@@ -164,12 +65,12 @@ def cal_info(date: dt.date = None) -> CalendarInfo:
     (2019, 2, 4, 7, 97, 13, 14, 14)
     """
     if date is None:
-        date = TODAY
+        date = version.TODAY
 
     kwargs = {
         'year_y' : date.year,
         'year_g' : int(date.strftime("%G"), base=10),
-        'quarter': _quarter_from_month(date.month),
+        'quarter': version.quarter_from_month(date.month),
         'month'  : date.month,
         'dom'    : date.day,
         'doy'    : int(date.strftime("%j"), base=10),
@@ -178,10 +79,12 @@ def cal_info(date: dt.date = None) -> CalendarInfo:
         'week_v' : int(date.strftime("%V"), base=10),
     }
 
-    return CalendarInfo(**kwargs)
+    return version.V2CalendarInfo(**kwargs)
 
 
-VALID_FIELD_KEYS = set(VersionInfo._fields) | {'version'}
+VALID_FIELD_KEYS = set(version.V2VersionInfo._fields) | {'version'}
+
+MaybeInt = typ.Optional[int]
 
 FieldKey      = str
 MatchGroupKey = str
@@ -190,44 +93,46 @@ MatchGroupStr = str
 PatternGroups = typ.Dict[FieldKey, MatchGroupStr]
 FieldValues   = typ.Dict[FieldKey, MatchGroupStr]
 
+VersionInfoKW = typ.Dict[str, typ.Union[str, int, None]]
 
-def _parse_version_info(field_values: FieldValues) -> VersionInfo:
-    """Parse normalized VersionInfo from groups of a matched pattern.
 
-    >>> vnfo = _parse_version_info({'year_y': "2018", 'month': "11", 'bid': "0099"})
-    >>> (vnfo.year_y, vnfo.month, vnfo.quarter, vnfo.bid, vnfo.tag)
+def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
+    """Parse normalized V2VersionInfo from groups of a matched pattern.
+
+    >>> vinfo = _parse_version_info({'year_y': "2018", 'month': "11", 'bid': "0099"})
+    >>> (vinfo.year_y, vinfo.month, vinfo.quarter, vinfo.bid, vinfo.tag)
     (2018, 11, 4, '0099', 'final')
 
-    >>> vnfo = _parse_version_info({'year_y': "2018", 'doy': "11", 'bid': "099", 'tag': "beta"})
-    >>> (vnfo.year_y, vnfo.month, vnfo.dom, vnfo.doy, vnfo.bid, vnfo.tag)
+    >>> vinfo = _parse_version_info({'year_y': "2018", 'doy': "11", 'bid': "099", 'tag': "beta"})
+    >>> (vinfo.year_y, vinfo.month, vinfo.dom, vinfo.doy, vinfo.bid, vinfo.tag)
     (2018, 1, 11, 11, '099', 'beta')
 
-    >>> vnfo = _parse_version_info({'year_y': "2018", 'month': "6", 'dom': "15"})
-    >>> (vnfo.year_y, vnfo.month, vnfo.dom, vnfo.doy)
+    >>> vinfo = _parse_version_info({'year_y': "2018", 'month': "6", 'dom': "15"})
+    >>> (vinfo.year_y, vinfo.month, vinfo.dom, vinfo.doy)
     (2018, 6, 15, 166)
 
-    >>> vnfo = _parse_version_info({'major': "1", 'minor': "23", 'patch': "45"})
-    >>> (vnfo.major, vnfo.minor, vnfo.patch)
+    >>> vinfo = _parse_version_info({'major': "1", 'minor': "23", 'patch': "45"})
+    >>> (vinfo.major, vinfo.minor, vinfo.patch)
     (1, 23, 45)
 
-    >>> vnfo = _parse_version_info({'major': "1", 'minor': "023", 'patch': "0045"})
-    >>> (vnfo.major, vnfo.minor, vnfo.patch)
+    >>> vinfo = _parse_version_info({'major': "1", 'minor': "023", 'patch': "0045"})
+    >>> (vinfo.major, vinfo.minor, vinfo.patch)
     (1, 23, 45)
 
-    >>> vnfo = _parse_version_info({'year_y': "2021", 'week_w': "02"})
-    >>> (vnfo.year_y, vnfo.week_w)
+    >>> vinfo = _parse_version_info({'year_y': "2021", 'week_w': "02"})
+    >>> (vinfo.year_y, vinfo.week_w)
     (2021, 2)
-    >>> vnfo = _parse_version_info({'year_y': "2021", 'week_u': "02"})
-    >>> (vnfo.year_y, vnfo.week_u)
+    >>> vinfo = _parse_version_info({'year_y': "2021", 'week_u': "02"})
+    >>> (vinfo.year_y, vinfo.week_u)
     (2021, 2)
-    >>> vnfo = _parse_version_info({'year_g': "2021", 'week_v': "02"})
-    >>> (vnfo.year_g, vnfo.week_v)
+    >>> vinfo = _parse_version_info({'year_g': "2021", 'week_v': "02"})
+    >>> (vinfo.year_g, vinfo.week_v)
     (2021, 2)
 
-    >>> vnfo = _parse_version_info({'year_y': "2021", 'month': "01", 'dom': "03"})
-    >>> (vnfo.year_y, vnfo.month, vnfo.dom, vnfo.tag)
+    >>> vinfo = _parse_version_info({'year_y': "2021", 'month': "01", 'dom': "03"})
+    >>> (vinfo.year_y, vinfo.month, vinfo.dom, vinfo.tag)
     (2021, 1, 3, 'final')
-    >>> (vnfo.year_y, vnfo.week_w, vnfo.year_y, vnfo.week_u,vnfo.year_g, vnfo.week_v)
+    >>> (vinfo.year_y, vinfo.week_w, vinfo.year_y, vinfo.week_u,vinfo.year_g, vinfo.week_v)
     (2021, 0, 2021, 1, 2020, 53)
     """
     for key in field_values:
@@ -238,9 +143,9 @@ def _parse_version_info(field_values: FieldValues) -> VersionInfo:
     pytag = fvals.get('pytag') or ""
 
     if tag and not pytag:
-        pytag = PEP440_TAG_BY_TAG[tag]
+        pytag = version.PEP440_TAG_BY_TAG[tag]
     elif pytag and not tag:
-        tag = TAG_BY_PEP440_TAG[pytag]
+        tag = version.TAG_BY_PEP440_TAG[pytag]
 
     date: typ.Optional[dt.date] = None
 
@@ -256,7 +161,7 @@ def _parse_version_info(field_values: FieldValues) -> VersionInfo:
     week_v: MaybeInt = int(fvals['week_v']) if 'week_v' in fvals else None
 
     if year_y and doy:
-        date  = _date_from_doy(year_y, doy)
+        date  = version.date_from_doy(year_y, doy)
         month = date.month
         dom   = date.day
     else:
@@ -279,7 +184,7 @@ def _parse_version_info(field_values: FieldValues) -> VersionInfo:
 
     quarter = int(fvals['quarter']) if 'quarter' in fvals else None
     if quarter is None and month:
-        quarter = _quarter_from_month(month)
+        quarter = version.quarter_from_month(month)
 
     # NOTE (mb 2020-09-18): If a part is optional, fvals[<field>] may be None
     major = int(fvals.get('major') or 0)
@@ -288,7 +193,7 @@ def _parse_version_info(field_values: FieldValues) -> VersionInfo:
     num   = int(fvals.get('num'  ) or 0)
     bid   = fvals['bid'] if 'bid' in fvals else "1000"
 
-    vnfo = VersionInfo(
+    vinfo = version.V2VersionInfo(
         year_y=year_y,
         year_g=year_g,
         quarter=quarter,
@@ -306,74 +211,69 @@ def _parse_version_info(field_values: FieldValues) -> VersionInfo:
         tag=tag,
         pytag=pytag,
     )
-    return vnfo
+    return vinfo
 
 
-VersionInfoKW = typ.Dict[str, typ.Union[str, int, None]]
+def parse_version_info(
+    version_str: str, raw_pattern: str = "vYYYY0M.BUILD[-TAG[NUM]]"
+) -> version.V2VersionInfo:
+    """Parse normalized V2VersionInfo.
 
-
-class PatternError(Exception):
-    pass
-
-
-def parse_version_info(version_str: str, pattern: str = "vYYYY0M.BUILD[-TAG[NUM]]") -> VersionInfo:
-    """Parse normalized VersionInfo.
-
-    >>> vnfo = parse_version_info("v201712.0033-beta0", pattern="vYYYY0M.BUILD[-TAG[NUM]]")
+    >>> vinfo = parse_version_info("v201712.0033-beta0", raw_pattern="vYYYY0M.BUILD[-TAG[NUM]]")
     >>> fvals = {'year_y': 2017, 'month': 12, 'bid': "0033", 'tag': "beta", 'num': 0}
-    >>> assert vnfo == _parse_version_info(fvals)
+    >>> assert vinfo == _parse_version_info(fvals)
 
-    >>> vnfo = parse_version_info("v201712.0033-beta", pattern="vYYYY0M.BUILD[-TAG[NUM]]")
+    >>> vinfo = parse_version_info("v201712.0033-beta", raw_pattern="vYYYY0M.BUILD[-TAG[NUM]]")
     >>> fvals = {'year_y': 2017, 'month': 12, 'bid': "0033", 'tag': "beta"}
-    >>> assert vnfo == _parse_version_info(fvals)
+    >>> assert vinfo == _parse_version_info(fvals)
 
-    >>> vnfo = parse_version_info("v201712.0033", pattern="vYYYY0M.BUILD[-TAG[NUM]]")
+    >>> vinfo = parse_version_info("v201712.0033", raw_pattern="vYYYY0M.BUILD[-TAG[NUM]]")
     >>> fvals = {'year_y': 2017, 'month': 12, 'bid': "0033"}
-    >>> assert vnfo == _parse_version_info(fvals)
+    >>> assert vinfo == _parse_version_info(fvals)
 
-    >>> vnfo = parse_version_info("1.23.456", pattern="MAJOR.MINOR.PATCH")
+    >>> vinfo = parse_version_info("1.23.456", raw_pattern="MAJOR.MINOR.PATCH")
     >>> fvals = {'major': "1", 'minor': "23", 'patch': "456"}
-    >>> assert vnfo == _parse_version_info(fvals)
+    >>> assert vinfo == _parse_version_info(fvals)
     """
-    pattern_tup = v2patterns.compile_pattern(pattern)
-    match       = pattern_tup.regexp.match(version_str)
+    pattern = v2patterns.compile_pattern(raw_pattern)
+    match   = pattern.regexp.match(version_str)
     if match is None:
         err_msg = (
             f"Invalid version string '{version_str}' "
-            f"for pattern '{pattern}'/'{pattern_tup.regexp.pattern}'"
+            f"for pattern '{raw_pattern}'/'{pattern.regexp.pattern}'"
         )
-        raise PatternError(err_msg)
+        raise version.PatternError(err_msg)
     else:
         field_values = match.groupdict()
         return _parse_version_info(field_values)
 
 
-def is_valid(version_str: str, pattern: str = "vYYYY0M.BUILD[-TAG]") -> bool:
+def is_valid(version_str: str, raw_pattern: str = "vYYYY0M.BUILD[-TAG]") -> bool:
     """Check if a version matches a pattern.
 
-    >>> is_valid("v201712.0033-beta", pattern="vYYYY0M.BUILD[-TAG]")
+    >>> is_valid("v201712.0033-beta", raw_pattern="vYYYY0M.BUILD[-TAG]")
     True
-    >>> is_valid("v201712.0033-beta", pattern="MAJOR.MINOR.PATCH")
+    >>> is_valid("v201712.0033-beta", raw_pattern="MAJOR.MINOR.PATCH")
     False
-    >>> is_valid("1.2.3", pattern="MAJOR.MINOR.PATCH")
+    >>> is_valid("1.2.3", raw_pattern="MAJOR.MINOR.PATCH")
     True
-    >>> is_valid("v201712.0033-beta", pattern="MAJOR.MINOR.PATCH")
+    >>> is_valid("v201712.0033-beta", raw_pattern="MAJOR.MINOR.PATCH")
     False
     """
     try:
-        parse_version_info(version_str, pattern)
+        parse_version_info(version_str, raw_pattern)
         return True
-    except PatternError:
+    except version.PatternError:
         return False
 
 
 TemplateKwargs = typ.Dict[str, typ.Union[str, int, None]]
 
 
-def _format_part_values(vinfo: VersionInfo) -> typ.Dict[str, str]:
-    """Generate kwargs for template from minimal VersionInfo.
+def _format_part_values(vinfo: version.V2VersionInfo) -> typ.Dict[str, str]:
+    """Generate kwargs for template from minimal V2VersionInfo.
 
-    The VersionInfo Tuple only has the minimal representation
+    The V2VersionInfo Tuple only has the minimal representation
     of a parsed version, not the values suitable for formatting.
     It may for example have month=9, but not the formatted
     representation '09' for '0M'.
@@ -402,18 +302,20 @@ def _format_part_values(vinfo: VersionInfo) -> typ.Dict[str, str]:
     return kwargs
 
 
-def _make_segments(pattern: str) -> typ.List[str]:
+def _make_segments(raw_pattern: str) -> typ.List[str]:
     pattern_segs_l: typ.List[str] = []
     pattern_segs_r: typ.List[str] = []
 
-    pattern_rest = pattern
+    pattern_rest = raw_pattern
     while "[" in pattern_rest and "]" in pattern_rest:
         try:
             seg_l       , pattern_rest = pattern_rest.split("[", 1)
             pattern_rest, seg_r        = pattern_rest.rsplit("]", 1)
         except ValueError as val_err:
             if "values to unpack" in str(val_err):
-                pat_err           = PatternError(f"Unbalanced braces [] in '{pattern}'")
+                err     = f"Unbalanced braces [] in '{raw_pattern}'"
+                pat_err = version.PatternError(err)
+
                 pat_err.__cause__ = val_err
                 raise pat_err
             else:
@@ -444,7 +346,7 @@ def _clear_zero_segments(
 
 
 def _format_segments(
-    vinfo       : VersionInfo,
+    vinfo       : version.V2VersionInfo,
     pattern_segs: typ.List[str],
 ) -> typ.List[str]:
     kwargs      = _format_part_values(vinfo)
@@ -470,12 +372,12 @@ def _format_segments(
         for part, part_value in part_values:
             if part in seg_l:
                 seg_l = seg_l.replace(part, part_value)
-                if not (is_optional and str(part_value) == ZERO_VALUES.get(part)):
+                if not (is_optional and str(part_value) == version.ZERO_VALUES.get(part)):
                     is_zero_segment[idx_l] = False
 
             if part in seg_r:
                 seg_r = seg_r.replace(part, part_value)
-                if not (is_optional and str(part_value) == ZERO_VALUES[part]):
+                if not (is_optional and str(part_value) == version.ZERO_VALUES[part]):
                     is_zero_segment[idx_r] = False
 
         formatted_segs_l.append(seg_l)
@@ -489,7 +391,7 @@ def _format_segments(
     return _clear_zero_segments(formatted_segs, is_zero_segment)
 
 
-def format_version(vinfo: VersionInfo, pattern: str) -> str:
+def format_version(vinfo: version.V2VersionInfo, raw_pattern: str) -> str:
     """Generate version string.
 
     >>> import datetime as dt
@@ -575,7 +477,7 @@ def format_version(vinfo: VersionInfo, pattern: str) -> str:
     >>> format_version(vinfo_d, pattern='__version__ = "vMAJOR[.MINOR[.PATCH[-TAG[NUM]]]]"')
     '__version__ = "v1.0.0-rc2"'
     """
-    pattern_segs   = _make_segments(pattern)
+    pattern_segs   = _make_segments(raw_pattern)
     formatted_segs = _format_segments(vinfo, pattern_segs)
 
     return "".join(formatted_segs)
@@ -583,9 +485,9 @@ def format_version(vinfo: VersionInfo, pattern: str) -> str:
 
 def incr(
     old_version: str,
-    pattern    : str = "vYYYY0M.BUILD[-TAG]",
+    raw_pattern: str = "vYYYY0M.BUILD[-TAG]",
     *,
-    release : str  = None,
+    release : typ.Optional[str] = None,
     major   : bool = False,
     minor   : bool = False,
     patch   : bool = False,
@@ -593,44 +495,30 @@ def incr(
 ) -> typ.Optional[str]:
     """Increment version string.
 
-    'old_version' is assumed to be a string that matches 'pattern'
+    'old_version' is assumed to be a string that matches 'raw_pattern'
     """
     try:
-        old_vinfo = parse_version_info(old_version, pattern)
-    except PatternError as ex:
+        old_vinfo = parse_version_info(old_version, raw_pattern)
+    except version.PatternError as ex:
         logger.error(str(ex))
         return None
 
-    cur_vinfo = old_vinfo
+    cur_cinfo = _ver_to_cal_info(old_vinfo) if pin_date else cal_info()
 
-    cur_cal_nfo = _ver_to_cal_info(old_vinfo) if pin_date else cal_info()
-
-    old_date = (old_vinfo.year_y or 0  , old_vinfo.month or 0  , old_vinfo.dom or 0)
-    cur_date = (cur_cal_nfo.year_y or 0, cur_cal_nfo.month or 0, cur_cal_nfo.dom or 0)
-
-    if old_date <= cur_date:
-        cur_vinfo = cur_vinfo._replace(**cur_cal_nfo._asdict())
-    else:
+    if _is_later_than(old_vinfo, cur_cinfo):
         logger.warning(f"Version appears to be from the future '{old_version}'")
+        cur_vinfo = old_vinfo
+    else:
+        cur_vinfo = old_vinfo._replace(**cur_cinfo._asdict())
 
-    _bid = cur_vinfo.bid
-    if int(_bid) < 1000:
-        # prevent truncation of leading zeros
-        _bid = str(int(_bid) + 1000)
-
-    cur_vinfo = cur_vinfo._replace(bid=lexid.incr(_bid))
-
-    if major:
-        cur_vinfo = cur_vinfo._replace(major=cur_vinfo.major + 1, minor=0, patch=0)
-    if minor:
-        cur_vinfo = cur_vinfo._replace(minor=cur_vinfo.minor + 1, patch=0)
-    if patch:
-        cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
-
-    if release:
-        cur_vinfo = cur_vinfo._replace(tag=release)
-
-    new_version = format_version(cur_vinfo, pattern)
+    cur_vinfo = version.incr_non_cal_parts(
+        cur_vinfo,
+        release,
+        major,
+        minor,
+        patch,
+    )
+    new_version = format_version(cur_vinfo, raw_pattern)
     if new_version == old_version:
         logger.error("Invalid arguments or pattern, version did not change.")
         return None

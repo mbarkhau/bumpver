@@ -23,7 +23,8 @@ The recommended approach to using `pylint-ignore` is:
 
 # Overview
 
- - [W0511: fixme (7x)](#w0511-fixme)
+ - [E1123: unexpected-keyword-arg (1x)](#e1123-unexpected-keyword-arg)
+ - [W0511: fixme (9x)](#w0511-fixme)
  - [W0703: broad-except (1x)](#w0703-broad-except)
 
 
@@ -36,7 +37,7 @@ The recommended approach to using `pylint-ignore` is:
 - `date   : 2020-09-18T17:01:05`
 
 ```
-  12: import pycalver2.patterns as v2patterns
+  12: from pycalver import v2patterns
   13:
 > 14: # TODO (mb 2020-09-06): test for v2patterns
   15:
@@ -61,107 +62,138 @@ The recommended approach to using `pylint-ignore` is:
 ```
 
 
-## File test/test_version.py - Line 167 - W0511 (fixme)
+## File test/test_config.py - Line 156 - W0511 (fixme)
+
+- `message: TODO (mb 2020-09-18):`
+- `author : Manuel Barkhau <mbarkhau@gmail.com>`
+- `date   : 2020-09-18T19:04:06`
+
+```
+  143: def test_parse_v2_cfg():
+  ...
+  154:     assert "setup.py" in cfg.file_patterns
+  155:     assert "setup.cfg" in cfg.file_patterns
+> 156:     # TODO (mb 2020-09-18):
+  157:     # assert cfg.file_patterns["setup.py"        ] == ["vYYYY0M.BUILD[-TAG]", "YYYY0M.BLD[PYTAGNUM]"]
+  158:     # assert cfg.file_patterns["setup.cfg"       ] == ['current_version = "vYYYY0M.BUILD[-TAG]"']
+```
+
+
+## File test/test_version.py - Line 168 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-06): add tests for new style patterns`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-18T17:01:05`
 
 ```
-  162: def vnfo(**field_values):
+  163: def vnfo(**field_values):
   ...
-  165:
-  166: PARSE_VERSION_TEST_CASES = [
-> 167:     # TODO (mb 2020-09-06): add tests for new style patterns
-  168:     # ["YYYY.MM.DD"                      , "2017.06.07", vnfo(year="2017", month="06", dom="07")],
-  169:     ["{year}.{month}.{dom}"            , "2017.06.07", vnfo(year="2017", month="06", dom="07")],
+  166:
+  167: PARSE_VERSION_TEST_CASES = [
+> 168:     # TODO (mb 2020-09-06): add tests for new style patterns
+  169:     # ["YYYY.MM.DD"                      , "2017.06.07", vnfo(year="2017", month="06", dom="07")],
+  170:     ["{year}.{month}.{dom}"            , "2017.06.07", vnfo(year="2017", month="06", dom="07")],
 ```
 
 
-## File src/pycalver/__main__.py - Line 229 - W0511 (fixme)
+## File src/pycalver/v1patterns.py - Line 212 - W0511 (fixme)
 
-- `message: TODO (mb 2020-09-05): version switch`
+- `message: TODO (mb 2020-09-19): replace {version} etc with version_pattern`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-05T14:30:17`
+- `date   : 2020-09-19T16:24:10`
 
 ```
-  209: def _bump(
+  199: def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[str]:
   ...
-  227:
-  228:     try:
-> 229:         # TODO (mb 2020-09-05): version switch
-  230:         v1cli.rewrite(cfg, new_version)
-  231:         # v2cli.rewrite(cfg, new_version)
+  210:         escaped_pattern = escaped_pattern.replace(char, escaped)
+  211:
+> 212:     # TODO (mb 2020-09-19): replace {version} etc with version_pattern
+  213:     pattern_str = _replace_pattern_parts(escaped_pattern)
+  214:     return re.compile(pattern_str)
 ```
 
 
-## File src/pycalver/config.py - Line 236 - W0511 (fixme)
+## File src/pycalver/__main__.py - Line 247 - W0511 (fixme)
 
-- `message: TODO (mb 2020-09-06): new style pattern by default`
+- `message: TODO (mb 2020-09-18): Investigate error messages`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-18T17:01:05`
+- `date   : 2020-09-19T16:24:10`
 
 ```
-  227: def _parse_config(raw_cfg: RawConfig) -> Config:
+  219: def _bump(
   ...
-  234:     version_str = raw_cfg['current_version'] = version_str.strip("'\" ")
-  235:
-> 236:     # TODO (mb 2020-09-06): new style pattern by default
-  237:     # version_pattern: str = raw_cfg.get('version_pattern', "vYYYY0M.BUILD[-TAG]")
-  238:     version_pattern: str = raw_cfg.get('version_pattern', "{pycalver}")
+  245:         sys.exit(1)
+  246:     except Exception as ex:
+> 247:         # TODO (mb 2020-09-18): Investigate error messages
+  248:         logger.error(str(ex))
+  249:         sys.exit(1)
 ```
 
 
-## File src/pycalver/__main__.py - Line 285 - W0511 (fixme)
+## File src/pycalver/v2patterns.py - Line 256 - W0511 (fixme)
 
-- `message: TODO (mb 2020-09-05): version switch`
+- `message: TODO (mb 2020-09-19): replace {version} etc with version_pattern`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-05T14:30:17`
+- `date   : 2020-09-19T16:24:10`
 
 ```
-  282: def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
+  240: def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[str]:
   ...
-  283:     all_tags = vcs.get_tags(fetch=fetch)
-  284:
-> 285:     # TODO (mb 2020-09-05): version switch
-  286:     cfg = v1cli.update_cfg_from_vcs(cfg, all_tags)
-  287:     # cfg = v2cli.update_cfg_from_vcs(cfg, all_tags)
+  254:     print("<<<<", (normalized_pattern,))
+  255:
+> 256:     # TODO (mb 2020-09-19): replace {version} etc with version_pattern
+  257:     pattern_str = _replace_pattern_parts(escaped_pattern)
+  258:     return re.compile(pattern_str)
 ```
 
 
-## File src/pycalver/__main__.py - Line 392 - W0511 (fixme)
+## File src/pycalver/config.py - Line 264 - W0511 (fixme)
 
-- `message: # TODO (mb 2020-09-05): format from config`
+- `message: TODO (mb 2020-09-18): Validate Pattern`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-05T14:30:17`
+- `date   : 2020-09-18T19:04:06`
 
 ```
-  336: def bump(
+  250: def _parse_config(raw_cfg: RawConfig) -> Config:
   ...
-  390:         return
-  391:
-> 392:     # # TODO (mb 2020-09-05): format from config
-  393:     # commit_message_kwargs = {
-  394:     #     new_version
+  262:     is_new_pattern = "{" not in version_pattern and "}" not in version_pattern
+  263:
+> 264:     # TODO (mb 2020-09-18): Validate Pattern
+  265:     #   detect YY with WW or UU -> suggest GG with VV
+  266:     #   detect YYMM -> suggest YY0M
+```
+
+
+## File test/test_cli.py - Line 536 - W0511 (fixme)
+
+- `message: # TODO (mb 2020-09-18):`
+- `author : Manuel Barkhau <mbarkhau@gmail.com>`
+- `date   : 2020-09-18T19:35:32`
+
+```
+  534:
+  535: # def test_custom_commit_message(runner):
+> 536: #     # TODO (mb 2020-09-18):
+  537: #     assert False
 ```
 
 
 # W0703: broad-except
 
-## File src/pycalver/__main__.py - Line 232 - W0703 (broad-except)
+## File src/pycalver/__main__.py - Line 246 - W0703 (broad-except)
 
 - `message: Catching too general exception Exception`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-05T14:30:17`
 
 ```
-  209: def _bump(
+  219: def _bump(
   ...
-  230:         v1cli.rewrite(cfg, new_version)
-  231:         # v2cli.rewrite(cfg, new_version)
-> 232:     except Exception as ex:
-  233:         logger.error(str(ex))
-  234:         sys.exit(1)
+  244:         logger.error(str(ex))
+  245:         sys.exit(1)
+> 246:     except Exception as ex:
+  247:         # TODO (mb 2020-09-18): Investigate error messages
+  248:         logger.error(str(ex))
 ```
 
 

@@ -33,30 +33,28 @@
 
 import re
 import typing as typ
+import logging
 
-import pycalver.patterns as v1patterns
+from .patterns import RE_PATTERN_ESCAPES
+from .patterns import Pattern
 
-PATTERN_ESCAPES = [
-    ("\u005c", "\u005c\u005c"),
-    ("-"     , "\u005c-"),
-    ("."     , "\u005c."),
-    ("+"     , "\u005c+"),
-    ("*"     , "\u005c*"),
-    ("?"     , "\u005c?"),
-    ("{"     , "\u005c{"),
-    ("}"     , "\u005c}"),
-    # ("["     , "\u005c["),  # [braces] are used for optional parts
-    # ("]"     , "\u005c]"),
-    ("(", "\u005c("),
-    (")", "\u005c)"),
-]
+logger = logging.getLogger("pycalver.v2patterns")
 
-# NOTE (mb 2020-09-17): For patterns with different options, the longer
-#   patterns should be first/left (e.g. for 'MM', `1[0-2]` before `[1-9]`).
-#   This ensures that the longest match is done rather than the shortest.
-#   To have a consistent ordering, we always put the pattern that matches
-#   the larger number first (even if the patterns would otherwise be the
-#   same size).
+# NOTE (mb 2020-09-17): For patterns with different options '(AAA|BB|C)', the
+#   patterns with more digits should be first/left of those with fewer digits:
+#
+#       good: (?:1[0-2]|[1-9])
+#       bad:  (?:[1-9]|1[0-2])
+#
+#   This ensures that the longest match is done for a pattern.
+#
+#   This implies that patterns for smaller numbers sometimes must be right of
+#   those for larger numbers. To be consistent we use this ordering not
+#   sometimes but always (even though in theory it wouldn't matter):
+#
+#       good: (?:3[0-1]|[1-2][0-9]|[1-9])
+#       bad:  (?:[1-2][0-9]|3[0-1]|[1-9])
+
 
 PART_PATTERNS = {
     # Based on calver.org
@@ -239,14 +237,28 @@ def _replace_pattern_parts(pattern: str) -> str:
     return result_pattern
 
 
-def compile_pattern_str(pattern: str) -> str:
-    for char, escaped in PATTERN_ESCAPES:
-        pattern = pattern.replace(char, escaped)
+def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[str]:
+    escaped_pattern = raw_pattern
+    for char, escaped in RE_PATTERN_ESCAPES:
+        # [] braces are used for optional parts, such as [-TAG]/[-beta]
+        is_semantic_char = char in "[]"
+        if not is_semantic_char:
+            # escape it so it is a literal in the re pattern
+            escaped_pattern = escaped_pattern.replace(char, escaped)
 
-    return _replace_pattern_parts(pattern)
+    escaped_pattern    = raw_pattern.replace("[", "\u005c[").replace("]", "\u005c]")
+    normalized_pattern = escaped_pattern.replace("{version}", version_pattern)
+    print(">>>>", (raw_pattern       ,))
+    print("....", (escaped_pattern   ,))
+    print("....", (normalized_pattern,))
+    print("<<<<", (normalized_pattern,))
+
+    # TODO (mb 2020-09-19): replace {version} etc with version_pattern
+    pattern_str = _replace_pattern_parts(escaped_pattern)
+    return re.compile(pattern_str)
 
 
-def compile_pattern(pattern: str) -> v1patterns.Pattern:
-    pattern_str = compile_pattern_str(pattern)
-    pattern_re  = re.compile(pattern_str)
-    return v1patterns.Pattern(pattern, pattern_re)
+def compile_pattern(version_pattern: str, raw_pattern: typ.Optional[str] = None) -> Pattern:
+    _raw_pattern = version_pattern if raw_pattern is None else raw_pattern
+    regexp       = _compile_pattern_re(version_pattern, _raw_pattern)
+    return Pattern(version_pattern, _raw_pattern, regexp)

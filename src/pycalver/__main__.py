@@ -16,14 +16,14 @@ import subprocess as sp
 
 import click
 
-import pycalver.cli as v1cli
-import pycalver2.cli as v2cli
-import pycalver.version as v1version
-import pycalver2.version as v2version
-import pycalver.rewrite as v1rewrite
-
-from pycalver import vcs
-from pycalver import config
+from . import vcs
+from . import v1cli
+from . import v2cli
+from . import config
+from . import rewrite
+from . import version
+from . import v1version
+from . import v2version
 
 _VERBOSE = 0
 
@@ -110,7 +110,7 @@ def test(
 
     new_version = _incr(
         old_version,
-        pattern=pattern,
+        raw_pattern=pattern,
         release=release,
         major=major,
         minor=minor,
@@ -121,9 +121,7 @@ def test(
         logger.error(f"Invalid version '{old_version}' and/or pattern '{pattern}'.")
         sys.exit(1)
 
-    # TODO (mb 2020-09-05): version switch
-    pep440_version = v1version.to_pep440(new_version)
-    # pep440_version = v2version.to_pep440(new_version)
+    pep440_version = version.to_pep440(new_version)
 
     click.echo(f"New Version: {new_version}")
     click.echo(f"PEP440     : {pep440_version}")
@@ -150,7 +148,7 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
     click.echo(f"PEP440         : {cfg.pep440_version}")
 
 
-def _print_diff(diff: str) -> None:
+def _print_diff_str(diff: str) -> None:
     if sys.stdout.isatty():
         for line in diff.splitlines():
             if line.startswith("+++") or line.startswith("---"):
@@ -167,9 +165,27 @@ def _print_diff(diff: str) -> None:
         click.echo(diff)
 
 
+def _print_diff(cfg: config.Config, new_version: str) -> None:
+    try:
+        if cfg.is_new_pattern:
+            diff = v2cli.get_diff(cfg, new_version)
+        else:
+            diff = v1cli.get_diff(cfg, new_version)
+
+        _print_diff_str(diff)
+    except rewrite.NoPatternMatch as ex:
+        logger.error(str(ex))
+        sys.exit(1)
+    except Exception as ex:
+        # pylint:disable=broad-except; Mostly we expect IOError here, but
+        #   could be other things and there's no option to recover anyway.
+        logger.error(str(ex))
+        sys.exit(1)
+
+
 def _incr(
     old_version: str,
-    pattern    : str = "{pycalver}",
+    raw_pattern: str = "{pycalver}",
     *,
     release : str  = None,
     major   : bool = False,
@@ -177,11 +193,11 @@ def _incr(
     patch   : bool = False,
     pin_date: bool = False,
 ) -> typ.Optional[str]:
-    is_v1_pattern = "{" in pattern
-    if is_v1_pattern:
-        return v1version.incr(
+    is_new_pattern = "{" in raw_pattern and "}" in raw_pattern
+    if is_new_pattern:
+        return v2version.incr(
             old_version,
-            pattern=pattern,
+            raw_pattern=raw_pattern,
             release=release,
             major=major,
             minor=minor,
@@ -189,9 +205,9 @@ def _incr(
             pin_date=pin_date,
         )
     else:
-        return v2version.incr(
+        return v1version.incr(
             old_version,
-            pattern=pattern,
+            raw_pattern=raw_pattern,
             release=release,
             major=major,
             minor=minor,
@@ -221,10 +237,10 @@ def _bump(
 
     try:
         if cfg.is_new_pattern:
-            v2cli.rewrite(cfg, new_version)
+            v2cli.rewrite_files(cfg, new_version)
         else:
-            v1cli.rewrite(cfg, new_version)
-    except v1rewrite.NoPatternMatch as ex:
+            v1cli.rewrite_files(cfg, new_version)
+    except rewrite.NoPatternMatch as ex:
         logger.error(str(ex))
         sys.exit(1)
     except Exception as ex:
@@ -266,11 +282,11 @@ def init(verbose: int = 0, dry: bool = False) -> None:
     cfg: config.MaybeConfig    = config.parse(ctx)
 
     if cfg:
-        logger.error(f"Configuration already initialized in {ctx.config_filepath}")
+        logger.error(f"Configuration already initialized in {ctx.config_rel_path}")
         sys.exit(1)
 
     if dry:
-        click.echo(f"Exiting because of '--dry'. Would have written to {ctx.config_filepath}:")
+        click.echo(f"Exiting because of '--dry'. Would have written to {ctx.config_rel_path}:")
         cfg_text: str = config.default_config(ctx)
         click.echo("\n    " + "\n    ".join(cfg_text.splitlines()))
         sys.exit(0)
@@ -362,7 +378,7 @@ def bump(
     old_version = cfg.current_version
     new_version = _incr(
         old_version,
-        pattern=cfg.version_pattern,
+        raw_pattern=cfg.version_pattern,
         release=release,
         major=major,
         minor=minor,
@@ -387,20 +403,7 @@ def bump(
     logger.info(f"New Version: {new_version}")
 
     if dry or verbose >= 2:
-        try:
-            if cfg.is_new_pattern:
-                diff = v2cli.get_diff(cfg, new_version)
-            else:
-                diff = v1cli.get_diff(cfg, new_version)
-            _print_diff(diff)
-        except v1rewrite.NoPatternMatch as ex:
-            logger.error(str(ex))
-            sys.exit(1)
-        except Exception as ex:
-            # pylint:disable=broad-except; Mostly we expect IOError here, but
-            #   could be other things and there's no option to recover anyway.
-            logger.error(str(ex))
-            sys.exit(1)
+        _print_diff(cfg, new_version)
 
     if dry:
         return
@@ -408,8 +411,8 @@ def bump(
     commit_message_kwargs = {
         'new_version'       : new_version,
         'old_version'       : old_version,
-        'new_version_pep440': v1version.to_pep440(new_version),
-        'old_version_pep440': v1version.to_pep440(old_version),
+        'new_version_pep440': version.to_pep440(new_version),
+        'old_version_pep440': version.to_pep440(old_version),
     }
     commit_message = cfg.commit_message.format(**commit_message_kwargs)
 

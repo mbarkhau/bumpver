@@ -9,9 +9,10 @@ import datetime as dt
 
 import pytest
 
-import pycalver.version as v1version
-import pycalver2.version as v2version
-import pycalver.patterns as v1patterns
+from pycalver import version
+from pycalver import v1version
+from pycalver import v2version
+from pycalver import v1patterns
 
 # import pycalver2.patterns as v2patterns
 
@@ -51,7 +52,7 @@ def test_bump_random(monkeypatch):
     cur_date    = dt.date(2016, 1, 1) + dt.timedelta(days=random.randint(1, 2000))
     cur_version = cur_date.strftime("v%Y%m") + ".0001-dev"
 
-    monkeypatch.setattr(v1version, 'TODAY', cur_date)
+    monkeypatch.setattr(version, 'TODAY', cur_date)
 
     for _ in range(1000):
         cur_date += dt.timedelta(days=int((1 + random.random()) ** 10))
@@ -120,7 +121,7 @@ def test_parse_error_empty():
     try:
         v1version.parse_version_info("")
         assert False
-    except v1version.PatternError as err:
+    except version.PatternError as err:
         assert "Invalid version string" in str(err)
 
 
@@ -128,7 +129,7 @@ def test_parse_error_noprefix():
     try:
         v1version.parse_version_info("201809.0002")
         assert False
-    except v1version.PatternError as err:
+    except version.PatternError as err:
         assert "Invalid version string" in str(err)
 
 
@@ -136,7 +137,7 @@ def test_parse_error_nopadding():
     try:
         v1version.parse_version_info("v201809.2b0")
         assert False
-    except v1version.PatternError as err:
+    except version.PatternError as err:
         assert "Invalid version string" in str(err)
 
 
@@ -151,7 +152,7 @@ def test_part_field_mapping_v1():
     assert not any(b_extra_names), sorted(b_extra_names)
 
     a_fields = set(v1patterns.PATTERN_PART_FIELDS.values())
-    b_fields = set(v1version.VersionInfo._fields)
+    b_fields = set(version.V1VersionInfo._fields)
 
     a_extra_fields = a_fields - b_fields
     b_extra_fields = b_fields - a_fields
@@ -200,7 +201,7 @@ def test_v1_parse_versions(pattern_str, line, expected_vinfo):
 
 # def test_v2_parse_versions(pattern_str, line, expected_vinfo):
 def test_v2_parse_versions():
-    _vnfo = v2version.parse_version_info("v201712.0033", pattern="vYYYY0M.BUILD[-TAG[NUM]]")
+    _vnfo = v2version.parse_version_info("v201712.0033", raw_pattern="vYYYY0M.BUILD[-TAG[NUM]]")
     fvals = {'year_y': 2017, 'month': 12, 'bid': "0033"}
     assert _vnfo == v2version._parse_version_info(fvals)
 
@@ -217,24 +218,24 @@ def test_make_segments():
 
 
 def test_v2_format_version():
-    pattern    = "vYYYY0M.BUILD[-TAG[NUM]]"
+    version_pattern    = "vYYYY0M.BUILD[-TAG[NUM]]"
     in_version = "v200701.0033-beta"
 
-    vinfo       = v2version.parse_version_info(in_version, pattern=pattern)
-    out_version = v2version.format_version(vinfo, pattern=pattern)
+    vinfo       = v2version.parse_version_info(in_version, raw_pattern=version_pattern)
+    out_version = v2version.format_version(vinfo, raw_pattern=version_pattern)
     assert in_version == out_version
 
-    result = v2version.format_version(vinfo, pattern="v0Y.BUILD[-TAG]")
+    result = v2version.format_version(vinfo, raw_pattern="v0Y.BUILD[-TAG]")
     assert result == "v07.0033-beta"
 
-    result = v2version.format_version(vinfo, pattern="vYY.BLD[-TAG]")
+    result = v2version.format_version(vinfo, raw_pattern="vYY.BLD[-TAG]")
     assert result == "v7.33-beta"
 
-    result = v2version.format_version(vinfo, pattern="vYY.BLD-TAG")
+    result = v2version.format_version(vinfo, raw_pattern="vYY.BLD-TAG")
     assert result == "v7.33-beta"
 
-    result = v2version.format_version(vinfo, pattern='__version__ = "YYYY.BUILD[-TAG]"')
+    result = v2version.format_version(vinfo, raw_pattern='__version__ = "YYYY.BUILD[-TAG]"')
     assert result == '__version__ = "2007.0033-beta"'
 
-    result = v2version.format_version(vinfo, pattern='__version__ = "YYYY.BLD"')
+    result = v2version.format_version(vinfo, raw_pattern='__version__ = "YYYY.BLD"')
     assert result == '__version__ = "2007.33"'

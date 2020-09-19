@@ -14,13 +14,22 @@ import configparser
 import toml
 import pathlib2 as pl
 
-import pycalver.version as v1version
-import pycalver2.version as v2version
+from . import version
+from . import v1version
+from . import v2version
+from . import v1patterns
+from . import v2patterns
+from .patterns import Pattern
 
 logger = logging.getLogger("pycalver.config")
 
-Patterns       = typ.List[str]
-PatternsByGlob = typ.Dict[str, Patterns]
+RawPatterns         = typ.List[str]
+RawPatternsByFile   = typ.Dict[str, RawPatterns]
+FileRawPatternsItem = typ.Tuple[str, RawPatterns]
+
+PatternsByFile   = typ.Dict[str, typ.List[Pattern]]
+FilePatternsItem = typ.Tuple[str, typ.List[Pattern]]
+
 
 SUPPORTED_CONFIGS = ["setup.cfg", "pyproject.toml", "pycalver.toml"]
 
@@ -32,6 +41,7 @@ class ProjectContext(typ.NamedTuple):
 
     path           : pl.Path
     config_filepath: pl.Path
+    config_rel_path: str
     config_format  : str
     vcs_type       : typ.Optional[str]
 
@@ -60,6 +70,12 @@ def init_project_ctx(project_path: typ.Union[str, pl.Path, None] = ".") -> Proje
         config_filepath = path / "pycalver.toml"
         config_format   = 'toml'
 
+    if config_filepath.is_absolute():
+        config_rel_path = str(config_filepath.relative_to(path.absolute()))
+    else:
+        config_rel_path = str(config_filepath)
+        config_filepath = pl.Path.cwd() / config_filepath
+
     vcs_type: typ.Optional[str]
 
     if (path / ".git").exists():
@@ -69,10 +85,11 @@ def init_project_ctx(project_path: typ.Union[str, pl.Path, None] = ".") -> Proje
     else:
         vcs_type = None
 
-    return ProjectContext(path, config_filepath, config_format, vcs_type)
+    return ProjectContext(path, config_filepath, config_rel_path, config_format, vcs_type)
 
 
-RawConfig = typ.Dict[str, typ.Any]
+RawConfig      = typ.Dict[str, typ.Any]
+MaybeRawConfig = typ.Optional[RawConfig]
 
 
 class Config(typ.NamedTuple):
@@ -88,56 +105,46 @@ class Config(typ.NamedTuple):
     push          : bool
     is_new_pattern: bool
 
-    file_patterns: PatternsByGlob
+    file_patterns: PatternsByFile
+
+
+MaybeConfig = typ.Optional[Config]
 
 
 def _debug_str(cfg: Config) -> str:
     cfg_str_parts = [
         "Config Parsed: Config(",
-        f"current_version='{cfg.current_version}'",
-        f"version_pattern='{cfg.version_pattern}'",
-        f"pep440_version='{cfg.pep440_version}'",
-        f"commit_message='{cfg.commit_message}'",
-        f"commit={cfg.commit}",
-        f"tag={cfg.tag}",
-        f"push={cfg.push}",
-        f"is_new_pattern={cfg.is_new_pattern}",
-        "file_patterns={",
+        f"\n    current_version='{cfg.current_version}',",
+        f"\n    version_pattern='{cfg.version_pattern}',",
+        f"\n    pep440_version='{cfg.pep440_version}',",
+        f"\n    commit_message='{cfg.commit_message}',",
+        f"\n    commit={cfg.commit},",
+        f"\n    tag={cfg.tag},",
+        f"\n    push={cfg.push},",
+        f"\n    is_new_pattern={cfg.is_new_pattern},",
+        "\n    file_patterns={",
     ]
 
     for filepath, patterns in cfg.file_patterns.items():
         for pattern in patterns:
-            cfg_str_parts.append(f"\n    '{filepath}': '{pattern}'")
+            cfg_str_parts.append(f"\n        '{filepath}': '{pattern.raw_pattern}',")
 
-    cfg_str_parts += ["\n})"]
-    return ", ".join(cfg_str_parts)
-
-
-MaybeConfig    = typ.Optional[Config]
-MaybeRawConfig = typ.Optional[RawConfig]
-
-FilePatterns = typ.Dict[str, typ.List[str]]
+    cfg_str_parts += ["\n    }\n)"]
+    return "".join(cfg_str_parts)
 
 
-def _parse_cfg_file_patterns(cfg_parser: configparser.RawConfigParser) -> FilePatterns:
-    file_patterns: FilePatterns = {}
+def _parse_cfg_file_patterns(
+    cfg_parser: configparser.RawConfigParser,
+) -> typ.Iterable[FileRawPatternsItem]:
+    if not cfg_parser.has_section("pycalver:file_patterns"):
+        return
 
-    file_pattern_items: typ.List[typ.Tuple[str, str]]
-    if cfg_parser.has_section("pycalver:file_patterns"):
-        file_pattern_items = cfg_parser.items("pycalver:file_patterns")
-    else:
-        file_pattern_items = []
+    file_pattern_items: typ.List[typ.Tuple[str, str]] = cfg_parser.items("pycalver:file_patterns")
 
     for filepath, patterns_str in file_pattern_items:
-        patterns: typ.List[str] = []
-        for line in patterns_str.splitlines():
-            pattern = line.strip()
-            if pattern:
-                patterns.append(pattern)
-
-        file_patterns[filepath] = patterns
-
-    return file_patterns
+        maybe_patterns = (line.strip() for line in patterns_str.splitlines())
+        patterns       = [p for p in maybe_patterns if p]
+        yield filepath, patterns
 
 
 class _ConfigParser(configparser.RawConfigParser):
@@ -178,7 +185,7 @@ def _parse_cfg(cfg_buffer: typ.IO[str]) -> RawConfig:
             val = val.lower() in ("yes", "true", "1", "on")
         raw_cfg[option] = val
 
-    raw_cfg['file_patterns'] = _parse_cfg_file_patterns(cfg_parser)
+    raw_cfg['file_patterns'] = dict(_parse_cfg_file_patterns(cfg_parser))
 
     return raw_cfg
 
@@ -193,64 +200,66 @@ def _parse_toml(cfg_buffer: typ.IO[str]) -> RawConfig:
     return raw_cfg
 
 
-def _normalize_file_patterns(raw_cfg: RawConfig) -> FilePatterns:
-    """Create consistent representation of file_patterns.
+def _iter_glob_expanded_file_patterns(
+    raw_patterns_by_file: RawPatternsByFile,
+) -> typ.Iterable[FileRawPatternsItem]:
+    for filepath_glob, raw_patterns in raw_patterns_by_file.items():
+        filepaths = glob.glob(filepath_glob)
+        if filepaths:
+            for filepath in filepaths:
+                yield filepath, raw_patterns
+        else:
+            logger.warning(f"Invalid config, no such file: {filepath_glob}")
+            # fallback to treating it as a simple path
+            yield filepath_glob, raw_patterns
+
+
+def _compile_v1_file_patterns(raw_cfg: RawConfig) -> typ.Iterable[FilePatternsItem]:
+    """Create inernal/compiled representation of the file_patterns config field.
 
     The result the same, regardless of the config format.
     """
-    version_str    : str = raw_cfg['current_version']
-    version_pattern: str = raw_cfg['version_pattern']
-    pep440_version : str = v1version.to_pep440(version_str)
+    # current_version: str = raw_cfg['current_version']
+    # current_pep440_version = version.pep440_version(current_version)
 
-    file_patterns: FilePatterns
-    if 'file_patterns' in raw_cfg:
-        file_patterns = raw_cfg['file_patterns']
-    else:
-        file_patterns = {}
+    version_pattern     : str               = raw_cfg['version_pattern']
+    raw_patterns_by_file: RawPatternsByFile = raw_cfg['file_patterns']
 
-    for filepath_glob, patterns in list(file_patterns.items()):
-        filepaths = glob.glob(filepath_glob)
-        if not filepaths:
-            logger.warning(f"Invalid config, no such file: {filepath_glob}")
-            # fallback to treating it as a simple path
-            filepaths = [filepath_glob]
+    for filepath, raw_patterns in _iter_glob_expanded_file_patterns(raw_patterns_by_file):
+        compiled_patterns = [
+            v1patterns.compile_pattern(version_pattern, raw_pattern) for raw_pattern in raw_patterns
+        ]
+        yield filepath, compiled_patterns
 
-        normalized_patterns: typ.List[str] = []
-        for pattern in patterns:
-            normalized_pattern = pattern.replace("{version}", version_pattern)
-            if version_pattern == "{pycalver}":
-                normalized_pattern = normalized_pattern.replace(
-                    "{pep440_version}", "{pep440_pycalver}"
-                )
-            elif version_pattern == "{semver}":
-                normalized_pattern = normalized_pattern.replace("{pep440_version}", "{semver}")
-            elif "{pep440_version}" in pattern:
-                logger.warning(f"Invalid config, cannot match '{pattern}' for '{filepath_glob}'.")
-                logger.warning(f"No mapping of '{version_pattern}' to '{pep440_version}'")
-            normalized_patterns.append(normalized_pattern)
 
-        for filepath in filepaths:
-            file_patterns[filepath] = normalized_patterns
+def _compile_v2_file_patterns(raw_cfg: RawConfig) -> typ.Iterable[FilePatternsItem]:
+    """Create inernal/compiled representation of the file_patterns config field.
 
-    return file_patterns
+    The result the same, regardless of the config format.
+    """
+    version_pattern     : str               = raw_cfg['version_pattern']
+    raw_patterns_by_file: RawPatternsByFile = raw_cfg['file_patterns']
+
+    for filepath, raw_patterns in _iter_glob_expanded_file_patterns(raw_patterns_by_file):
+        compiled_patterns = [
+            v2patterns.compile_pattern(version_pattern, raw_pattern) for raw_pattern in raw_patterns
+        ]
+        yield filepath, compiled_patterns
 
 
 def _parse_config(raw_cfg: RawConfig) -> Config:
     """Parse configuration which was loaded from an .ini/.cfg or .toml file."""
 
-    if 'current_version' not in raw_cfg:
-        raise ValueError("Missing 'pycalver.current_version'")
+    current_version: str = raw_cfg['current_version']
+    current_version = raw_cfg['current_version'] = current_version.strip("'\" ")
 
-    version_str: str = raw_cfg['current_version']
-    version_str = raw_cfg['current_version'] = version_str.strip("'\" ")
-
-    version_pattern: str = raw_cfg.get('version_pattern', "{pycalver}")
+    version_pattern: str = raw_cfg['version_pattern']
     version_pattern = raw_cfg['version_pattern'] = version_pattern.strip("'\" ")
 
     commit_message: str = raw_cfg.get('commit_message', DEFAULT_COMMIT_MESSAGE)
     commit_message = raw_cfg['commit_message'] = commit_message.strip("'\" ")
 
-    is_new_pattern = not ("{" in version_pattern or "}" in version_pattern)
+    is_new_pattern = "{" not in version_pattern and "}" not in version_pattern
 
     # TODO (mb 2020-09-18): Validate Pattern
     #   detect YY with WW or UU -> suggest GG with VV
@@ -260,11 +269,11 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     # NOTE (mb 2019-01-05): Provoke ValueError if version_pattern
     #   and current_version are not compatible.
     if is_new_pattern:
-        v2version.parse_version_info(version_str, version_pattern)
+        v2version.parse_version_info(current_version, version_pattern)
     else:
-        v1version.parse_version_info(version_str, version_pattern)
+        v1version.parse_version_info(current_version, version_pattern)
 
-    pep440_version = v1version.to_pep440(version_str)
+    pep440_version = version.to_pep440(current_version)
 
     commit = raw_cfg['commit']
     tag    = raw_cfg['tag']
@@ -281,10 +290,13 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     if push and not commit:
         raise ValueError("pycalver.commit = true required if pycalver.push = true")
 
-    file_patterns = _normalize_file_patterns(raw_cfg)
+    if is_new_pattern:
+        file_patterns = dict(_compile_v2_file_patterns(raw_cfg))
+    else:
+        file_patterns = dict(_compile_v1_file_patterns(raw_cfg))
 
     cfg = Config(
-        current_version=version_str,
+        current_version=current_version,
         version_pattern=version_pattern,
         pep440_version=pep440_version,
         commit_message=commit_message,
@@ -298,11 +310,18 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     return cfg
 
 
-def _parse_current_version_default_pattern(cfg: Config, raw_cfg_text: str) -> str:
+def _parse_current_version_default_pattern(ctx: ProjectContext, raw_cfg: RawConfig) -> str:
+    fobj: typ.IO[str]
+
+    with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fobj:
+        raw_cfg_text = fobj.read()
+
     is_pycalver_section = False
     for line in raw_cfg_text.splitlines():
         if is_pycalver_section and line.startswith("current_version"):
-            return line.replace(cfg.current_version, cfg.version_pattern)
+            current_version: str = raw_cfg['current_version']
+            version_pattern: str = raw_cfg['version_pattern']
+            return line.replace(current_version, version_pattern)
 
         if line.strip() == "[pycalver]":
             is_pycalver_section = True
@@ -312,44 +331,56 @@ def _parse_current_version_default_pattern(cfg: Config, raw_cfg_text: str) -> st
     raise ValueError("Could not parse pycalver.current_version")
 
 
+def _parse_raw_config(ctx: ProjectContext) -> RawConfig:
+    with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fobj:
+        if ctx.config_format == 'toml':
+            raw_cfg = _parse_toml(fobj)
+        elif ctx.config_format == 'cfg':
+            raw_cfg = _parse_cfg(fobj)
+        else:
+            err_msg = (
+                f"Invalid config_format='{ctx.config_format}'."
+                "Supported formats are 'setup.cfg' and 'pyproject.toml'"
+            )
+            raise RuntimeError(err_msg)
+
+    if 'current_version' in raw_cfg:
+        if not isinstance(raw_cfg['current_version'], str):
+            err = f"Invalid type for pycalver.current_version = {raw_cfg['current_version']}"
+            raise TypeError(err)
+    else:
+        raise ValueError("Missing 'pycalver.current_version'")
+
+    if 'version_pattern' in raw_cfg:
+        if not isinstance(raw_cfg['version_pattern'], str):
+            err = f"Invalid type for pycalver.version_pattern = {raw_cfg['version_pattern']}"
+            raise TypeError(err)
+    else:
+        raw_cfg['version_pattern'] = "{pycalver}"
+
+    if 'file_patterns' not in raw_cfg:
+        raw_cfg['file_patterns'] = {}
+
+    if ctx.config_rel_path not in raw_cfg['file_patterns']:
+        # NOTE (mb 2020-09-19): By default we always add
+        #   a pattern for the config section itself.
+        raw_version_pattern = _parse_current_version_default_pattern(ctx, raw_cfg)
+        raw_cfg['file_patterns'][ctx.config_rel_path] = [raw_version_pattern]
+
+    return raw_cfg
+
+
 def parse(ctx: ProjectContext) -> MaybeConfig:
     """Parse config file if available."""
     if not ctx.config_filepath.exists():
-        logger.warning(f"File not found: {ctx.config_filepath}")
+        logger.warning(f"File not found: {ctx.config_rel_path}")
         return None
 
-    fobj: typ.IO[str]
-
-    cfg_path: str
-    if ctx.config_filepath.is_absolute():
-        cfg_path = str(ctx.config_filepath.relative_to(ctx.path.absolute()))
-    else:
-        cfg_path = str(ctx.config_filepath)
-
-    raw_cfg: RawConfig
-
     try:
-        with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fobj:
-            if ctx.config_format == 'toml':
-                raw_cfg = _parse_toml(fobj)
-            elif ctx.config_format == 'cfg':
-                raw_cfg = _parse_cfg(fobj)
-            else:
-                err_msg = "Invalid config_format='{ctx.config_format}'"
-                raise RuntimeError(err_msg)
-
-            cfg: Config = _parse_config(raw_cfg)
-
-            if cfg_path not in cfg.file_patterns:
-                fobj.seek(0)
-                raw_cfg_text = fobj.read()
-                cfg.file_patterns[cfg_path] = [
-                    _parse_current_version_default_pattern(cfg, raw_cfg_text)
-                ]
-
-        return cfg
-    except ValueError as ex:
-        logger.warning(f"Couldn't parse {cfg_path}: {str(ex)}")
+        raw_cfg = _parse_raw_config(ctx)
+        return _parse_config(raw_cfg)
+    except (TypeError, ValueError) as ex:
+        logger.warning(f"Couldn't parse {ctx.config_rel_path}: {str(ex)}")
         return None
 
 
@@ -445,11 +476,11 @@ DEFAULT_TOML_README_MD_STR = """
 
 
 def _initial_version() -> str:
-    return dt.datetime.now().strftime("v%Y%m.0001-alpha")
+    return dt.datetime.now().strftime("v%Y%m.1001-alpha")
 
 
 def _initial_version_pep440() -> str:
-    return dt.datetime.now().strftime("%Y%m.1a0")
+    return dt.datetime.now().strftime("%Y%m.1001a0")
 
 
 def default_config(ctx: ProjectContext) -> str:
@@ -506,4 +537,4 @@ def write_content(ctx: ProjectContext) -> None:
 
     with ctx.config_filepath.open(mode="at", encoding="utf-8") as fobj:
         fobj.write(cfg_content)
-    print(f"Updated {ctx.config_filepath}")
+    print(f"Updated {ctx.config_rel_path}")
