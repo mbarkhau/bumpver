@@ -63,3 +63,10 @@ test_compat: $(COMPAT_TEST_FILES)
 	done;
 
 	rm -rf compat_test/
+
+depgraph:
+	pydeps src/pycalver \
+		--no-show --noise-level 3 \
+		--reverse  --include-missing \
+		-x 'click.*' 'toml.*' 'pretty_traceback.*' \
+		-o pycalver_deps.svg
