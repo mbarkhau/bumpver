@@ -14,6 +14,7 @@ from . import config
 from . import rewrite
 from . import version
 from . import v2version
+from . import v2patterns
 from .patterns import Pattern
 
 logger = logging.getLogger("pycalver.v2rewrite")
@@ -41,12 +42,15 @@ def rewrite_lines(
     >>> rewrite_lines(patterns, new_vinfo, old_lines)
     ['__version__ = "201811.123b0"']
     """
-    new_lines      = old_lines[:]
-    found_patterns = set()
+    found_patterns: typ.Set[Pattern] = set()
 
+    new_lines = old_lines[:]
     for match in parse.iter_matches(old_lines, patterns):
-        found_patterns.add(match.pattern.raw_pattern)
-        replacement = v2version.format_version(new_vinfo, match.pattern.raw_pattern)
+        found_patterns.add(match.pattern)
+        normalized_pattern = v2patterns.normalize_pattern(
+            match.pattern.version_pattern, match.pattern.raw_pattern
+        )
+        replacement = v2version.format_version(new_vinfo, normalized_pattern)
         span_l, span_r = match.span
         new_line = match.line[:span_l] + replacement + match.line[span_r:]
         new_lines[match.lineno] = new_line
@@ -91,6 +95,18 @@ def rfd_from_content(
     old_lines = content.split(line_sep)
     new_lines = rewrite_lines(patterns, new_vinfo, old_lines)
     return rewrite.RewrittenFileData(path, line_sep, old_lines, new_lines)
+
+
+def _patterns_with_change(
+    old_vinfo: version.V2VersionInfo, new_vinfo: version.V2VersionInfo, patterns: typ.List[Pattern]
+) -> int:
+    patterns_with_change = 0
+    for pattern in patterns:
+        old_str = v2version.format_version(old_vinfo, pattern.raw_pattern)
+        new_str = v2version.format_version(new_vinfo, pattern.raw_pattern)
+        if old_str != new_str:
+            patterns_with_change += 1
+    return patterns_with_change
 
 
 def iter_rewritten(
@@ -159,13 +175,6 @@ def diff(
         with file_path.open(mode="rt", encoding="utf-8") as fobj:
             content = fobj.read()
 
-        patterns_with_change = 0
-        for pattern in patterns:
-            old_str = v2version.format_version(old_vinfo, pattern.raw_pattern)
-            new_str = v2version.format_version(new_vinfo, pattern.raw_pattern)
-            if old_str != new_str:
-                patterns_with_change += 1
-
         try:
             rfd = rfd_from_content(patterns, new_vinfo, content)
         except rewrite.NoPatternMatch:
@@ -175,6 +184,8 @@ def diff(
 
         rfd   = rfd._replace(path=str(file_path))
         lines = rewrite.diff_lines(rfd)
+
+        patterns_with_change = _patterns_with_change(old_vinfo, new_vinfo, patterns)
         if len(lines) == 0 and patterns_with_change > 0:
             errmsg = f"No patterns matched for '{file_path}'"
             raise rewrite.NoPatternMatch(errmsg)

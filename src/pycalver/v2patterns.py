@@ -35,6 +35,7 @@ import re
 import typing as typ
 import logging
 
+from . import utils
 from .patterns import RE_PATTERN_ESCAPES
 from .patterns import Pattern
 
@@ -84,8 +85,8 @@ PART_PATTERNS = {
     'PATCH': r"[0-9]+",
     'BUILD': r"[0-9]+",
     'BLD'  : r"[1-9][0-9]*",
-    'TAG'  : r"(?:alpha|beta|dev|pre|rc|post|final)",
-    'PYTAG': r"(?:a|b|dev|rc|post)",
+    'TAG'  : r"(?:preview|final|alpha|beta|post|pre|dev|rc|a|b|c|r)",
+    'PYTAG': r"(?:post|dev|rc|a|b)",
     'NUM'  : r"[0-9]+",
 }
 
@@ -203,24 +204,56 @@ PART_FORMATS: typ.Dict[str, typ.Callable[[FieldValue], str]] = {
 }
 
 
+def _convert_to_pep440(version_pattern: str) -> str:
+    # NOTE (mb 2020-09-20): This does not support some
+    #   corner cases as specified in PEP440, in particular
+    #   related to post and dev releases.
+
+    version_pattern = version_pattern.lstrip("v")
+
+    part_names = list(PATTERN_PART_FIELDS.keys())
+    part_names.sort(key=len, reverse=True)
+    if version_pattern == "vYYYY0M.BUILD[-TAG]":
+        return "YYYY0M.BLD[PYTAGNUM]"
+
+    # TODO (mb 2020-09-20)
+    raise NotImplementedError
+
+
+def normalize_pattern(version_pattern: str, raw_pattern: str) -> str:
+    normalized_pattern = raw_pattern
+    if "{version}" in raw_pattern:
+        normalized_pattern = normalized_pattern.replace("{version}", version_pattern)
+
+    if "{pep440_version}" in normalized_pattern:
+        pep440_version_pattern = _convert_to_pep440(version_pattern)
+        normalized_pattern     = normalized_pattern.replace("{pep440_version}", pep440_version_pattern)
+
+    return normalized_pattern
+
+
 def _replace_pattern_parts(pattern: str) -> str:
     # The pattern is escaped, so that everything besides the format
     # string variables is treated literally.
-    if "[" in pattern and "]" in pattern:
-        pattern = pattern.replace("[", "(?:")
-        pattern = pattern.replace("]", ")?")
+    while True:
+        new_pattern, n = re.subn(r"([^\\]|^)\[", r"\1(?:", pattern)
+        new_pattern, m = re.subn(r"([^\\]|^)\]", r"\1)?" , new_pattern)
+        pattern = new_pattern
+        if n + m == 0:
+            break
 
-    part_patterns_by_index: typ.Dict[typ.Tuple[int, int], typ.Tuple[int, int, str]] = {}
+    SortKey         = typ.Tuple[int, int]
+    PostitionedPart = typ.Tuple[int, int, str]
+    part_patterns_by_index: typ.Dict[SortKey, PostitionedPart] = {}
+
     for part_name, part_pattern in PART_PATTERNS.items():
         start_idx = pattern.find(part_name)
-        if start_idx < 0:
-            continue
-
-        field              = PATTERN_PART_FIELDS[part_name]
-        named_part_pattern = f"(?P<{field}>{part_pattern})"
-        end_idx            = start_idx + len(part_name)
-        sort_key           = (-end_idx, -len(part_name))
-        part_patterns_by_index[sort_key] = (start_idx, end_idx, named_part_pattern)
+        if start_idx >= 0:
+            field              = PATTERN_PART_FIELDS[part_name]
+            named_part_pattern = f"(?P<{field}>{part_pattern})"
+            end_idx            = start_idx + len(part_name)
+            sort_key           = (-end_idx, -len(part_name))
+            part_patterns_by_index[sort_key] = (start_idx, end_idx, named_part_pattern)
 
     # NOTE (mb 2020-09-17): The sorting is done so that we process items:
     #   - right before left
@@ -238,26 +271,21 @@ def _replace_pattern_parts(pattern: str) -> str:
 
 
 def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[str]:
-    escaped_pattern = raw_pattern
+    normalized_pattern = normalize_pattern(version_pattern, raw_pattern)
+    escaped_pattern    = normalized_pattern
     for char, escaped in RE_PATTERN_ESCAPES:
         # [] braces are used for optional parts, such as [-TAG]/[-beta]
-        is_semantic_char = char in "[]"
+        # and need to be escaped manually.
+        is_semantic_char = char in "[]\\"
         if not is_semantic_char:
             # escape it so it is a literal in the re pattern
             escaped_pattern = escaped_pattern.replace(char, escaped)
 
-    escaped_pattern    = raw_pattern.replace("[", "\u005c[").replace("]", "\u005c]")
-    normalized_pattern = escaped_pattern.replace("{version}", version_pattern)
-    print(">>>>", (raw_pattern       ,))
-    print("....", (escaped_pattern   ,))
-    print("....", (normalized_pattern,))
-    print("<<<<", (normalized_pattern,))
-
-    # TODO (mb 2020-09-19): replace {version} etc with version_pattern
     pattern_str = _replace_pattern_parts(escaped_pattern)
     return re.compile(pattern_str)
 
 
+@utils.memo
 def compile_pattern(version_pattern: str, raw_pattern: typ.Optional[str] = None) -> Pattern:
     _raw_pattern = version_pattern if raw_pattern is None else raw_pattern
     regexp       = _compile_pattern_re(version_pattern, _raw_pattern)

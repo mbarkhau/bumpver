@@ -218,8 +218,8 @@ def test_make_segments():
 
 
 def test_v2_format_version():
-    version_pattern    = "vYYYY0M.BUILD[-TAG[NUM]]"
-    in_version = "v200701.0033-beta"
+    version_pattern = "vYYYY0M.BUILD[-TAG[NUM]]"
+    in_version      = "v200701.0033-beta"
 
     vinfo       = v2version.parse_version_info(in_version, raw_pattern=version_pattern)
     out_version = v2version.format_version(vinfo, raw_pattern=version_pattern)

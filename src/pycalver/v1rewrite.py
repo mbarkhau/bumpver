@@ -37,11 +37,11 @@ def rewrite_lines(
     >>> rewrite_lines(patterns, new_vinfo, ['__version__ = "201809.2b0"'])
     ['__version__ = "201811.123b0"']
     """
-    new_lines      = old_lines[:]
-    found_patterns = set()
+    found_patterns: typ.Set[Pattern] = set()
 
+    new_lines = old_lines[:]
     for match in parse.iter_matches(old_lines, patterns):
-        found_patterns.add(match.pattern.raw_pattern)
+        found_patterns.add(match.pattern)
         replacement = v1version.format_version(new_vinfo, match.pattern.raw_pattern)
         span_l, span_r = match.span
         new_line = match.line[:span_l] + replacement + match.line[span_r:]

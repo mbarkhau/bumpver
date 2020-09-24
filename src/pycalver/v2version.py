@@ -9,6 +9,8 @@ import typing as typ
 import logging
 import datetime as dt
 
+import lexid
+
 from . import version
 from . import v2patterns
 
@@ -18,15 +20,19 @@ logger = logging.getLogger("pycalver.v2version")
 CalInfo = typ.Union[version.V2CalendarInfo, version.V2VersionInfo]
 
 
-def _is_later_than(old: CalInfo, new: CalInfo) -> bool:
-    """Is old > new based on non None fields."""
-    for field in version.V1CalendarInfo._fields:
-        aval = getattr(old, field)
-        bval = getattr(new, field)
-        if not (aval is None or bval is None):
-            if aval > bval:
-                return True
-    return False
+def _is_cal_gt(left: CalInfo, right: CalInfo) -> bool:
+    """Is left > right for non-None fields."""
+
+    lvals = []
+    rvals = []
+    for field in version.V2CalendarInfo._fields:
+        lval = getattr(left , field)
+        rval = getattr(right, field)
+        if not (lval is None or rval is None):
+            lvals.append(lval)
+            rvals.append(rval)
+
+    return lvals > rvals
 
 
 def _ver_to_cal_info(vinfo: version.V2VersionInfo) -> version.V2CalendarInfo:
@@ -268,9 +274,10 @@ def is_valid(version_str: str, raw_pattern: str = "vYYYY0M.BUILD[-TAG]") -> bool
 
 
 TemplateKwargs = typ.Dict[str, typ.Union[str, int, None]]
+PartValues = typ.List[typ.Tuple[str, str]]
 
 
-def _format_part_values(vinfo: version.V2VersionInfo) -> typ.Dict[str, str]:
+def _format_part_values(vinfo: version.V2VersionInfo) -> PartValues:
     """Generate kwargs for template from minimal V2VersionInfo.
 
     The V2VersionInfo Tuple only has the minimal representation
@@ -279,14 +286,14 @@ def _format_part_values(vinfo: version.V2VersionInfo) -> typ.Dict[str, str]:
     representation '09' for '0M'.
 
     >>> vinfo = parse_version_info("v200709.1033-beta", pattern="vYYYY0M.BUILD[-TAG]")
-    >>> kwargs = _format_part_values(vinfo)
+    >>> kwargs = dict(_format_part_values(vinfo))
     >>> (kwargs['YYYY'], kwargs['0M'], kwargs['BUILD'], kwargs['TAG'])
     ('2007', '09', '1033', 'beta')
     >>> (kwargs['YY'], kwargs['0Y'], kwargs['MM'], kwargs['PYTAG'])
     ('7', '07', '9', 'b')
 
     >>> vinfo = parse_version_info("200709.1033b1", pattern="YYYY0M.BLD[PYTAGNUM]")
-    >>> kwargs = _format_part_values(vinfo)
+    >>> kwargs = dict(_format_part_values(vinfo))
     >>> (kwargs['YYYY'], kwargs['0M'], kwargs['BUILD'], kwargs['PYTAG'], kwargs['NUM'])
     ('2007', '09', '1033', 'b', '1')
     """
@@ -299,7 +306,7 @@ def _format_part_values(vinfo: version.V2VersionInfo) -> typ.Dict[str, str]:
             format_fn = v2patterns.PART_FORMATS[part]
             kwargs[part] = format_fn(field_val)
 
-    return kwargs
+    return sorted(kwargs.items(), key=lambda item: -len(item[0]))
 
 
 def _make_segments(raw_pattern: str) -> typ.List[str]:
@@ -345,12 +352,63 @@ def _clear_zero_segments(
     return non_zero_segs
 
 
+Segment = str
+# mypy limitation wrt. cyclic definition
+# SegmentTree = typ.List[typ.Union[Segment, "SegmentTree"]]
+SegmentTree = typ.Any
+
+
+def _parse_segment_tree(raw_pattern: str) -> SegmentTree:
+    """Generate segment tree from pattern string.
+
+    >>> tree = _parse_segment_tree("aa[bb[cc]]")
+    >>> assert tree == ["aa", ["bb", ["cc"]]]
+    >>> tree = _parse_segment_tree("aa[bb[cc]dd[ee]ff]gg")
+    >>> assert tree == ["aa", ["bb", ["cc"], "dd", ["ee"], "ff"], "gg"]
+    """
+
+    internal_root: SegmentTree = []
+    branch_stack : typ.List[SegmentTree] = [internal_root]
+    segment_start_index = -1
+
+    raw_pattern = "[" + raw_pattern + "]"
+
+    for i, char in enumerate(raw_pattern):
+        is_escaped = i > 0 and raw_pattern[i - 1] == "\\"
+        if char in "[]" and not is_escaped:
+            start = segment_start_index + 1
+            end   = i
+            if start < end:
+                branch_stack[-1].append(raw_pattern[start:end])
+
+            if char == "[":
+                new_branch: SegmentTree = []
+                branch_stack[-1].append(new_branch)
+                branch_stack.append(new_branch)
+                segment_start_index = i
+            elif char == "]":
+                if len(branch_stack) == 1:
+                    err = f"Unbalanced brace(s) in '{raw_pattern}'"
+                    raise ValueError(err)
+
+                branch_stack.pop()
+                segment_start_index = i
+            else:
+                raise NotImplementedError("Unreachable")
+
+    if len(branch_stack) > 1:
+        err = f"Unclosed brace in '{raw_pattern}'"
+        raise ValueError(err)
+
+    return internal_root[0]
+
+
 def _format_segments(
-    vinfo       : version.V2VersionInfo,
     pattern_segs: typ.List[str],
+    part_values       : PartValues,
 ) -> typ.List[str]:
-    kwargs      = _format_part_values(vinfo)
-    part_values = sorted(kwargs.items(), key=lambda item: -len(item[0]))
+    # NOTE (mb 2020-09-21): Old implementaion that doesn't cover corner
+    #   cases relating to escaped braces.
 
     is_zero_segment = [True] * len(pattern_segs)
 
@@ -361,23 +419,25 @@ def _format_segments(
     idx_r = len(pattern_segs) - 1
     while idx_l <= idx_r:
         # NOTE (mb 2020-09-18): All segments are optional,
-        #   except the most left and the most right,
-        #   i.e the ones NOT surrounded by braces.
-        #   Empty string is a valid segment.
-        is_optional = idx_l > 0
+        #   except the most left and the most right.
+        #   In other words the ones NOT surrounded by braces are
+        #   required. Empty string is a valid segment.
+        is_required_seg = idx_l == 0
 
         seg_l = pattern_segs[idx_l]
         seg_r = pattern_segs[idx_r]
 
         for part, part_value in part_values:
             if part in seg_l:
-                seg_l = seg_l.replace(part, part_value)
-                if not (is_optional and str(part_value) == version.ZERO_VALUES.get(part)):
+                seg_l       = seg_l.replace(part, part_value)
+                is_zero_seg = str(part_value) == version.ZERO_VALUES.get(part)
+                if is_required_seg or not is_zero_seg:
                     is_zero_segment[idx_l] = False
 
             if part in seg_r:
-                seg_r = seg_r.replace(part, part_value)
-                if not (is_optional and str(part_value) == version.ZERO_VALUES[part]):
+                seg_r       = seg_r.replace(part, part_value)
+                is_zero_seg = str(part_value) == version.ZERO_VALUES.get(part)
+                if is_required_seg or not is_zero_seg:
                     is_zero_segment[idx_r] = False
 
         formatted_segs_l.append(seg_l)
@@ -389,6 +449,43 @@ def _format_segments(
 
     formatted_segs = formatted_segs_l + list(reversed(formatted_segs_r))
     return _clear_zero_segments(formatted_segs, is_zero_segment)
+
+
+FormattedSegmentParts = typ.List[str]
+
+
+def _format_segment_tree(
+    seg_tree: SegmentTree,
+    part_values       : PartValues,
+) -> FormattedSegmentParts:
+    result_parts = []
+    for seg in seg_tree:
+        if isinstance(seg, list):
+            result_parts.extend(_format_segment_tree(seg, part_values))
+        else:
+            # NOTE (mb 2020-09-24): If a segment has any zero parts,
+            #   the whole segment is skipped.
+            is_zero_seg = False
+            formatted_seg = seg
+            # unescape braces
+            formatted_seg = formatted_seg.replace(r"\[", r"[")
+            formatted_seg = formatted_seg.replace(r"\]", r"]")
+            # replace non zero parts
+            for part, part_value in part_values:
+                if part in formatted_seg:
+                    is_zero_part = (
+                        part in version.ZERO_VALUES
+                        and str(part_value) == version.ZERO_VALUES[part]
+                    )
+                    if is_zero_part:
+                        is_zero_seg = True
+                    else:
+                        formatted_seg = formatted_seg.replace(part, part_value)
+
+            if not is_zero_seg:
+                result_parts.append(formatted_seg)
+
+    return result_parts
 
 
 def format_version(vinfo: version.V2VersionInfo, raw_pattern: str) -> str:
@@ -477,10 +574,15 @@ def format_version(vinfo: version.V2VersionInfo, raw_pattern: str) -> str:
     >>> format_version(vinfo_d, pattern='__version__ = "vMAJOR[.MINOR[.PATCH[-TAG[NUM]]]]"')
     '__version__ = "v1.0.0-rc2"'
     """
-    pattern_segs   = _make_segments(raw_pattern)
-    formatted_segs = _format_segments(vinfo, pattern_segs)
+    part_values    = _format_part_values(vinfo)
 
-    return "".join(formatted_segs)
+    # pattern_segs   = _make_segments(raw_pattern)
+    # formatted_segs = _format_segments(pattern_segs, part_values)
+    # version_str = "".join(formatted_segs)
+
+    seg_tree    = _parse_segment_tree(raw_pattern)
+    version_str_parts = _format_segment_tree(seg_tree, part_values)
+    return "".join(version_str_parts)
 
 
 def incr(
@@ -505,19 +607,30 @@ def incr(
 
     cur_cinfo = _ver_to_cal_info(old_vinfo) if pin_date else cal_info()
 
-    if _is_later_than(old_vinfo, cur_cinfo):
-        logger.warning(f"Version appears to be from the future '{old_version}'")
+    if _is_cal_gt(old_vinfo, cur_cinfo):
+        logger.warning(f"Old version appears to be from the future '{old_version}'")
         cur_vinfo = old_vinfo
     else:
         cur_vinfo = old_vinfo._replace(**cur_cinfo._asdict())
 
-    cur_vinfo = version.incr_non_cal_parts(
-        cur_vinfo,
-        release,
-        major,
-        minor,
-        patch,
-    )
+    # prevent truncation of leading zeros
+    if int(cur_vinfo.bid) < 1000:
+        cur_vinfo = cur_vinfo._replace(bid=str(int(cur_vinfo.bid) + 1000))
+
+    cur_vinfo = cur_vinfo._replace(bid=lexid.next_id(cur_vinfo.bid))
+
+    if release:
+        cur_vinfo = cur_vinfo._replace(tag=release)
+    if major:
+        cur_vinfo = cur_vinfo._replace(major=cur_vinfo.major + 1, minor=0, patch=0)
+    if minor:
+        cur_vinfo = cur_vinfo._replace(minor=cur_vinfo.minor + 1, patch=0)
+    if patch:
+        cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
+
+    # TODO (mb 2020-09-20): New Rollover Behaviour:
+    #   Reset major, minor, patch to zero if any part to the left of it is incremented
+
     new_version = format_version(cur_vinfo, raw_pattern)
     if new_version == old_version:
         logger.error("Invalid arguments or pattern, version did not change.")

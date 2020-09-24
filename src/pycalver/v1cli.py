@@ -27,7 +27,8 @@ def update_cfg_from_vcs(cfg: config.Config, all_tags: typ.List[str]) -> config.C
         return cfg
 
     version_tags.sort(reverse=True)
-    logger.debug(f"found {len(version_tags)} tags: {version_tags[:2]}")
+    _debug_tags = ", ".join(version_tags[:3])
+    logger.debug(f"found tags: {_debug_tags} ... ({len(version_tags)} in total)")
     latest_version_tag    = version_tags[0]
     latest_version_pep440 = version.to_pep440(latest_version_tag)
     if latest_version_tag <= cfg.current_version:

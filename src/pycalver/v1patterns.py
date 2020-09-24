@@ -34,6 +34,7 @@ import re
 import typing as typ
 import logging
 
+from . import utils
 from .patterns import RE_PATTERN_ESCAPES
 from .patterns import Pattern
 
@@ -80,8 +81,8 @@ PART_PATTERNS = {
     'month'      : r"(?:0[0-9]|1[0-2])",
     'month_short': r"(?:1[0-2]|[1-9])",
     'build_no'   : r"\d{4,}",
-    'pep440_tag' : r"(?:a|b|dev|rc|post)?\d*",
-    'tag'        : r"(?:alpha|beta|dev|rc|post|final)",
+    'pep440_tag' : r"(?:post|dev|rc|a|b)?\d*",
+    'tag'        : r"(?:preview|final|alpha|beta|post|pre|dev|rc|a|b|c|r)",
     'yy'         : r"\d{2}",
     'yyyy'       : r"\d{4}",
     'quarter'    : r"[1-4]",
@@ -183,6 +184,7 @@ def _replace_pattern_parts(pattern: str) -> str:
         named_part_pattern = f"(?P<{part_name}>{part_pattern})"
         placeholder        = "\u005c{" + part_name + "\u005c}"
         pattern            = pattern.replace(placeholder, named_part_pattern)
+
     return pattern
 
 
@@ -214,6 +216,7 @@ def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[s
     return re.compile(pattern_str)
 
 
+@utils.memo
 def compile_pattern(version_pattern: str, raw_pattern: typ.Optional[str] = None) -> Pattern:
     _raw_pattern = version_pattern if raw_pattern is None else raw_pattern
     regexp       = _compile_pattern_re(version_pattern, _raw_pattern)

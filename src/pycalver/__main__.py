@@ -24,6 +24,7 @@ from . import rewrite
 from . import version
 from . import v1version
 from . import v2version
+from . import v1patterns
 
 _VERBOSE = 0
 
@@ -104,13 +105,14 @@ def test(
 ) -> None:
     """Increment a version number for demo purposes."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
+    raw_pattern = pattern
 
     if release:
         _validate_release_tag(release)
 
     new_version = _incr(
         old_version,
-        raw_pattern=pattern,
+        raw_pattern=raw_pattern,
         release=release,
         major=major,
         minor=minor,
@@ -118,7 +120,7 @@ def test(
         pin_date=pin_date,
     )
     if new_version is None:
-        logger.error(f"Invalid version '{old_version}' and/or pattern '{pattern}'.")
+        logger.error(f"Invalid version '{old_version}' and/or pattern '{raw_pattern}'.")
         sys.exit(1)
 
     pep440_version = version.to_pep440(new_version)
@@ -185,7 +187,7 @@ def _print_diff(cfg: config.Config, new_version: str) -> None:
 
 def _incr(
     old_version: str,
-    raw_pattern: str = "{pycalver}",
+    raw_pattern: str,
     *,
     release : str  = None,
     major   : bool = False,
@@ -193,9 +195,10 @@ def _incr(
     patch   : bool = False,
     pin_date: bool = False,
 ) -> typ.Optional[str]:
-    is_new_pattern = "{" in raw_pattern and "}" in raw_pattern
-    if is_new_pattern:
-        return v2version.incr(
+    v1_parts    = list(v1patterns.PART_PATTERNS) + list(v1patterns.FULL_PART_FORMATS)
+    has_v1_part = any("{" + part + "}" in raw_pattern for part in v1_parts)
+    if has_v1_part:
+        return v1version.incr(
             old_version,
             raw_pattern=raw_pattern,
             release=release,
@@ -205,7 +208,7 @@ def _incr(
             pin_date=pin_date,
         )
     else:
-        return v1version.incr(
+        return v2version.incr(
             old_version,
             raw_pattern=raw_pattern,
             release=release,

@@ -1,10 +1,11 @@
 # This file is part of the pycalver project
 # https://gitlab.com/mbarkhau/pycalver
 #
-# Copyright (c) 2019 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 """Parse setup.cfg or pycalver.cfg files."""
 
+import re
 import glob
 import typing as typ
 import logging
@@ -125,7 +126,7 @@ def _debug_str(cfg: Config) -> str:
         "\n    file_patterns={",
     ]
 
-    for filepath, patterns in cfg.file_patterns.items():
+    for filepath, patterns in sorted(cfg.file_patterns.items()):
         for pattern in patterns:
             cfg_str_parts.append(f"\n        '{filepath}': '{pattern.raw_pattern}',")
 
@@ -261,6 +262,14 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
 
     is_new_pattern = "{" not in version_pattern and "}" not in version_pattern
 
+    if is_new_pattern:
+        invalid_chars = re.search(r"([\s]+)", raw_cfg['version_pattern'])
+        if invalid_chars:
+            raise ValueError(
+                f"Invalid character(s) '{invalid_chars.group(1)}'"
+                f" in pycalver.version_pattern = {raw_cfg['version_pattern']}"
+            )
+
     # TODO (mb 2020-09-18): Validate Pattern
     #   detect YY with WW or UU -> suggest GG with VV
     #   detect YYMM -> suggest YY0M
@@ -372,15 +381,15 @@ def _parse_raw_config(ctx: ProjectContext) -> RawConfig:
 
 def parse(ctx: ProjectContext) -> MaybeConfig:
     """Parse config file if available."""
-    if not ctx.config_filepath.exists():
+    if ctx.config_filepath.exists():
+        try:
+            raw_cfg = _parse_raw_config(ctx)
+            return _parse_config(raw_cfg)
+        except (TypeError, ValueError) as ex:
+            logger.warning(f"Couldn't parse {ctx.config_rel_path}: {str(ex)}")
+            return None
+    else:
         logger.warning(f"File not found: {ctx.config_rel_path}")
-        return None
-
-    try:
-        raw_cfg = _parse_raw_config(ctx)
-        return _parse_config(raw_cfg)
-    except (TypeError, ValueError) as ex:
-        logger.warning(f"Couldn't parse {ctx.config_rel_path}: {str(ex)}")
         return None
 
 

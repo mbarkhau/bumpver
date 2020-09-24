@@ -9,6 +9,8 @@ import typing as typ
 import logging
 import datetime as dt
 
+import lexid
+
 from . import version
 from . import v1patterns
 
@@ -18,15 +20,19 @@ logger = logging.getLogger("pycalver.v1version")
 CalInfo = typ.Union[version.V1CalendarInfo, version.V1VersionInfo]
 
 
-def _is_later_than(old: CalInfo, new: CalInfo) -> bool:
-    """Is old > new based on non None fields."""
+def _is_cal_gt(left: CalInfo, right: CalInfo) -> bool:
+    """Is left > right for non-None fields."""
+
+    lvals = []
+    rvals = []
     for field in version.V1CalendarInfo._fields:
-        aval = getattr(old, field)
-        bval = getattr(new, field)
-        if not (aval is None or bval is None):
-            if aval > bval:
-                return True
-    return False
+        lval = getattr(left , field)
+        rval = getattr(right, field)
+        if not (lval is None or rval is None):
+            lvals.append(lval)
+            rvals.append(rval)
+
+    return lvals > rvals
 
 
 def _ver_to_cal_info(vnfo: version.V1VersionInfo) -> version.V1CalendarInfo:
@@ -235,7 +241,7 @@ def parse_version_info(version_str: str, raw_pattern: str = "{pycalver}") -> ver
     if match is None:
         err_msg = (
             f"Invalid version string '{version_str}' "
-            f"for pattern '{raw_pattern}'/'{pattern.regexp}'"
+            f"for pattern '{raw_pattern}'/'{pattern.regexp.pattern}'"
         )
         raise version.PatternError(err_msg)
     else:
@@ -386,19 +392,23 @@ def incr(
 
     cur_cinfo = _ver_to_cal_info(old_vinfo) if pin_date else cal_info()
 
-    if _is_later_than(old_vinfo, cur_cinfo):
-        cur_vinfo = old_vinfo._replace(**cur_cinfo._asdict())
-    else:
-        logger.warning(f"Version appears to be from the future '{old_version}'")
+    if _is_cal_gt(old_vinfo, cur_cinfo):
+        logger.warning(f"Old version appears to be from the future '{old_version}'")
         cur_vinfo = old_vinfo
+    else:
+        cur_vinfo = old_vinfo._replace(**cur_cinfo._asdict())
 
-    cur_vinfo = version.incr_non_cal_parts(
-        cur_vinfo,
-        release,
-        major,
-        minor,
-        patch,
-    )
+    cur_vinfo = cur_vinfo._replace(bid=lexid.next_id(cur_vinfo.bid))
+
+    if release:
+        cur_vinfo = cur_vinfo._replace(tag=release)
+    if major:
+        cur_vinfo = cur_vinfo._replace(major=cur_vinfo.major + 1, minor=0, patch=0)
+    if minor:
+        cur_vinfo = cur_vinfo._replace(minor=cur_vinfo.minor + 1, patch=0)
+    if patch:
+        cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
+
     new_version = format_version(cur_vinfo, raw_pattern)
     if new_version == old_version:
         logger.error("Invalid arguments or pattern, version did not change.")

@@ -1,7 +1,11 @@
+# This file is part of the pycalver project
+# https://github.com/mbarkhau/pycalver
+#
+# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# SPDX-License-Identifier: MIT
 import typing as typ
 import datetime as dt
 
-import lexid
 import pkg_resources
 
 MaybeInt = typ.Optional[int]
@@ -71,9 +75,6 @@ class V2VersionInfo(typ.NamedTuple):
     pytag  : str
 
 
-VersionInfoType = typ.TypeVar('VersionInfoType', V1VersionInfo, V2VersionInfo)
-
-
 # The test suite may replace this.
 TODAY = dt.datetime.utcnow().date()
 
@@ -81,7 +82,7 @@ TODAY = dt.datetime.utcnow().date()
 TAG_BY_PEP440_TAG = {
     'a'   : 'alpha',
     'b'   : 'beta',
-    ""    : 'final',
+    ''    : 'final',
     'rc'  : 'rc',
     'dev' : 'dev',
     'post': 'post',
@@ -89,13 +90,19 @@ TAG_BY_PEP440_TAG = {
 
 
 PEP440_TAG_BY_TAG = {
-    'alpha': "a",
-    'beta' : "b",
-    'final': "",
-    'pre'  : "rc",
-    'rc'   : "rc",
-    'dev'  : "dev",
-    'post' : "post",
+    'a'      : 'a',
+    'b'      : 'b',
+    'dev'    : 'dev',
+    'alpha'  : 'a',
+    'beta'   : 'b',
+    'preview': 'rc',
+    'pre'    : 'rc',
+    'rc'     : 'rc',
+    'c'      : 'rc',
+    'final'  : '',
+    'post'   : 'post',
+    'r'      : 'post',
+    'rev'    : 'post',
 }
 
 assert set(TAG_BY_PEP440_TAG.keys()) == set(PEP440_TAG_BY_TAG.values())
@@ -148,28 +155,3 @@ def to_pep440(version: str) -> str:
     '201811.7b0'
     """
     return str(pkg_resources.parse_version(version))
-
-
-def incr_non_cal_parts(
-    vinfo  : VersionInfoType,
-    release: typ.Optional[str],
-    major  : bool,
-    minor  : bool,
-    patch  : bool,
-) -> VersionInfoType:
-    _bid = vinfo.bid
-    if int(_bid) < 1000:
-        # prevent truncation of leading zeros
-        _bid = str(int(_bid) + 1000)
-
-    vinfo = vinfo._replace(bid=lexid.next_id(_bid))
-
-    if release:
-        vinfo = vinfo._replace(tag=release)
-    if major:
-        vinfo = vinfo._replace(major=vinfo.major + 1, minor=0, patch=0)
-    if minor:
-        vinfo = vinfo._replace(minor=vinfo.minor + 1, patch=0)
-    if patch:
-        vinfo = vinfo._replace(patch=vinfo.patch + 1)
-    return vinfo
