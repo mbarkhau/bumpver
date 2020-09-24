@@ -90,7 +90,7 @@ Exiting because of '--dry'. Would have written to pycalver.toml:
 
     [pycalver]
     current_version = "v202010.1001-alpha"
-    version_pattern = "vYYYY0M.BUILD[-TAG]"
+    version_pattern = "vYYYY0M.BUILD[-RELEASE]"
     commit_message = "bump version to {new_version}"
     commit = true
     tag = true
@@ -125,7 +125,7 @@ This will add the something like the following to your `setup.cfg`
 # setup.cfg
 [pycalver]
 current_version = "v201902.1001-alpha"
-version_pattern = "vYYYY0M.BUILD[-TAG]"
+version_pattern = "vYYYY0M.BUILD[-RELEASE]"
 commit_message = "bump version to {new_version}"
 commit = True
 tag = True
@@ -238,7 +238,7 @@ These patterns are closely based on https://calver.org/
 | `00J`       | 001, 002..366        | `%j`                   |
 | `BUILD`     | 0011, 1001, 1002, .. | build number (lexid)   |
 | `BLD`       | 11, 1001, 1002, ..   | zero truncated `BUILD` |
-| `TAG`       | alpha, beta, rc      | `--release=<tag>`      |
+| `RELEASE`   | alpha, beta, rc      | `--release=<tag>`      |
 | `PYTAG`     | a, b, rc             | `--release=<tag>`      |
 | `NUM`       | 0, 1, 2...           | release tag number     |
 | `MAJOR`     | 0..9, 10..99, 100..  | `--major`              |
@@ -280,7 +280,7 @@ According to these rules:
 
 For example:
 
-- Pattern: `vYY.0M.0D[-TAG]`
+- Pattern: `vYY.0M.0D[-RELEASE]`
 - Version: `v20.08.02-beta`
 - PEP440 : `20.8.2b0`
 
@@ -298,22 +298,22 @@ It may also be confusing to your users if they a list of version numbers, sorted
 If you wish to avoid this, you should use a pattern which maintains lexiographical ordering.
 
 
-|        pattern        | example | lexio. | PEP440 | lexio. |
-|-----------------------|---------|--------|--------|--------|
-| `YYYY0M.BUILD[-TAG]`  |         | yes    |        | yes    |
-| `YYYY.BUILD[-TAG]`    |         | yes    |        | yes    |
-| `YYYY0M.MINOR[-TAG]`  |         | yes²   |        | yes    |
-| `YY0M.BUILD[-TAG]`    |         | yes¹   |        | yes¹   |
-| `YYYY.MM.MINOR[-TAG]` |         | no     |        | no     |
-| `YYYY.0M.MINOR[-TAG]` |         | yes²   |        | no     |
-| `YYYY.WW.MINOR[-TAG]` |         | no     |        | no     |
-| `YYYY.0W.MINOR[-TAG]` |         | yes²   |        | no     |
-| `YYYY.0M.0D`          |         | yes    |        | no     |
-| `YYYY.MM.DD`          |         | no     |        | no     |
-| `vYYYY.0W`            |         | yes    |        | no     |
-| `vYYYY.WW`            |         | no     |        | no     |
-| `YYYY.0M`             |         | yes    |        | no     |
-| `YYYY.MM`             |         | no     |        | no     |
+|          pattern          | example | lexio. | PEP440 | lexio. |
+|---------------------------|---------|--------|--------|--------|
+| `YYYY0M.BUILD[-RELEASE]`  |         | yes    |        | yes    |
+| `YYYY.BUILD[-RELEASE]`    |         | yes    |        | yes    |
+| `YYYY0M.MINOR[-RELEASE]`  |         | yes²   |        | yes    |
+| `YY0M.BUILD[-RELEASE]`    |         | yes¹   |        | yes¹   |
+| `YYYY.MM.MINOR[-RELEASE]` |         | no     |        | no     |
+| `YYYY.0M.MINOR[-RELEASE]` |         | yes²   |        | no     |
+| `YYYY.WW.MINOR[-RELEASE]` |         | no     |        | no     |
+| `YYYY.0W.MINOR[-RELEASE]` |         | yes²   |        | no     |
+| `YYYY.0M.0D`              |         | yes    |        | no     |
+| `YYYY.MM.DD`              |         | no     |        | no     |
+| `vYYYY.0W`                |         | yes    |        | no     |
+| `vYYYY.WW`                |         | no     |        | no     |
+| `YYYY.0M`                 |         | yes    |        | no     |
+| `YYYY.MM`                 |         | no     |        | no     |
 
 - ¹ Until 2099. If your project has new releases after 2099, future maintainers can change `YY`/`0Y` -> `YYYY` so that they don't release `00.xx`.
 - ² As long as `MINOR <= 9`
@@ -427,15 +427,15 @@ $ pycalver test 'v18.1.2' 'vYY.MINOR.PATCH' --minor
 New Version: v19.2.0
 PEP440     : 19.2.0
 
-$ pycalver test 'v201811.1051-beta' 'vYYYYMM.BUILD[-TAG]'
+$ pycalver test 'v201811.1051-beta' 'vYYYYMM.BUILD[-RELEASE]'
 New Version: v201902.1052-beta
 PEP440     : 201902.1052b0
 
-$ pycalver test 'v201811.0051-beta' 'vYYYYMM.BUILD[-TAG]' --release rc
+$ pycalver test 'v201811.0051-beta' 'vYYYYMM.BUILD[-RELEASE]' --release rc
 New Version: v201902.1052-rc
 PEP440     : 201902.1052rc0
 
-$ pycalver test 'v201811.0051-beta' 'vYYYYMM.BUILD[-TAG]' --release final
+$ pycalver test 'v201811.0051-beta' 'vYYYYMM.BUILD[-RELEASE]' --release final
 New Version: v201902.1052
 PEP440     : 201902.1052
 ```
@@ -509,7 +509,7 @@ section:
 ```ini
 [pycalver]
 current_version = "v202010.1006-beta"
-version_pattern = "vYYYY0M.BUILD[-TAG]"
+version_pattern = "vYYYY0M.BUILD[-RELEASE]"
 commit_message = "bump version to {new_version}"
 commit = True
 tag = True
@@ -549,7 +549,7 @@ $ pycalver bump --dry
  [pycalver]
 -current_version = v202010.1005-beta
 +current_version = v202010.1006-beta
- version_pattern = "vYYYY0M.BUILD[-TAG]"
+ version_pattern = "vYYYY0M.BUILD[-RELEASE]"
  commit_message = "bump version to {new_version}"
  commit = True
 ...

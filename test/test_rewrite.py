@@ -141,8 +141,8 @@ def test_v1_optional_release():
 
 def test_v2_optional_release():
     old_lines = OPTIONAL_RELEASE_FIXTURE.splitlines()
-    pattern   = "YYYY.BUILD[-TAG]"
-    patterns  = ['__version__ = "YYYY.BUILD[-TAG]"']
+    pattern   = "YYYY.BUILD[-RELEASE]"
+    patterns  = ['__version__ = "YYYY.BUILD[-RELEASE]"']
 
     new_vinfo = v2version.parse_version_info("2019.0003", pattern)
     new_lines = v2rewrite.rewrite_lines(patterns, new_vinfo, old_lines)

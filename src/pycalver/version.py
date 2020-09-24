@@ -79,7 +79,7 @@ class V2VersionInfo(typ.NamedTuple):
 TODAY = dt.datetime.utcnow().date()
 
 
-TAG_BY_PEP440_TAG = {
+RELEASE_BY_PEP440_TAG = {
     'a'   : 'alpha',
     'b'   : 'beta',
     ''    : 'final',
@@ -89,7 +89,7 @@ TAG_BY_PEP440_TAG = {
 }
 
 
-PEP440_TAG_BY_TAG = {
+PEP440_TAG_BY_RELEASE = {
     'a'      : 'a',
     'b'      : 'b',
     'dev'    : 'dev',
@@ -105,17 +105,17 @@ PEP440_TAG_BY_TAG = {
     'rev'    : 'post',
 }
 
-assert set(TAG_BY_PEP440_TAG.keys()) == set(PEP440_TAG_BY_TAG.values())
-assert set(TAG_BY_PEP440_TAG.values()) < set(PEP440_TAG_BY_TAG.keys())
+assert set(RELEASE_BY_PEP440_TAG.keys()) == set(PEP440_TAG_BY_RELEASE.values())
+assert set(RELEASE_BY_PEP440_TAG.values()) < set(PEP440_TAG_BY_RELEASE.keys())
 
 
 ZERO_VALUES = {
-    'MAJOR': "0",
-    'MINOR': "0",
-    'PATCH': "0",
-    'TAG'  : "final",
-    'PYTAG': "",
-    'NUM'  : "0",
+    'MAJOR'  : "0",
+    'MINOR'  : "0",
+    'PATCH'  : "0",
+    'RELEASE': "final",
+    'PYTAG'  : "",
+    'NUM'    : "0",
 }
 
 

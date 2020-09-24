@@ -23,7 +23,6 @@ The recommended approach to using `pylint-ignore` is:
 
 # Overview
 
- - [E1123: unexpected-keyword-arg (1x)](#e1123-unexpected-keyword-arg)
  - [W0511: fixme (9x)](#w0511-fixme)
  - [W0703: broad-except (1x)](#w0703-broad-except)
 
@@ -74,8 +73,8 @@ The recommended approach to using `pylint-ignore` is:
   154:     assert "setup.py" in cfg.file_patterns
   155:     assert "setup.cfg" in cfg.file_patterns
 > 156:     # TODO (mb 2020-09-18):
-  157:     # assert cfg.file_patterns["setup.py"        ] == ["vYYYY0M.BUILD[-TAG]", "YYYY0M.BLD[PYTAGNUM]"]
-  158:     # assert cfg.file_patterns["setup.cfg"       ] == ['current_version = "vYYYY0M.BUILD[-TAG]"']
+  157:     # assert cfg.file_patterns["setup.py"        ] == ["vYYYY0M.BUILD[-RELEASE]", "YYYY0M.BLD[PYTAGNUM]"]
+  158:     # assert cfg.file_patterns["setup.cfg"       ] == ['current_version = "vYYYY0M.BUILD[-RELEASE]"']
 ```
 
 
@@ -96,71 +95,54 @@ The recommended approach to using `pylint-ignore` is:
 ```
 
 
-## File src/pycalver/v1patterns.py - Line 212 - W0511 (fixme)
+## File src/pycalver/v1patterns.py - Line 214 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-19): replace {version} etc with version_pattern`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-19T16:24:10`
 
 ```
-  199: def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[str]:
+  201: def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[str]:
   ...
-  210:         escaped_pattern = escaped_pattern.replace(char, escaped)
-  211:
-> 212:     # TODO (mb 2020-09-19): replace {version} etc with version_pattern
-  213:     pattern_str = _replace_pattern_parts(escaped_pattern)
-  214:     return re.compile(pattern_str)
+  212:         escaped_pattern = escaped_pattern.replace(char, escaped)
+  213:
+> 214:     # TODO (mb 2020-09-19): replace {version} etc with version_pattern
+  215:     pattern_str = _replace_pattern_parts(escaped_pattern)
+  216:     return re.compile(pattern_str)
 ```
 
 
-## File src/pycalver/__main__.py - Line 247 - W0511 (fixme)
+## File src/pycalver/__main__.py - Line 250 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-18): Investigate error messages`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-19T16:24:10`
 
 ```
-  219: def _bump(
+  222: def _bump(
   ...
-  245:         sys.exit(1)
-  246:     except Exception as ex:
-> 247:         # TODO (mb 2020-09-18): Investigate error messages
-  248:         logger.error(str(ex))
-  249:         sys.exit(1)
+  248:         sys.exit(1)
+  249:     except Exception as ex:
+> 250:         # TODO (mb 2020-09-18): Investigate error messages
+  251:         logger.error(str(ex))
+  252:         sys.exit(1)
 ```
 
 
-## File src/pycalver/v2patterns.py - Line 256 - W0511 (fixme)
-
-- `message: TODO (mb 2020-09-19): replace {version} etc with version_pattern`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-19T16:24:10`
-
-```
-  240: def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[str]:
-  ...
-  254:     print("<<<<", (normalized_pattern,))
-  255:
-> 256:     # TODO (mb 2020-09-19): replace {version} etc with version_pattern
-  257:     pattern_str = _replace_pattern_parts(escaped_pattern)
-  258:     return re.compile(pattern_str)
-```
-
-
-## File src/pycalver/config.py - Line 264 - W0511 (fixme)
+## File src/pycalver/config.py - Line 273 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-18): Validate Pattern`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-18T19:04:06`
 
 ```
-  250: def _parse_config(raw_cfg: RawConfig) -> Config:
+  251: def _parse_config(raw_cfg: RawConfig) -> Config:
   ...
-  262:     is_new_pattern = "{" not in version_pattern and "}" not in version_pattern
-  263:
-> 264:     # TODO (mb 2020-09-18): Validate Pattern
-  265:     #   detect YY with WW or UU -> suggest GG with VV
-  266:     #   detect YYMM -> suggest YY0M
+  271:             )
+  272:
+> 273:     # TODO (mb 2020-09-18): Validate Pattern
+  274:     #   detect YY with WW or UU -> suggest GG with VV
+  275:     #   detect YYMM -> suggest YY0M
 ```
 
 
@@ -178,22 +160,39 @@ The recommended approach to using `pylint-ignore` is:
 ```
 
 
+## File src/pycalver/v2version.py - Line 551 - W0511 (fixme)
+
+- `message: TODO (mb 2020-09-20): New Rollover Behaviour:`
+- `author : Manuel Barkhau <mbarkhau@gmail.com>`
+- `date   : 2020-09-20T17:36:38`
+
+```
+  508: def incr(
+  ...
+  549:         cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
+  550:
+> 551:     # TODO (mb 2020-09-20): New Rollover Behaviour:
+  552:     #   Reset major, minor, patch to zero if any part to the left of it is incremented
+  553:
+```
+
+
 # W0703: broad-except
 
-## File src/pycalver/__main__.py - Line 246 - W0703 (broad-except)
+## File src/pycalver/__main__.py - Line 249 - W0703 (broad-except)
 
 - `message: Catching too general exception Exception`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-05T14:30:17`
 
 ```
-  219: def _bump(
+  222: def _bump(
   ...
-  244:         logger.error(str(ex))
-  245:         sys.exit(1)
-> 246:     except Exception as ex:
-  247:         # TODO (mb 2020-09-18): Investigate error messages
-  248:         logger.error(str(ex))
+  247:         logger.error(str(ex))
+  248:         sys.exit(1)
+> 249:     except Exception as ex:
+  250:         # TODO (mb 2020-09-18): Investigate error messages
+  251:         logger.error(str(ex))
 ```
 
 

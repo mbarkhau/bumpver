@@ -201,40 +201,29 @@ def test_v1_parse_versions(pattern_str, line, expected_vinfo):
 
 # def test_v2_parse_versions(pattern_str, line, expected_vinfo):
 def test_v2_parse_versions():
-    _vnfo = v2version.parse_version_info("v201712.0033", raw_pattern="vYYYY0M.BUILD[-TAG[NUM]]")
+    _vnfo = v2version.parse_version_info("v201712.0033", raw_pattern="vYYYY0M.BUILD[-RELEASE[NUM]]")
     fvals = {'year_y': 2017, 'month': 12, 'bid': "0033"}
     assert _vnfo == v2version._parse_version_info(fvals)
 
 
-def test_make_segments():
-    segs = v2version._make_segments("vYYYY0M.BUILD[-TAG[NUM]]")
-    assert segs == ["vYYYY0M.BUILD", "-TAG", "NUM", "", ""]
-
-    segs = v2version._make_segments('__version__ = "YYYY0M.BLD[PYTAGNUM]"')
-    assert segs == ['__version__ = "YYYY0M.BLD', 'PYTAGNUM', '"']
-
-    segs = v2version._make_segments('__version__ = "YYYY.BUILD[-TAG]"')
-    assert segs == ['__version__ = "YYYY.BUILD', '-TAG', '"']
-
-
 def test_v2_format_version():
-    version_pattern = "vYYYY0M.BUILD[-TAG[NUM]]"
+    version_pattern = "vYYYY0M.BUILD[-RELEASE[NUM]]"
     in_version      = "v200701.0033-beta"
 
     vinfo       = v2version.parse_version_info(in_version, raw_pattern=version_pattern)
     out_version = v2version.format_version(vinfo, raw_pattern=version_pattern)
     assert in_version == out_version
 
-    result = v2version.format_version(vinfo, raw_pattern="v0Y.BUILD[-TAG]")
+    result = v2version.format_version(vinfo, raw_pattern="v0Y.BUILD[-RELEASE]")
     assert result == "v07.0033-beta"
 
-    result = v2version.format_version(vinfo, raw_pattern="vYY.BLD[-TAG]")
+    result = v2version.format_version(vinfo, raw_pattern="vYY.BLD[-RELEASE]")
     assert result == "v7.33-beta"
 
-    result = v2version.format_version(vinfo, raw_pattern="vYY.BLD-TAG")
+    result = v2version.format_version(vinfo, raw_pattern="vYY.BLD-RELEASE")
     assert result == "v7.33-beta"
 
-    result = v2version.format_version(vinfo, raw_pattern='__version__ = "YYYY.BUILD[-TAG]"')
+    result = v2version.format_version(vinfo, raw_pattern='__version__ = "YYYY.BUILD[-RELEASE]"')
     assert result == '__version__ = "2007.0033-beta"'
 
     result = v2version.format_version(vinfo, raw_pattern='__version__ = "YYYY.BLD"')

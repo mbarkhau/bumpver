@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: MIT
 """Compose Regular Expressions from Patterns.
 
->>> pattern = compile_pattern("vYYYY0M.BUILD[-TAG]")
+>>> pattern = compile_pattern("vYYYY0M.BUILD[-RELEASE]")
 >>> version_info = pattern.regexp.match("v201712.0123-alpha")
 >>> assert version_info.groupdict() == {
 ...     "version": "v201712.0123-alpha",
@@ -80,45 +80,57 @@ PART_PATTERNS = {
     'VV': r"(?:5[0-3]|[1-4][0-9]|[1-9])",
     '0V': r"(?:5[0-3]|[1-4][0-9]|0[1-9])",
     # non calver parts
-    'MAJOR': r"[0-9]+",
-    'MINOR': r"[0-9]+",
-    'PATCH': r"[0-9]+",
-    'BUILD': r"[0-9]+",
-    'BLD'  : r"[1-9][0-9]*",
-    'TAG'  : r"(?:preview|final|alpha|beta|post|pre|dev|rc|a|b|c|r)",
-    'PYTAG': r"(?:post|dev|rc|a|b)",
-    'NUM'  : r"[0-9]+",
+    'MAJOR'  : r"[0-9]+",
+    'MINOR'  : r"[0-9]+",
+    'PATCH'  : r"[0-9]+",
+    'BUILD'  : r"[0-9]+",
+    'BLD'    : r"[1-9][0-9]*",
+    'RELEASE': r"(?:preview|final|alpha|beta|post|pre|dev|rc|a|b|c|r)",
+    'PYTAG'  : r"(?:post|dev|rc|a|b)",
+    'NUM'    : r"[0-9]+",
 }
 
 
 PATTERN_PART_FIELDS = {
-    'YYYY' : 'year_y',
-    'YY'   : 'year_y',
-    '0Y'   : 'year_y',
-    'GGGG' : 'year_g',
-    'GG'   : 'year_g',
-    '0G'   : 'year_g',
-    'Q'    : 'quarter',
-    'MM'   : 'month',
-    '0M'   : 'month',
-    'DD'   : 'dom',
-    '0D'   : 'dom',
-    'JJJ'  : 'doy',
-    '00J'  : 'doy',
-    'MAJOR': 'major',
-    'MINOR': 'minor',
-    'PATCH': 'patch',
-    'BUILD': 'bid',
-    'BLD'  : 'bid',
-    'TAG'  : 'tag',
-    'PYTAG': 'pytag',
-    'NUM'  : 'num',
-    'WW'   : 'week_w',
-    '0W'   : 'week_w',
-    'UU'   : 'week_u',
-    '0U'   : 'week_u',
-    'VV'   : 'week_v',
-    '0V'   : 'week_v',
+    'YYYY'   : 'year_y',
+    'YY'     : 'year_y',
+    '0Y'     : 'year_y',
+    'GGGG'   : 'year_g',
+    'GG'     : 'year_g',
+    '0G'     : 'year_g',
+    'Q'      : 'quarter',
+    'MM'     : 'month',
+    '0M'     : 'month',
+    'DD'     : 'dom',
+    '0D'     : 'dom',
+    'JJJ'    : 'doy',
+    '00J'    : 'doy',
+    'MAJOR'  : 'major',
+    'MINOR'  : 'minor',
+    'PATCH'  : 'patch',
+    'BUILD'  : 'bid',
+    'BLD'    : 'bid',
+    'RELEASE': 'tag',
+    'PYTAG'  : 'pytag',
+    'NUM'    : 'num',
+    'WW'     : 'week_w',
+    '0W'     : 'week_w',
+    'UU'     : 'week_u',
+    '0U'     : 'week_u',
+    'VV'     : 'week_v',
+    '0V'     : 'week_v',
+}
+
+
+PEP440_PART_SUBSTITUTIONS = {
+    '0W'     : "WW",
+    '0U'     : "UU",
+    '0V'     : "VV",
+    '0M'     : "MM",
+    '0D'     : "DD",
+    '00J'    : "JJJ",
+    'BUILD'  : "BLD",
+    'RELEASE': "PYTAG",
 }
 
 
@@ -174,33 +186,33 @@ def _fmt_0v(week_v: FieldValue) -> str:
 
 
 PART_FORMATS: typ.Dict[str, typ.Callable[[FieldValue], str]] = {
-    'YYYY' : _fmt_num,
-    'YY'   : _fmt_yy,
-    '0Y'   : _fmt_0y,
-    'GGGG' : _fmt_num,
-    'GG'   : _fmt_gg,
-    '0G'   : _fmt_0g,
-    'Q'    : _fmt_num,
-    'MM'   : _fmt_num,
-    '0M'   : _fmt_0m,
-    'DD'   : _fmt_num,
-    '0D'   : _fmt_0d,
-    'JJJ'  : _fmt_num,
-    '00J'  : _fmt_00j,
-    'MAJOR': _fmt_num,
-    'MINOR': _fmt_num,
-    'PATCH': _fmt_num,
-    'BUILD': _fmt_num,
-    'BLD'  : _fmt_bld,
-    'TAG'  : _fmt_num,
-    'PYTAG': _fmt_num,
-    'NUM'  : _fmt_num,
-    'WW'   : _fmt_num,
-    '0W'   : _fmt_0w,
-    'UU'   : _fmt_num,
-    '0U'   : _fmt_0u,
-    'VV'   : _fmt_num,
-    '0V'   : _fmt_0v,
+    'YYYY'   : _fmt_num,
+    'YY'     : _fmt_yy,
+    '0Y'     : _fmt_0y,
+    'GGGG'   : _fmt_num,
+    'GG'     : _fmt_gg,
+    '0G'     : _fmt_0g,
+    'Q'      : _fmt_num,
+    'MM'     : _fmt_num,
+    '0M'     : _fmt_0m,
+    'DD'     : _fmt_num,
+    '0D'     : _fmt_0d,
+    'JJJ'    : _fmt_num,
+    '00J'    : _fmt_00j,
+    'MAJOR'  : _fmt_num,
+    'MINOR'  : _fmt_num,
+    'PATCH'  : _fmt_num,
+    'BUILD'  : _fmt_num,
+    'BLD'    : _fmt_bld,
+    'RELEASE': _fmt_num,
+    'PYTAG'  : _fmt_num,
+    'NUM'    : _fmt_num,
+    'WW'     : _fmt_num,
+    '0W'     : _fmt_0w,
+    'UU'     : _fmt_num,
+    '0U'     : _fmt_0u,
+    'VV'     : _fmt_num,
+    '0V'     : _fmt_0v,
 }
 
 
@@ -209,15 +221,37 @@ def _convert_to_pep440(version_pattern: str) -> str:
     #   corner cases as specified in PEP440, in particular
     #   related to post and dev releases.
 
-    version_pattern = version_pattern.lstrip("v")
+    pep440_pattern = version_pattern
+
+    if pep440_pattern.startswith("v"):
+        pep440_pattern = pep440_pattern[1:]
+
+    pep440_pattern = pep440_pattern.replace(r"\[", "")
+    pep440_pattern = pep440_pattern.replace(r"\]", "")
+
+    pep440_pattern, _ = re.subn(r"[^a-zA-Z0-9\.\[\]]", "", pep440_pattern)
 
     part_names = list(PATTERN_PART_FIELDS.keys())
     part_names.sort(key=len, reverse=True)
-    if version_pattern == "vYYYY0M.BUILD[-TAG]":
-        return "YYYY0M.BLD[PYTAGNUM]"
 
-    # TODO (mb 2020-09-20)
-    raise NotImplementedError
+    for part_name in part_names:
+        if part_name not in version_pattern:
+            continue
+        if part_name not in PEP440_PART_SUBSTITUTIONS:
+            continue
+
+        substitution = PEP440_PART_SUBSTITUTIONS[part_name]
+
+        is_numerical_part = part_name not in ('RELEASE', 'PYTAG')
+        if is_numerical_part:
+            part_index              = pep440_pattern.find(part_name)
+            is_zero_truncation_part = part_index == 0 or pep440_pattern[part_index - 1] == "."
+            if is_zero_truncation_part:
+                pep440_pattern = pep440_pattern.replace(part_name, substitution)
+        else:
+            pep440_pattern = pep440_pattern.replace(part_name, substitution)
+
+    return pep440_pattern
 
 
 def normalize_pattern(version_pattern: str, raw_pattern: str) -> str:
@@ -236,10 +270,10 @@ def _replace_pattern_parts(pattern: str) -> str:
     # The pattern is escaped, so that everything besides the format
     # string variables is treated literally.
     while True:
-        new_pattern, n = re.subn(r"([^\\]|^)\[", r"\1(?:", pattern)
-        new_pattern, m = re.subn(r"([^\\]|^)\]", r"\1)?" , new_pattern)
+        new_pattern, _n = re.subn(r"([^\\]|^)\[", r"\1(?:", pattern)
+        new_pattern, _m = re.subn(r"([^\\]|^)\]", r"\1)?" , new_pattern)
         pattern = new_pattern
-        if n + m == 0:
+        if _n + _m == 0:
             break
 
     SortKey         = typ.Tuple[int, int]
@@ -274,7 +308,7 @@ def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[s
     normalized_pattern = normalize_pattern(version_pattern, raw_pattern)
     escaped_pattern    = normalized_pattern
     for char, escaped in RE_PATTERN_ESCAPES:
-        # [] braces are used for optional parts, such as [-TAG]/[-beta]
+        # [] braces are used for optional parts, such as [-RELEASE]/[-beta]
         # and need to be escaped manually.
         is_semantic_char = char in "[]\\"
         if not is_semantic_char:

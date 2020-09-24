@@ -66,7 +66,7 @@ setup.cfg =
 NEW_PATTERN_CFG_FIXTURE = """
 [pycalver]
 current_version = "v201808.1456-beta"
-version_pattern = "vYYYY0M.BUILD[-TAG]"
+version_pattern = "vYYYY0M.BUILD[-RELEASE]"
 commit_message = "bump version to {new_version}"
 commit = True
 tag = True
@@ -154,8 +154,8 @@ def test_parse_v2_cfg():
     assert "setup.py" in cfg.file_patterns
     assert "setup.cfg" in cfg.file_patterns
     # TODO (mb 2020-09-18):
-    # assert cfg.file_patterns["setup.py"        ] == ["vYYYY0M.BUILD[-TAG]", "YYYY0M.BLD[PYTAGNUM]"]
-    # assert cfg.file_patterns["setup.cfg"       ] == ['current_version = "vYYYY0M.BUILD[-TAG]"']
+    # assert cfg.file_patterns["setup.py"        ] == ["vYYYY0M.BUILD[-RELEASE]", "YYYY0M.BLD[PYTAGNUM]"]
+    # assert cfg.file_patterns["setup.cfg"       ] == ['current_version = "vYYYY0M.BUILD[-RELEASE]"']
     # assert cfg.file_patterns["src/project/*.py"] == ['Copyright (c) 2018-YYYY"']
 
 

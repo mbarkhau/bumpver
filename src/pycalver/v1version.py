@@ -97,7 +97,7 @@ def _parse_field_values(field_values: FieldValues) -> version.V1VersionInfo:
     tag   = fvals.get('tag')
     if tag is None:
         tag = "final"
-    tag = version.TAG_BY_PEP440_TAG.get(tag, tag)
+    tag = version.RELEASE_BY_PEP440_TAG.get(tag, tag)
     assert tag is not None
 
     bid = fvals['bid'] if 'bid' in fvals else "0001"
@@ -338,15 +338,15 @@ def format_version(vinfo: version.V1VersionInfo, raw_pattern: str) -> str:
 
     kwargs: typ.Dict[str, typ.Union[str, int, None]] = vinfo._asdict()
 
-    tag = vinfo.tag
-    if tag == 'final':
+    release_tag = vinfo.tag
+    if release_tag == 'final':
         kwargs['release'   ] = ""
         kwargs['pep440_tag'] = ""
     else:
-        kwargs['release'   ] = "-" + tag
-        kwargs['pep440_tag'] = version.PEP440_TAG_BY_TAG[tag] + "0"
+        kwargs['release'   ] = "-" + release_tag
+        kwargs['pep440_tag'] = version.PEP440_TAG_BY_RELEASE[release_tag] + "0"
 
-    kwargs['release_tag'] = tag
+    kwargs['release_tag'] = release_tag
 
     year = vinfo.year
     if year:

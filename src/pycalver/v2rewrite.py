@@ -28,7 +28,7 @@ def rewrite_lines(
     """Replace occurances of patterns in old_lines with new_vinfo.
 
     >>> from .v2patterns import compile_pattern
-    >>> version_pattern = "vYYYY0M.BUILD[-TAG]"
+    >>> version_pattern = "vYYYY0M.BUILD[-RELEASE]"
     >>> new_vinfo = v2version.parse_version_info("v201811.0123-beta", version_pattern)
     >>> patterns = [compile_pattern(version_pattern, '__version__ = "{version}"')]
     >>> rewrite_lines(patterns, new_vinfo, ['__version__ = "v201809.0002-alpha"   '])
@@ -73,9 +73,9 @@ def rfd_from_content(
 ) -> rewrite.RewrittenFileData:
     r"""Rewrite pattern occurrences with version string.
 
-    >>> version_pattern = "vYYYY0M.BUILD[-TAG]"
+    >>> version_pattern = "vYYYY0M.BUILD[-RELEASE]"
     >>> new_vinfo = v2version.parse_version_info("v201809.0123", version_pattern)
-    >>> raw_patterns = ['__version__ = "vYYYY0M.BUILD[-TAG]"']
+    >>> raw_patterns = ['__version__ = "vYYYY0M.BUILD[-RELEASE]"']
     >>> patterns =
     >>> content = '__version__ = "v201809.0001-alpha"'
     >>> rfd = rfd_from_content(patterns, new_vinfo, content)
@@ -115,8 +115,8 @@ def iter_rewritten(
 ) -> typ.Iterable[rewrite.RewrittenFileData]:
     r'''Iterate over files with version string replaced.
 
-    >>> version_pattern = "vYYYY0M.BUILD[-TAG]"
-    >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "vYYYY0M.BUILD[-TAG]"']}
+    >>> version_pattern = "vYYYY0M.BUILD[-RELEASE]"
+    >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "vYYYY0M.BUILD[-RELEASE]"']}
     >>> new_vinfo = v2version.parse_version_info("v201809.0123", version_pattern)
     >>> rewritten_datas = iter_rewritten(file_patterns, new_vinfo)
     >>> rfd = list(rewritten_datas)[0]
@@ -153,7 +153,7 @@ def diff(
 
     >>> old_vinfo = v2version.parse_version_info("v201809.0123", version_pattern)
     >>> new_vinfo = v2version.parse_version_info("v201810.1124", version_pattern)
-    >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "vYYYY0M.BUILD[-TAG]"']}
+    >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "vYYYY0M.BUILD[-RELEASE]"']}
     >>> diff_str = diff(old_vinfo, new_vinfo, file_patterns)
     >>> lines = diff_str.split("\n")
     >>> lines[:2]
