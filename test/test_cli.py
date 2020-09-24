@@ -175,13 +175,12 @@ def test_incr_invalid(runner):
 
 def _add_project_files(*files):
     if "README.md" in files:
+        README_TEXT = """
+        Hello World v201701.1002-alpha !
+        aka. 201701.1002a0 !
+        """
         with pl.Path("README.md").open(mode="wt", encoding="utf-8") as fobj:
-            fobj.write(
-                """
-                Hello World v201701.1002-alpha !
-                aka. 201701.1002a0 !
-            """
-            )
+            fobj.write(README_TEXT)
 
     if "setup.cfg" in files:
         with pl.Path("setup.cfg").open(mode="wt", encoding="utf-8") as fobj:

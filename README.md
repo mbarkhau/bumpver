@@ -7,13 +7,7 @@
 
 # [PyCalVer: Automatic Calendar Versioning][repo_ref]
 
-PyCalVer is a cli tool to search and replace version strings in the files of
-your project.
-
-By default PyCalVer uses a format that looks like this:
-`v201812.0123-beta`, but it can be configured to generate version strings
-in many formats, including SemVer and other CalVer variants.
-
+PyCalVer is a CLI-tool to search and replace version strings in your project files. This project follows the pattern conventions from [calver.org][calver_org_ref].
 
 Project/Repo:
 
@@ -73,18 +67,15 @@ Code Quality/CI:
 
 The fastest way to setup a project is to use `pycalver init`.
 
-
 ```shell
 $ pip install pycalver
 ...
 Installing collected packages: click pathlib2 typing toml pycalver
-Successfully installed pycalver-202007.36
-
-$ pycalver --version
-pycalver, version v202007.0036
+Successfully installed pycalver-202009.1037
 
 $ cd myproject
-~/myproject$ pycalver init --dry
+~/myproject/
+$ pycalver init --dry
 WARNING - File not found: pycalver.toml
 Exiting because of '--dry'. Would have written to pycalver.toml:
 
@@ -106,14 +97,16 @@ Exiting because of '--dry'. Would have written to pycalver.toml:
     ]
 ```
 
-If you already have a `setup.cfg` file, the `init` sub-command will write to that
-instead.
+If you already have a `setup.cfg` file, the `init` sub-command will
+write to that instead.
 
 ```
-~/myproject$ ls
+~/myproject
+$ ls
 README.md  setup.cfg  setup.py
 
-~/myproject$ pycalver init
+~/myproject
+$ pycalver init
 WARNING - Couldn't parse setup.cfg: Missing [pycalver] section.
 Updated setup.cfg
 ```
@@ -150,14 +143,14 @@ make.
 ```ini
 [pycalver:file_patterns]
 setup.cfg =
-    current_version = {pycalver}
+    current_version = {version}
 setup.py =
-    version="{pep440_pycalver}"
+    version="{pep440_version}"
 src/mymodule_v*/__init__.py =
-    __version__ = "{pycalver}"
+    __version__ = "{version}"
 README.md =
-    [PyCalVer {calver}{build}{release}]
-    img.shields.io/static/v1.svg?label=PyCalVer&message={pycalver}&color=blue
+    [CalVer {version}]
+    img.shields.io/static/v1.svg?label=CalVer&message={version}&color=blue
 ```
 
 To see if a pattern is found, you can use `pycalver bump --dry`, which will
@@ -202,8 +195,8 @@ If there is no match for a pattern, bump will report an error.
 
 ```shell
 $ pycalver bump --dry --no-fetch
-INFO    - Old Version: v201901.0001-beta
-INFO    - New Version: v201902.0002-beta
+INFO    - Old Version: v201901.1001-beta
+INFO    - New Version: v201902.1002-beta
 ERROR   - No match for pattern 'img.shields.io/static/v1.svg?label=PyCalVer&message={pycalver}&color=blue'
 ERROR   - Pattern compiles to regex 'img\.shields\.io/static/v1\.svg\?label=PyCalVer&message=(?P<pycalver>v(?P<year>\d{4})(?P<month>(?:0[0-9]|1[0-2]))\.(?P<bid>\d{4,})(?:-(?P
 <tag>(?:alpha|beta|dev|rc|post|final)))?)&color=blue'
@@ -368,7 +361,7 @@ that shields.io parses the two "-" dashes before `beta` as one
 literal "-"):
 
 ```
-https://img.shields.io/badge/myproject-v201812.0116--beta-blue.svg
+https://img.shields.io/badge/myproject-v202010.1116--beta-blue.svg
 ```
 
 While you could use the following pattern, which will work fine for a
@@ -376,20 +369,20 @@ while:
 
 ```ini
 README.md =
-    /badge/myproject-v{year}{month}.{build_no}--{release_tag}-blue.svg
+    /badge/myproject-{vYYYY0M.BUILD[--RELEASE]}-blue.svg
 ```
 
 Eventually this will break, when you do a `final` release, at
 which point the following will be put in your README.md:
 
 ```
-https://img.shields.io/badge/myproject-v201812.0117--final-blue.svg
+https://img.shields.io/badge/myproject-v202010.1117--final-blue.svg
 ```
 
 When what you probably wanted was this (with the `--final` tag omitted):
 
 ```
-https://img.shields.io/badge/myproject-v201812.0117-blue.svg
+https://img.shields.io/badge/myproject-v202010.1117-blue.svg
 ```
 
 ### Examples
@@ -397,18 +390,21 @@ https://img.shields.io/badge/myproject-v201812.0117-blue.svg
 The easiest way to test a pattern is with the `pycalver test` sub-command.
 
 ```shell
-$ pycalver test 'v18w01' 'v{yy}w{iso_week}'
+$ pycalver test 'v18w01' 'vYYw0W'
 New Version: v19w06
 PEP440     : v19w06
 
-$ pycalver test 'v18.01' 'v{yy}w{iso_week}'
+# TODO (mb 2020-09-24): Update regexp pattern
+
+$ pycalver test 'v18.01' 'vYYw0W'
 ERROR   - Invalid version string 'v18.01' for pattern
-  'v{yy}w{iso_week}'/'v(?P<yy>\d{2})w(?P<iso_week>(?:[0-4]\d|5[0-3]))'
-ERROR   - Invalid version 'v18.01' and/or pattern 'v{yy}w{iso_week}'.
+  'vYYw0W'/'v(?P<YY>\d{2})w(?P<0W>(?:[0-4]\d|5[0-2]))'
+ERROR   - Invalid version 'v18.01' and/or pattern 'vYYw0W'.
 ```
 
-As you can see, each pattern is internally translated to a regular
-expression.
+As you can see, each pattern is internally translated to a regular expression.
+All version strings in your project must match either this regular expression or
+the corresponding regular expression for the PEP440 version string.
 
 The `pycalver test` sub-command accepts the same cli flags as `pycalver
 bump` to update the components that are not updated automatically (eg.
@@ -474,15 +470,8 @@ The current version that will be bumped is defined either as
    supported VCS), the value of `pycalver.current_version` in `setup.cfg` /
    `pyproject.toml` / `pycalver.toml`.
 
-As part of doing `pycalver bump`, your local VCS index is updated using
-`git fetch --tags`/`hg pull`. This reduces the risk that some tags are
-unknown locally and makes it less likely that the same version string is
-generated for different commits, which would result in an ambiguous version
-tag. This can happen if multiple maintainers produce a release at the same
-time or if a build system is triggered multiple times and multiple builds
-run concurrently to each other. For a small project (with only one
-maintainer and no build system) this is a non-issue and you can always use
-`-n/--no-fetch` to skip updating the tags.
+As part of doing `pycalver bump` and `pycalver show`, your local VCS
+index is updated using `git fetch --tags`/`hg pull`.
 
 ```shell
 $ time pycalver show --verbose
@@ -498,6 +487,20 @@ $ time pycalver show --verbose --no-fetch
 ...
 real    0m0,840s
 ```
+
+Here we see that:
+
+- The VCS had a newer version than we had locally.
+- It took 4 seconds to fetch the tags from the remote repository.
+
+This approach reduces the risk that new tags are unknown locally and makes it
+less likely that the same version string is generated for different commits,
+which would result in an ambiguous version tag. This can happen if multiple
+maintainers produce a release at the same time or if a build system is triggered
+multiple times and multiple builds run concurrently to each other.
+
+For a small project (with only one maintainer and no build system) this is a
+non-issue and you can always use `-n/--no-fetch` to skip updating the tags.
 
 
 ### Bump It Up
@@ -745,114 +748,11 @@ with extra zeros (see [Lexical Ids](#lexical-ids) ).
 
 ### Lexical Ids
 
-The build number padding may eventually be exhausted. In order to preserve
-lexical ordering, build numbers for the `{build_no}` pattern are
-incremented in a special way. Examples will perhaps illustrate more
-clearly.
-
-```python
-"0001"
-"0002"
-"0003"
-...
-"0999"
-"11000"
-"11001"
-...
-"19998"
-"19999"
-"220000"
-"220001"
-```
-
-What is happening here is that the left-most digit is incremented
-early/preemptively. Whenever the left-most digit would change, the padding
-of the id is expanded through a multiplication by 11.
-
-```python
->>> prev_id  = "0999"
->>> num_digits = len(prev_id)
->>> num_digits
-4
->>> prev_int = int(prev_id, 10)
->>> prev_int
-999
->>> maybe_next_int = prev_int + 1
->>> maybe_next_int
-1000
->>> maybe_next_id = f"{maybe_next_int:0{num_digits}}"
->>> maybe_next_id
-"1000"
->>> is_padding_ok = prev_id[0] == maybe_next_id[0]
->>> is_padding_ok
-False
->>> if is_padding_ok:
-...     # normal case
-...     next_id = maybe_next_id
-... else:
-...     # extra padding needed
-...     next_int = maybe_next_int * 11
-...     next_id  = str(next_int)
->>> next_id
-"11000"
-```
-
-This behaviour ensures that the following semantic is always preserved:
-`new_version > old_version`. This will be true, regardless of padding
-expansion. To illustrate the issue this solves, consider what would happen
-if we did not expand the padding and instead just incremented numerically.
-
-```python
-"0001"
-"0002"
-"0003"
-...
-"0999"
-"1000"
-...
-"9999"
-"10000"
-```
-
-Here we eventually run into a build number where the lexical ordering is
-not preserved, since `"10000" > "9999" == False` (because the string `"1"`
-is lexically smaller than `"9"`). With large enough padding this may be a
-non issue, but it's better to not have to think about it.
-
-Just as an example of why lexical ordering is a nice property to have,
-there are lots of software which read git tags, but which have no logic to
-parse version strings. This software can nonetheless order the version tags
-correctly using commonly available lexical ordering. At the most basic
-level it can allow you to use the UNIX `sort` command, for example to parse
 VCS tags.
 
 
-```shell
-$ printf "v0.9.0\nv0.10.0\nv0.11.0\n" | sort
-v0.10.0
-v0.11.0
-v0.9.0
-
-$ printf "v0.9.0\nv0.10.0\nv0.11.0\n" | sort -n
-v0.10.0
-v0.11.0
-v0.9.0
-
-$ printf "0998\n0999\n11000\n11001\n11002\n" | sort
-0998
-0999
-11000
-11001
-11002
-```
 
 This sorting even works correctly in JavaScript!
-
-```
-> var versions = ["11002", "11001", "11000", "0999", "0998"];
-> versions.sort();
-["0998", "0999", "11000", "11001", "11002"]
-```
 
 
 ## Semantics of PyCalVer
@@ -1001,7 +901,7 @@ release *only* if
  1. no `final` release is available
  2. the `--pre` flag is explicitly used, or
  3. if the requirement specifier _explicitly_ includes the version number of a
-    pre release, eg. `pip install mypkg==v201812.0007-alpha`.
+    pre release, eg. `pip install mypkg==v202009.1007-alpha`.
 
 Should a release include a bug (heaven forbid and despite all precautions),
 then the maintainer should publish a new release which either fixes the bug
@@ -1012,20 +912,20 @@ package which included the bug, they only have to do `pip install --upgrade
 Perhaps a timeline will illustrate more clearly:
 
 ```
-v201812.0665       # last stable release
-v201812.0666-beta  # pre release for testers
-v201901.0667       # final release after testing
+v202008.1665       # last stable release
+v202008.1666-beta  # pre release for testers
+v201901.1667       # final release after testing
 
-# bug is discovered which effects v201812.0666-beta and v201901.0667
+# bug is discovered which effects v202008.1666-beta and v201901.1667
 
-v201901.0668-beta  # fix is issued for testers
-v201901.0669       # fix is issued everybody
+v201901.1668-beta  # fix is issued for testers
+v201901.1669       # fix is issued everybody
 
 # Alternatively, revert before fixing
 
-v201901.0668       # same as v201812.0665
-v201901.0669-beta  # reintroduce change from v201812.0666-beta + fix
-v201901.0670       # final release after testing
+v201901.1668       # same as v202008.1665
+v201901.1669-beta  # reintroduce change from v202008.1666-beta + fix
+v201901.1670       # final release after testing
 ```
 
 In the absolute worst case, a change is discovered to break backward
@@ -1048,18 +948,18 @@ package will perhaps have 99% overlap to the previous one and the old one
 may eventually be abandoned.
 
 ```
-mypkg  v201812.0665    # last stable release
-mypkg  v201812.0666-rc # pre release for testers
-mypkg  v201901.0667    # final release after testing period
+mypkg  v202008.1665    # last stable release
+mypkg  v202008.1666-rc # pre release for testers
+mypkg  v201901.1667    # final release after testing period
 
-# bug is discovered in v201812.0666-beta and v201901.0667
+# bug is discovered in v202008.1666-beta and v201901.1667
 
-mypkg  v201901.0668    # same as v201812.0665
+mypkg  v201901.1668    # same as v202008.1665
 
 # new package is created with compatibility breaking code
 
-mypkg2 v201901.0669    # same as v201901.0667
-mypkg  v201901.0669    # updated readme, declaring support
+mypkg2 v201901.1669    # same as v201901.1667
+mypkg  v201901.1669    # updated readme, declaring support
                        # level for mypkg, pointing to mypgk2
                        # and documenting how to upgrade.
 ```
@@ -1116,6 +1016,8 @@ of the software as a whole, it is metadata about a particular release
 artifact of a package, eg. a `.whl` file.
 
 
+[calver_org_ref]: https://calver.org/
+
 [repo_ref]: https://gitlab.com/mbarkhau/pycalver
 
 [setuptools_ref]: https://setuptools.readthedocs.io/en/latest/setuptools.html#specifying-your-project-s-version
@@ -1123,6 +1025,8 @@ artifact of a package, eg. a `.whl` file.
 [ssot_ref]: https://en.wikipedia.org/wiki/Single_source_of_truth
 
 [pep_440_ref]: https://www.python.org/dev/peps/pep-0440/
+
+[pep_440_normalzation_ref]: https://www.python.org/dev/peps/pep-0440/#id31
 
 [zeno_1_dot_0_ref]: http://sedimental.org/designing_a_version.html#semver-and-release-blockage
 

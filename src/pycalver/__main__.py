@@ -241,7 +241,7 @@ def _bump(
         try:
             vcs_api = vcs.get_vcs_api()
         except OSError:
-            logger.warning("Version Control System not found, aborting commit.")
+            logger.warning("Version Control System not found, skipping commit.")
 
     filepaths = set(cfg.file_patterns.keys())
 

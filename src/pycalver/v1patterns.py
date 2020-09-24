@@ -160,7 +160,7 @@ FULL_PART_FORMATS = {
     'release_tag'    : "{tag}",
     'build'          : ".{bid}",
     # NOTE (mb 2019-01-04): since release is optional, it
-    # is treates specially in version.format
+    # is treated specially in v1version.format_version
     # 'release'       : "-{tag}",
     'month'      : "{month:02}",
     'month_short': "{month}",

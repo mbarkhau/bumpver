@@ -11,6 +11,7 @@
  - New add `--release-num` to increment the `alphaN`/`betaN`/`a0`/`b0`/etc. release number
  - Fix gitlab #8: Push tags only pushed tags, not actual commit.
  - Fix gitlab #9: Make commit message configurable.
+ - Switch main repo from gitlab to github.
 
 
 ## v201907.0036
