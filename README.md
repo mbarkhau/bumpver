@@ -591,15 +591,16 @@ TODO: Descriptions
 
 TODO: Descriptions
 
-|  CLI Argument | Description |
-|---------------|-------------|
-| --major       |             |
-| --minor       |             |
-| --patch       |             |
-| --pin-date    |             |
-| --no-fetch    |             |
-| --dry         |             |
-| --allow-dirty |             |
+|   CLI Argument   | Description |
+|------------------|-------------|
+| --major          |             |
+| -m --minor       |             |
+| -p --patch       |             |
+| -r --release-num |             |
+| --pin-date       |             |
+| --no-fetch       |             |
+| --dry            |             |
+| --allow-dirty    |             |
 
 
 ## The PyCalVer Format

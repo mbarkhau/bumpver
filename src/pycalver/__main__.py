@@ -85,14 +85,19 @@ def cli(verbose: int = 0) -> None:
 @click.argument("pattern", default="{pycalver}")
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 @click.option(
-    "--release", default=None, metavar="<name>", help="Override release name of current_version"
+    "--release",
+    default=None,
+    metavar="<name>",
+    help=(
+        f"Override release name of current_version. Valid options are: "
+        f"{', '.join(VALID_RELEASE_VALUES)}."
+    ),
 )
 @click.option("--major", is_flag=True, default=False, help="Increment major component.")
-@click.option("--minor", is_flag=True, default=False, help="Increment minor component.")
-@click.option("--patch", is_flag=True, default=False, help="Increment patch component.")
-@click.option(
-    "-p", "--pin-date", is_flag=True, default=False, help="Leave date components unchanged."
-)
+@click.option("-m", "--minor", is_flag=True, default=False, help="Increment minor component.")
+@click.option("-p", "--patch", is_flag=True, default=False, help="Increment patch component.")
+@click.option("-r", "--release-num", is_flag=True, default=False, help="Increment release number.")
+@click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
 def test(
     old_version: str,
     pattern    : str  = "{pycalver}",
@@ -101,6 +106,7 @@ def test(
     major      : bool = False,
     minor      : bool = False,
     patch      : bool = False,
+    release_num: bool = False,
     pin_date   : bool = False,
 ) -> None:
     """Increment a version number for demo purposes."""
@@ -117,6 +123,7 @@ def test(
         major=major,
         minor=minor,
         patch=patch,
+        release_num=release_num,
         pin_date=pin_date,
     )
     if new_version is None:
@@ -193,6 +200,7 @@ def _incr(
     major   : bool = False,
     minor   : bool = False,
     patch   : bool = False,
+    release_num: bool = False,
     pin_date: bool = False,
 ) -> typ.Optional[str]:
     v1_parts    = list(v1patterns.PART_PATTERNS) + list(v1patterns.FULL_PART_FORMATS)
@@ -205,6 +213,7 @@ def _incr(
             major=major,
             minor=minor,
             patch=patch,
+            release_num=release_num,
             pin_date=pin_date,
         )
     else:
@@ -215,6 +224,7 @@ def _incr(
             major=major,
             minor=minor,
             patch=patch,
+            release_num=release_num,
             pin_date=pin_date,
         )
 
@@ -346,11 +356,10 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     ),
 )
 @click.option("--major", is_flag=True, default=False, help="Increment major component.")
-@click.option("--minor", is_flag=True, default=False, help="Increment minor component.")
-@click.option("--patch", is_flag=True, default=False, help="Increment patch component.")
-@click.option(
-    "-p", "--pin-date", is_flag=True, default=False, help="Leave date components unchanged."
-)
+@click.option("-m", "--minor", is_flag=True, default=False, help="Increment minor component.")
+@click.option("-p", "--patch", is_flag=True, default=False, help="Increment patch component.")
+@click.option("-r", "--release-num", is_flag=True, default=False, help="Increment release number.")
+@click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
 def bump(
     release    : typ.Optional[str] = None,
     verbose    : int  = 0,
@@ -360,6 +369,7 @@ def bump(
     major      : bool = False,
     minor      : bool = False,
     patch      : bool = False,
+    release_num: bool = False,
     pin_date   : bool = False,
 ) -> None:
     """Increment the current version string and update project files."""
@@ -386,6 +396,7 @@ def bump(
         major=major,
         minor=minor,
         patch=patch,
+        release_num=release_num,
         pin_date=pin_date,
     )
 

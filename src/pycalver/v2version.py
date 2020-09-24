@@ -519,6 +519,7 @@ def incr(
     major   : bool = False,
     minor   : bool = False,
     patch   : bool = False,
+    release_num: bool = False,
     pin_date: bool = False,
 ) -> typ.Optional[str]:
     """Increment version string.
@@ -545,14 +546,18 @@ def incr(
 
     cur_vinfo = cur_vinfo._replace(bid=lexid.next_id(cur_vinfo.bid))
 
-    if release:
-        cur_vinfo = cur_vinfo._replace(tag=release)
     if major:
         cur_vinfo = cur_vinfo._replace(major=cur_vinfo.major + 1, minor=0, patch=0)
     if minor:
         cur_vinfo = cur_vinfo._replace(minor=cur_vinfo.minor + 1, patch=0)
     if patch:
         cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
+    if release_num:
+        cur_vinfo = cur_vinfo._replace(num=cur_vinfo.num + 1)
+    if release:
+        if release != cur_vinfo.tag:
+            cur_vinfo = cur_vinfo._replace(num=0)
+        cur_vinfo = cur_vinfo._replace(tag=release)
 
     # TODO (mb 2020-09-20): New Rollover Behaviour:
     #   Reset major, minor, patch to zero if any part to the left of it is incremented
