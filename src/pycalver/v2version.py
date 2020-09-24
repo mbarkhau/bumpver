@@ -309,32 +309,6 @@ def _format_part_values(vinfo: version.V2VersionInfo) -> PartValues:
     return sorted(kwargs.items(), key=lambda item: -len(item[0]))
 
 
-def _make_segments(raw_pattern: str) -> typ.List[str]:
-    pattern_segs_l: typ.List[str] = []
-    pattern_segs_r: typ.List[str] = []
-
-    pattern_rest = raw_pattern
-    while "[" in pattern_rest and "]" in pattern_rest:
-        try:
-            seg_l       , pattern_rest = pattern_rest.split("[", 1)
-            pattern_rest, seg_r        = pattern_rest.rsplit("]", 1)
-        except ValueError as val_err:
-            if "values to unpack" in str(val_err):
-                err     = f"Unbalanced braces [] in '{raw_pattern}'"
-                pat_err = version.PatternError(err)
-
-                pat_err.__cause__ = val_err
-                raise pat_err
-            else:
-                raise
-
-        pattern_segs_l.append(seg_l)
-        pattern_segs_r.append(seg_r)
-
-    pattern_segs_l.append(pattern_rest)
-    return pattern_segs_l + list(reversed(pattern_segs_r))
-
-
 def _clear_zero_segments(
     formatted_segs: typ.List[str], is_zero_segment: typ.List[bool]
 ) -> typ.List[str]:
@@ -401,54 +375,6 @@ def _parse_segment_tree(raw_pattern: str) -> SegmentTree:
         raise ValueError(err)
 
     return internal_root[0]
-
-
-def _format_segments(
-    pattern_segs: typ.List[str],
-    part_values       : PartValues,
-) -> typ.List[str]:
-    # NOTE (mb 2020-09-21): Old implementaion that doesn't cover corner
-    #   cases relating to escaped braces.
-
-    is_zero_segment = [True] * len(pattern_segs)
-
-    formatted_segs_l: typ.List[str] = []
-    formatted_segs_r: typ.List[str] = []
-
-    idx_l = 0
-    idx_r = len(pattern_segs) - 1
-    while idx_l <= idx_r:
-        # NOTE (mb 2020-09-18): All segments are optional,
-        #   except the most left and the most right.
-        #   In other words the ones NOT surrounded by braces are
-        #   required. Empty string is a valid segment.
-        is_required_seg = idx_l == 0
-
-        seg_l = pattern_segs[idx_l]
-        seg_r = pattern_segs[idx_r]
-
-        for part, part_value in part_values:
-            if part in seg_l:
-                seg_l       = seg_l.replace(part, part_value)
-                is_zero_seg = str(part_value) == version.ZERO_VALUES.get(part)
-                if is_required_seg or not is_zero_seg:
-                    is_zero_segment[idx_l] = False
-
-            if part in seg_r:
-                seg_r       = seg_r.replace(part, part_value)
-                is_zero_seg = str(part_value) == version.ZERO_VALUES.get(part)
-                if is_required_seg or not is_zero_seg:
-                    is_zero_segment[idx_r] = False
-
-        formatted_segs_l.append(seg_l)
-        if idx_l < idx_r:
-            formatted_segs_r.append(seg_r)
-
-        idx_l += 1
-        idx_r -= 1
-
-    formatted_segs = formatted_segs_l + list(reversed(formatted_segs_r))
-    return _clear_zero_segments(formatted_segs, is_zero_segment)
 
 
 FormattedSegmentParts = typ.List[str]
@@ -575,11 +501,6 @@ def format_version(vinfo: version.V2VersionInfo, raw_pattern: str) -> str:
     '__version__ = "v1.0.0-rc2"'
     """
     part_values    = _format_part_values(vinfo)
-
-    # pattern_segs   = _make_segments(raw_pattern)
-    # formatted_segs = _format_segments(pattern_segs, part_values)
-    # version_str = "".join(formatted_segs)
-
     seg_tree    = _parse_segment_tree(raw_pattern)
     version_str_parts = _format_segment_tree(seg_tree, part_values)
     return "".join(version_str_parts)
