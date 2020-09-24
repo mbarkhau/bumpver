@@ -249,6 +249,12 @@ def parse_version_info(
             f"for pattern '{raw_pattern}'/'{pattern.regexp.pattern}'"
         )
         raise version.PatternError(err_msg)
+    elif len(match.group()) < len(version_str):
+        err_msg = (
+            f"Incomplete match '{match.group()}' for version string '{version_str}' "
+            f"with pattern '{raw_pattern}'/'{pattern.regexp.pattern}'"
+        )
+        raise version.PatternError(err_msg)
     else:
         field_values = match.groupdict()
         return _parse_version_info(field_values)
@@ -389,9 +395,8 @@ def _format_segment_tree(
         if isinstance(seg, list):
             result_parts.extend(_format_segment_tree(seg, part_values))
         else:
-            # NOTE (mb 2020-09-24): If a segment has any zero parts,
-            #   the whole segment is skipped.
-            is_zero_seg   = False
+            # If a segment has any non-zero parts, the whole segment is used.
+            non_zero_parts   = 0
             formatted_seg = seg
             # unescape braces
             formatted_seg = formatted_seg.replace(r"\[", r"[")
@@ -403,11 +408,12 @@ def _format_segment_tree(
                         part in version.ZERO_VALUES and str(part_value) == version.ZERO_VALUES[part]
                     )
                     if is_zero_part:
-                        is_zero_seg = True
+                        formatted_seg = formatted_seg.replace(part, "")
                     else:
+                        non_zero_parts += 1
                         formatted_seg = formatted_seg.replace(part, part_value)
 
-            if not is_zero_seg:
+            if non_zero_parts:
                 result_parts.append(formatted_seg)
 
     return result_parts
@@ -507,7 +513,7 @@ def format_version(vinfo: version.V2VersionInfo, raw_pattern: str) -> str:
 
 def incr(
     old_version: str,
-    raw_pattern: str = "vYYYY0M.BUILD[-RELEASE]",
+    raw_pattern: str = "vYYYY0M.BUILD[-RELEASE[NUM]]",
     *,
     release : typ.Optional[str] = None,
     major   : bool = False,
