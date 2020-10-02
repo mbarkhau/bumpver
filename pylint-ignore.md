@@ -23,7 +23,7 @@ The recommended approach to using `pylint-ignore` is:
 
 # Overview
 
- - [W0511: fixme (8x)](#w0511-fixme)
+ - [W0511: fixme (7x)](#w0511-fixme)
  - [W0703: broad-except (1x)](#w0703-broad-except)
 
 
@@ -126,20 +126,6 @@ The recommended approach to using `pylint-ignore` is:
 > 273:     # TODO (mb 2020-09-18): Validate Pattern
   274:     #   detect YY with WW or UU -> suggest GG with VV
   275:     #   detect YYMM -> suggest YY0M
-```
-
-
-## File test/test_cli.py - Line 599 - W0511 (fixme)
-
-- `message: # TODO (mb 2020-09-18):`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-18T19:35:32`
-
-```
-  597:
-  598: # def test_custom_commit_message(runner):
-> 599: #     # TODO (mb 2020-09-18):
-  600: #     assert False
 ```
 
 

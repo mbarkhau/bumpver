@@ -8,6 +8,7 @@ import io
 import os
 import re
 import time
+import shlex
 import shutil
 import subprocess as sp
 
@@ -209,7 +210,7 @@ def _update_config_val(filename, **kwargs):
 
     new_cfg_text = old_cfg_text
     for key, val in kwargs.items():
-        replacement = "{} = {}\n".format(key, val)
+        replacement = "{} = {}".format(key, val)
         if replacement not in new_cfg_text:
             pattern      = r"^{} = .*$".format(key)
             new_cfg_text = re.sub(pattern, replacement, new_cfg_text, flags=re.MULTILINE)
@@ -597,6 +598,58 @@ def test_v2_get_diff(runner):
     assert '+current_version = "v202010.1003-beta"' in diff_lines
 
 
-# def test_custom_commit_message(runner):
-#     # TODO (mb 2020-09-18):
-#     assert False
+def test_hg_commit_message(runner, caplog):
+    _add_project_files("README.md", "setup.cfg")
+    result = runner.invoke(cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    commit_message = """
+    "bump from {old_version} ({old_version_pep440}) to {new_version} ({new_version_pep440})"
+    """
+    _update_config_val("setup.cfg", current_version='"v201903.1001-alpha"')
+    _update_config_val("setup.cfg", commit_message=commit_message.strip())
+
+    _vcs_init("hg", ["README.md", "setup.cfg"])
+    assert len(caplog.records) > 0
+
+    result = runner.invoke(cli, ['bump', "-vv", "--pin-date", "--release", "beta"])
+    assert result.exit_code == 0
+
+    tags = shell("hg", "tags").decode("utf-8")
+    assert "v201903.1002-beta" in tags
+
+    commits = shell(*shlex.split("hg log -l 2")).decode("utf-8").split("\n\n")
+
+    summary = commits[1].split("summary:")[-1]
+    assert (
+        "bump from v201903.1001-alpha (201903.1001a0) to v201903.1002-beta (201903.1002b0)"
+        in summary
+    )
+
+
+def test_git_commit_message(runner, caplog):
+    _add_project_files("README.md", "setup.cfg")
+    result = runner.invoke(cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    commit_message = """
+    "bump: {old_version} ({old_version_pep440}) -> {new_version} ({new_version_pep440})"
+    """
+    _update_config_val("setup.cfg", current_version='"v201903.1001-alpha"')
+    _update_config_val("setup.cfg", commit_message=commit_message.strip())
+
+    _vcs_init("git", ["README.md", "setup.cfg"])
+    assert len(caplog.records) > 0
+
+    result = runner.invoke(cli, ['bump', "-vv", "--pin-date", "--release", "beta"])
+    assert result.exit_code == 0
+
+    tags = shell("git", "tag", "--list").decode("utf-8")
+    assert "v201903.1002-beta" in tags
+
+    commits = shell(*shlex.split("git log -l 2")).decode("utf-8").split("\n\n")
+
+    summary = commits[1]
+    assert (
+        "bump: v201903.1001-alpha (201903.1001a0) -> v201903.1002-beta (201903.1002b0)" in summary
+    )
