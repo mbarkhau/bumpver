@@ -4,7 +4,9 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import io
 import os
+import re
 import time
 import shutil
 import subprocess as sp
@@ -13,12 +15,20 @@ import pytest
 import pathlib2 as pl
 from click.testing import CliRunner
 
+from pycalver import v1cli
+from pycalver import v2cli
 from pycalver import config
 from pycalver import v1patterns
 from pycalver.__main__ import cli
 
 # pylint:disable=redefined-outer-name ; pytest fixtures
 # pylint:disable=protected-access ; allowed for test code
+
+
+README_TEXT_FIXTURE = """
+        Hello World v201701.1002-alpha !
+        aka. 201701.1002a0 !
+"""
 
 
 SETUP_CFG_FIXTURE = """
@@ -110,31 +120,33 @@ def test_incr_pin_date(runner):
 
 
 def test_incr_semver(runner):
-    semver_pattern = "{MAJOR}.{MINOR}.{PATCH}"
-    old_version    = "0.1.0"
-    new_version    = "0.1.1"
+    semver_patterns = [
+        "{semver}",
+        "{MAJOR}.{MINOR}.{PATCH}",
+        "MAJOR.MINOR.PATCH",
+    ]
 
-    result = runner.invoke(cli, ['test', "-vv", "--patch", old_version, "{semver}"])
-    assert result.exit_code == 0
-    assert f"Version: {new_version}\n" in result.output
+    for semver_pattern in semver_patterns:
+        old_version = "0.1.0"
+        new_version = "0.1.1"
 
-    result = runner.invoke(cli, ['test', "-vv", "--patch", old_version, semver_pattern])
-    assert result.exit_code == 0
-    assert f"Version: {new_version}\n" in result.output
+        result = runner.invoke(cli, ['test', "-vv", "--patch", old_version, semver_pattern])
+        assert result.exit_code == 0
+        assert f"Version: {new_version}\n" in result.output
 
-    old_version = "0.1.1"
-    new_version = "0.2.0"
+        old_version = "0.1.1"
+        new_version = "0.2.0"
 
-    result = runner.invoke(cli, ['test', "-vv", "--minor", old_version, semver_pattern])
-    assert result.exit_code == 0
-    assert f"Version: {new_version}\n" in result.output
+        result = runner.invoke(cli, ['test', "-vv", "--minor", old_version, semver_pattern])
+        assert result.exit_code == 0
+        assert f"Version: {new_version}\n" in result.output
 
-    old_version = "0.1.1"
-    new_version = "1.0.0"
+        old_version = "0.1.1"
+        new_version = "1.0.0"
 
-    result = runner.invoke(cli, ['test', "-vv", "--major", old_version, semver_pattern])
-    assert result.exit_code == 0
-    assert f"Version: {new_version}\n" in result.output
+        result = runner.invoke(cli, ['test', "-vv", "--major", old_version, semver_pattern])
+        assert result.exit_code == 0
+        assert f"Version: {new_version}\n" in result.output
 
 
 def test_incr_semver_invalid(runner, caplog):
@@ -175,12 +187,8 @@ def test_incr_invalid(runner):
 
 def _add_project_files(*files):
     if "README.md" in files:
-        README_TEXT = """
-        Hello World v201701.1002-alpha !
-        aka. 201701.1002a0 !
-        """
         with pl.Path("README.md").open(mode="wt", encoding="utf-8") as fobj:
-            fobj.write(README_TEXT)
+            fobj.write(README_TEXT_FIXTURE)
 
     if "setup.cfg" in files:
         with pl.Path("setup.cfg").open(mode="wt", encoding="utf-8") as fobj:
@@ -193,6 +201,22 @@ def _add_project_files(*files):
     if "pyproject.toml" in files:
         with pl.Path("pyproject.toml").open(mode="wt", encoding="utf-8") as fobj:
             fobj.write(PYPROJECT_TOML_FIXTURE)
+
+
+def _update_config_val(filename, **kwargs):
+    with io.open(filename, mode="r", encoding="utf-8") as fobj:
+        old_cfg_text = fobj.read()
+
+    new_cfg_text = old_cfg_text
+    for key, val in kwargs.items():
+        replacement = "{} = {}\n".format(key, val)
+        if replacement not in new_cfg_text:
+            pattern      = r"^{} = .*$".format(key)
+            new_cfg_text = re.sub(pattern, replacement, new_cfg_text, flags=re.MULTILINE)
+            assert old_cfg_text != new_cfg_text
+
+    with io.open(filename, mode="w", encoding="utf-8") as fobj:
+        fobj.write(new_cfg_text)
 
 
 def test_nocfg(runner, caplog):
@@ -491,7 +515,7 @@ setup.cfg =
 """
 
 
-def test_bump_semver_warning(runner, caplog):
+def test_v1_bump_semver_warning(runner, caplog):
     _add_project_files("README.md")
 
     with pl.Path("setup.cfg").open(mode="w") as fobj:
@@ -509,7 +533,7 @@ def test_bump_semver_warning(runner, caplog):
     assert result.exit_code == 0
 
 
-def test_bump_semver_diff(runner, caplog):
+def test_v1_bump_semver_diff(runner, caplog):
     _add_project_files("README.md")
 
     with pl.Path("setup.cfg").open(mode="w") as fobj:
@@ -529,6 +553,48 @@ def test_bump_semver_diff(runner, caplog):
         assert "+++ setup.cfg" in out_lines
         assert "-current_version = \"0.1.0\"" in out_lines
         assert f"+current_version = \"{expected}\"" in out_lines
+
+
+def test_v1_get_diff(runner):
+    _add_project_files("README.md", "setup.cfg")
+    result = runner.invoke(cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val("setup.cfg", version_pattern='"{pycalver}"')
+
+    _, cfg = config.init()
+    new_version = "v202010.1003-beta"
+    diff_str    = v1cli.get_diff(cfg, new_version)
+    diff_lines  = set(diff_str.splitlines())
+
+    assert "-        Hello World v201701.1002-alpha !" in diff_lines
+    assert "-        aka. 201701.1002a0 !" in diff_lines
+    assert "+        Hello World v202010.1003-beta !" in diff_lines
+    assert "+        aka. 202010.1003b0 !" in diff_lines
+
+    assert '-current_version = "v202010.1001-alpha"' in diff_lines
+    assert '+current_version = "v202010.1003-beta"' in diff_lines
+
+
+def test_v2_get_diff(runner):
+    _add_project_files("README.md", "setup.cfg")
+    result = runner.invoke(cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val("setup.cfg", version_pattern='"vYYYY0M.BUILD[-RELEASE]"')
+
+    _, cfg = config.init()
+    new_version = "v202010.1003-beta"
+    diff_str    = v2cli.get_diff(cfg, new_version)
+    diff_lines  = set(diff_str.splitlines())
+
+    assert "-        Hello World v201701.1002-alpha !" in diff_lines
+    assert "-        aka. 201701.1002a0 !" in diff_lines
+    assert "+        Hello World v202010.1003-beta !" in diff_lines
+    assert "+        aka. 202010.1003b0 !" in diff_lines
+
+    assert '-current_version = "v202010.1001-alpha"' in diff_lines
+    assert '+current_version = "v202010.1003-beta"' in diff_lines
 
 
 # def test_custom_commit_message(runner):

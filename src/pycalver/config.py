@@ -188,6 +188,8 @@ def _parse_cfg(cfg_buffer: typ.IO[str]) -> RawConfig:
 
     raw_cfg['file_patterns'] = dict(_parse_cfg_file_patterns(cfg_parser))
 
+    _set_raw_config_defaults(raw_cfg)
+
     return raw_cfg
 
 
@@ -197,6 +199,8 @@ def _parse_toml(cfg_buffer: typ.IO[str]) -> RawConfig:
 
     for option, default_val in BOOL_OPTIONS.items():
         raw_cfg[option] = raw_cfg.get(option, default_val)
+
+    _set_raw_config_defaults(raw_cfg)
 
     return raw_cfg
 
@@ -227,9 +231,7 @@ def _compile_v1_file_patterns(raw_cfg: RawConfig) -> typ.Iterable[FilePatternsIt
     raw_patterns_by_file: RawPatternsByFile = raw_cfg['file_patterns']
 
     for filepath, raw_patterns in _iter_glob_expanded_file_patterns(raw_patterns_by_file):
-        compiled_patterns = [
-            v1patterns.compile_pattern(version_pattern, raw_pattern) for raw_pattern in raw_patterns
-        ]
+        compiled_patterns = v1patterns.compile_patterns(version_pattern, raw_patterns)
         yield filepath, compiled_patterns
 
 
@@ -242,9 +244,7 @@ def _compile_v2_file_patterns(raw_cfg: RawConfig) -> typ.Iterable[FilePatternsIt
     raw_patterns_by_file: RawPatternsByFile = raw_cfg['file_patterns']
 
     for filepath, raw_patterns in _iter_glob_expanded_file_patterns(raw_patterns_by_file):
-        compiled_patterns = [
-            v2patterns.compile_pattern(version_pattern, raw_pattern) for raw_pattern in raw_patterns
-        ]
+        compiled_patterns = v2patterns.compile_patterns(version_pattern, raw_patterns)
         yield filepath, compiled_patterns
 
 
@@ -319,12 +319,7 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     return cfg
 
 
-def _parse_current_version_default_pattern(ctx: ProjectContext, raw_cfg: RawConfig) -> str:
-    fobj: typ.IO[str]
-
-    with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fobj:
-        raw_cfg_text = fobj.read()
-
+def _parse_current_version_default_pattern(raw_cfg: RawConfig, raw_cfg_text: str) -> str:
     is_pycalver_section = False
     for line in raw_cfg_text.splitlines():
         if is_pycalver_section and line.startswith("current_version"):
@@ -340,19 +335,7 @@ def _parse_current_version_default_pattern(ctx: ProjectContext, raw_cfg: RawConf
     raise ValueError("Could not parse pycalver.current_version")
 
 
-def _parse_raw_config(ctx: ProjectContext) -> RawConfig:
-    with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fobj:
-        if ctx.config_format == 'toml':
-            raw_cfg = _parse_toml(fobj)
-        elif ctx.config_format == 'cfg':
-            raw_cfg = _parse_cfg(fobj)
-        else:
-            err_msg = (
-                f"Invalid config_format='{ctx.config_format}'."
-                "Supported formats are 'setup.cfg' and 'pyproject.toml'"
-            )
-            raise RuntimeError(err_msg)
-
+def _set_raw_config_defaults(raw_cfg: RawConfig) -> None:
     if 'current_version' in raw_cfg:
         if not isinstance(raw_cfg['current_version'], str):
             err = f"Invalid type for pycalver.current_version = {raw_cfg['current_version']}"
@@ -370,10 +353,27 @@ def _parse_raw_config(ctx: ProjectContext) -> RawConfig:
     if 'file_patterns' not in raw_cfg:
         raw_cfg['file_patterns'] = {}
 
+
+def _parse_raw_config(ctx: ProjectContext) -> RawConfig:
+    with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fobj:
+        if ctx.config_format == 'toml':
+            raw_cfg = _parse_toml(fobj)
+        elif ctx.config_format == 'cfg':
+            raw_cfg = _parse_cfg(fobj)
+        else:
+            err_msg = (
+                f"Invalid config_format='{ctx.config_format}'."
+                "Supported formats are 'setup.cfg' and 'pyproject.toml'"
+            )
+            raise RuntimeError(err_msg)
+
     if ctx.config_rel_path not in raw_cfg['file_patterns']:
         # NOTE (mb 2020-09-19): By default we always add
         #   a pattern for the config section itself.
-        raw_version_pattern = _parse_current_version_default_pattern(ctx, raw_cfg)
+        with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fobj:
+            raw_cfg_text = fobj.read()
+
+        raw_version_pattern = _parse_current_version_default_pattern(raw_cfg, raw_cfg_text)
         raw_cfg['file_patterns'][ctx.config_rel_path] = [raw_version_pattern]
 
     return raw_cfg
@@ -391,6 +391,14 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
     else:
         logger.warning(f"File not found: {ctx.config_rel_path}")
         return None
+
+
+def init(
+    project_path: typ.Union[str, pl.Path, None] = "."
+) -> typ.Tuple[ProjectContext, MaybeConfig]:
+    ctx = init_project_ctx(project_path)
+    cfg = parse(ctx)
+    return (ctx, cfg)
 
 
 DEFAULT_CONFIGPARSER_BASE_TMPL = """

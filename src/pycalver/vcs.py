@@ -16,6 +16,7 @@ mercurial, then the git terms are used. For example "fetch"
 
 import os
 import sys
+import shlex
 import typing as typ
 import logging
 import tempfile
@@ -73,7 +74,8 @@ class VCSAPI:
             logger.info(cmd_str)
         else:
             logger.debug(cmd_str)
-        output_data: bytes = sp.check_output(cmd_str.split(), env=env, stderr=sp.STDOUT)
+        cmd_parts = shlex.split(cmd_str)
+        output_data: bytes = sp.check_output(cmd_parts, env=env, stderr=sp.STDOUT)
 
         # TODO (mb 2018-11-15): Detect encoding of output? Use chardet?
         _encoding = "utf-8"

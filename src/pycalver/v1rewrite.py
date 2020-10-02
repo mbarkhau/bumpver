@@ -24,19 +24,7 @@ def rewrite_lines(
     new_vinfo: version.V1VersionInfo,
     old_lines: typ.List[str],
 ) -> typ.List[str]:
-    """Replace occurances of patterns in old_lines with new_vinfo.
-
-    >>> from .v1patterns import compile_pattern
-    >>> version_pattern = "{pycalver}"
-    >>> new_vinfo = v1version.parse_version_info("v201811.0123-beta", version_pattern)
-    >>> patterns = [compile_pattern(version_pattern, '__version__ = "{pycalver}"')]
-    >>> rewrite_lines(patterns, new_vinfo, ['__version__ = "v201809.0002-beta"'])
-    ['__version__ = "v201811.0123-beta"']
-
-    >>> patterns = [compile_pattern(version_pattern, '__version__ = "{pep440_version}"')]
-    >>> rewrite_lines(patterns, new_vinfo, ['__version__ = "201809.2b0"'])
-    ['__version__ = "201811.123b0"']
-    """
+    """Replace occurances of patterns in old_lines with new_vinfo."""
     found_patterns: typ.Set[Pattern] = set()
 
     new_lines = old_lines[:]
@@ -65,9 +53,11 @@ def rfd_from_content(
 ) -> rewrite.RewrittenFileData:
     r"""Rewrite pattern occurrences with version string.
 
-    >>> from .v1patterns import compile_pattern
-    >>> patterns = [compile_pattern("{pycalver}", '__version__ = "{pycalver}"']
+    >>> version_pattern = "{pycalver}"
     >>> new_vinfo = v1version.parse_version_info("v201809.0123")
+
+    >>> from .v1patterns import compile_pattern
+    >>> patterns = [compile_pattern(version_pattern, '__version__ = "{pycalver}"')]
 
     >>> content = '__version__ = "v201809.0001-alpha"'
     >>> rfd = rfd_from_content(patterns, new_vinfo, content)
@@ -92,26 +82,7 @@ def iter_rewritten(
     file_patterns: config.PatternsByFile,
     new_vinfo    : version.V1VersionInfo,
 ) -> typ.Iterable[rewrite.RewrittenFileData]:
-    r'''Iterate over files with version string replaced.
-
-    >>> version_pattern = "{pycalver}"
-    >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "{pycalver}"']}
-    >>> new_vinfo = v1version.parse_version_info("v201809.0123")
-    >>> rewritten_datas = iter_rewritten(version_pattern, file_patterns, new_vinfo)
-    >>> rfd = list(rewritten_datas)[0]
-    >>> expected = [
-    ...     '# This file is part of the pycalver project',
-    ...     '# https://github.com/mbarkhau/pycalver',
-    ...     '#',
-    ...     '# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License',
-    ...     '# SPDX-License-Identifier: MIT',
-    ...     '"""PyCalVer: CalVer for Python Packages."""',
-    ...     '',
-    ...     '__version__ = "v201809.0123"',
-    ...     '',
-    ... ]
-    >>> assert rfd.new_lines == expected
-    '''
+    """Iterate over files with version string replaced."""
 
     fobj: typ.IO[str]
 
@@ -128,24 +99,7 @@ def diff(
     new_vinfo    : version.V1VersionInfo,
     file_patterns: config.PatternsByFile,
 ) -> str:
-    r"""Generate diffs of rewritten files.
-
-    >>> old_vinfo = v1version.parse_version_info("v201809.0123")
-    >>> new_vinfo = v1version.parse_version_info("v201810.1124")
-    >>> file_patterns = {"src/pycalver/__init__.py": ['__version__ = "{pycalver}"']}
-    >>> diff_str = diff(old_vinfo, new_vinfo, file_patterns)
-    >>> lines = diff_str.split("\n")
-    >>> lines[:2]
-    ['--- src/pycalver/__init__.py', '+++ src/pycalver/__init__.py']
-    >>> assert lines[6].startswith('-__version__ = "v2')
-    >>> assert not lines[6].startswith('-__version__ = "v201809.0123"')
-    >>> lines[7]
-    '+__version__ = "v201809.0123"'
-
-    >>> file_patterns = {"LICENSE": ['Copyright (c) 2018-{year}']}
-    >>> diff_str = diff(old_vinfo, new_vinfo, file_patterns)
-    >>> assert not diff_str
-    """
+    """Generate diffs of rewritten files."""
 
     full_diff = ""
     fobj: typ.IO[str]
@@ -165,13 +119,13 @@ def diff(
             rfd = rfd_from_content(patterns, new_vinfo, content)
         except rewrite.NoPatternMatch:
             # pylint:disable=raise-missing-from  ; we support py2, so not an option
-            errmsg = f"No patterns matched for '{file_path}'"
+            errmsg = f"No patterns matched for file '{file_path}'"
             raise rewrite.NoPatternMatch(errmsg)
 
         rfd   = rfd._replace(path=str(file_path))
         lines = rewrite.diff_lines(rfd)
         if len(lines) == 0 and has_updated_version:
-            errmsg = f"No patterns matched for '{file_path}'"
+            errmsg = f"No patterns matched for file '{file_path}'"
             raise rewrite.NoPatternMatch(errmsg)
 
         full_diff += "\n".join(lines) + "\n"

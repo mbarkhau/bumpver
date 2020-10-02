@@ -119,6 +119,10 @@ ZERO_VALUES = {
 }
 
 
+def is_zero_val(part: str, part_value: str) -> bool:
+    return part in ZERO_VALUES and part_value == ZERO_VALUES[part]
+
+
 class PatternError(Exception):
     pass
 

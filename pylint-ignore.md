@@ -23,7 +23,7 @@ The recommended approach to using `pylint-ignore` is:
 
 # Overview
 
- - [W0511: fixme (9x)](#w0511-fixme)
+ - [W0511: fixme (8x)](#w0511-fixme)
  - [W0703: broad-except (1x)](#w0703-broad-except)
 
 
@@ -44,37 +44,20 @@ The recommended approach to using `pylint-ignore` is:
 ```
 
 
-## File src/pycalver/vcs.py - Line 78 - W0511 (fixme)
+## File src/pycalver/vcs.py - Line 80 - W0511 (fixme)
 
 - `message: TODO (mb 2018-11-15): Detect encoding of output? Use chardet?`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-18T17:24:49`
 
 ```
-  68:     def __call__(self, cmd_name: str, env: Env = None, **kwargs: str) -> str:
+  69:     def __call__(self, cmd_name: str, env: Env = None, **kwargs: str) -> str:
   ...
-  76:         output_data: bytes = sp.check_output(cmd_str.split(), env=env, stderr=sp.STDOUT)
-  77:
-> 78:         # TODO (mb 2018-11-15): Detect encoding of output? Use chardet?
-  79:         _encoding = "utf-8"
-  80:         return output_data.decode(_encoding)
-```
-
-
-## File test/test_config.py - Line 156 - W0511 (fixme)
-
-- `message: TODO (mb 2020-09-18):`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-18T19:04:06`
-
-```
-  143: def test_parse_v2_cfg():
-  ...
-  154:     assert "setup.py" in cfg.file_patterns
-  155:     assert "setup.cfg" in cfg.file_patterns
-> 156:     # TODO (mb 2020-09-18):
-  157:     # assert cfg.file_patterns["setup.py"        ] == ["vYYYY0M.BUILD[-RELEASE]", "YYYY0M.BLD[PYTAGNUM]"]
-  158:     # assert cfg.file_patterns["setup.cfg"       ] == ['current_version = "vYYYY0M.BUILD[-RELEASE]"']
+  78:         output_data: bytes = sp.check_output(cmd_parts, env=env, stderr=sp.STDOUT)
+  79:
+> 80:         # TODO (mb 2018-11-15): Detect encoding of output? Use chardet?
+  81:         _encoding = "utf-8"
+  82:         return output_data.decode(_encoding)
 ```
 
 
@@ -95,37 +78,37 @@ The recommended approach to using `pylint-ignore` is:
 ```
 
 
-## File src/pycalver/v1patterns.py - Line 214 - W0511 (fixme)
+## File test/test_config.py - Line 170 - W0511 (fixme)
 
-- `message: TODO (mb 2020-09-19): replace {version} etc with version_pattern`
+- `message: TODO (mb 2020-09-18):`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-19T16:24:10`
+- `date   : 2020-09-18T19:04:06`
 
 ```
-  201: def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[str]:
+  156: def test_parse_v2_cfg():
   ...
-  212:         escaped_pattern = escaped_pattern.replace(char, escaped)
-  213:
-> 214:     # TODO (mb 2020-09-19): replace {version} etc with version_pattern
-  215:     pattern_str = _replace_pattern_parts(escaped_pattern)
-  216:     return re.compile(pattern_str)
+  168:     assert "setup.cfg" in cfg.file_patterns
+  169:
+> 170:     # TODO (mb 2020-09-18):
+  171:     # raw_patterns_by_file = _parse_raw_patterns_by_file(cfg)
+  172:     # assert raw_patterns_by_file["setup.py"        ] == ["vYYYY0M.BUILD[-RELEASE]", "YYYY0M.BLD[PYTAGNUM]"]
 ```
 
 
-## File src/pycalver/__main__.py - Line 250 - W0511 (fixme)
+## File src/pycalver/__main__.py - Line 259 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-18): Investigate error messages`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-19T16:24:10`
 
 ```
-  222: def _bump(
+  231: def _bump(
   ...
-  248:         sys.exit(1)
-  249:     except Exception as ex:
-> 250:         # TODO (mb 2020-09-18): Investigate error messages
-  251:         logger.error(str(ex))
-  252:         sys.exit(1)
+  257:         sys.exit(1)
+  258:     except Exception as ex:
+> 259:         # TODO (mb 2020-09-18): Investigate error messages
+  260:         logger.error(str(ex))
+  261:         sys.exit(1)
 ```
 
 
@@ -146,53 +129,52 @@ The recommended approach to using `pylint-ignore` is:
 ```
 
 
-## File test/test_cli.py - Line 536 - W0511 (fixme)
+## File test/test_cli.py - Line 599 - W0511 (fixme)
 
 - `message: # TODO (mb 2020-09-18):`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-18T19:35:32`
 
 ```
-  534:
-  535: # def test_custom_commit_message(runner):
-> 536: #     # TODO (mb 2020-09-18):
-  537: #     assert False
+  597:
+  598: # def test_custom_commit_message(runner):
+> 599: #     # TODO (mb 2020-09-18):
+  600: #     assert False
 ```
 
 
-## File src/pycalver/v2version.py - Line 551 - W0511 (fixme)
+## File src/pycalver/v2version.py - Line 616 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-20): New Rollover Behaviour:`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-20T17:36:38`
 
 ```
-  508: def incr(
+  578: def incr(
   ...
-  549:         cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
-  550:
-> 551:     # TODO (mb 2020-09-20): New Rollover Behaviour:
-  552:     #   Reset major, minor, patch to zero if any part to the left of it is incremented
-  553:
+  614:     )
+  615:
+> 616:     # TODO (mb 2020-09-20): New Rollover Behaviour:
+  617:     #   Reset major, minor, patch to zero if any part to the left of it is incremented
+  618:
 ```
 
 
 # W0703: broad-except
 
-## File src/pycalver/__main__.py - Line 249 - W0703 (broad-except)
+## File src/pycalver/__main__.py - Line 258 - W0703 (broad-except)
 
 - `message: Catching too general exception Exception`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-05T14:30:17`
 
 ```
-  222: def _bump(
+  231: def _bump(
   ...
-  247:         logger.error(str(ex))
-  248:         sys.exit(1)
-> 249:     except Exception as ex:
-  250:         # TODO (mb 2020-09-18): Investigate error messages
-  251:         logger.error(str(ex))
+  256:         logger.error(str(ex))
+  257:         sys.exit(1)
+> 258:     except Exception as ex:
+  259:         # TODO (mb 2020-09-18): Investigate error messages
+  260:         logger.error(str(ex))
 ```
-
 

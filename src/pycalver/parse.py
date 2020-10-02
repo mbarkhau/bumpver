@@ -9,14 +9,43 @@ import typing as typ
 
 from .patterns import Pattern
 
+LineNo = int
+Start  = int
+End    = int
+
+
+class LineSpan(typ.NamedTuple):
+    lineno: LineNo
+    start : Start
+    end   : End
+
+
+LineSpans = typ.List[LineSpan]
+
+
+def _has_overlap(needle: LineSpan, haystack: LineSpans) -> bool:
+    for span in haystack:
+        # assume needle is in the center
+        has_overlap = (
+            span.lineno == needle.lineno
+            # needle starts before (or at) span end
+            and needle.start <= span.end
+            # needle ends after (or at) span start
+            and needle.end >= span.start
+        )
+        if has_overlap:
+            return True
+
+    return False
+
 
 class PatternMatch(typ.NamedTuple):
     """Container to mark a version string in a file."""
 
-    lineno : int  # zero based
+    lineno : LineNo  # zero based
     line   : str
     pattern: Pattern
-    span   : typ.Tuple[int, int]
+    span   : typ.Tuple[Start, End]
     match  : str
 
 
@@ -47,6 +76,10 @@ def iter_matches(lines: typ.List[str], patterns: typ.List[Pattern]) -> PatternMa
     ...     match  = "v201712.0002-alpha",
     ... )
     """
+    matched_spans: LineSpans = []
     for pattern in patterns:
         for match in _iter_for_pattern(lines, pattern):
-            yield match
+            needle_span = LineSpan(match.lineno, *match.span)
+            if not _has_overlap(needle_span, matched_spans):
+                yield match
+            matched_spans.append(needle_span)

@@ -42,14 +42,6 @@ def update_cfg_from_vcs(cfg: config.Config, all_tags: typ.List[str]) -> config.C
     )
 
 
-def rewrite_files(
-    cfg        : config.Config,
-    new_version: str,
-) -> None:
-    new_vinfo = v1version.parse_version_info(new_version, cfg.version_pattern)
-    v1rewrite.rewrite_files(cfg.file_patterns, new_vinfo)
-
-
 def get_diff(cfg: config.Config, new_version: str) -> str:
     old_vinfo = v1version.parse_version_info(cfg.current_version, cfg.version_pattern)
     new_vinfo = v1version.parse_version_info(new_version        , cfg.version_pattern)

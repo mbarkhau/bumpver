@@ -90,6 +90,13 @@ def mk_buf(text):
     return buf
 
 
+def _parse_raw_patterns_by_filepath(cfg):
+    return {
+        filepath: [pattern.raw_pattern for pattern in patterns]
+        for filepath, patterns in cfg.file_patterns.items()
+    }
+
+
 def test_parse_toml_1():
     buf = mk_buf(PYCALVER_TOML_FIXTURE_1)
 
@@ -103,8 +110,10 @@ def test_parse_toml_1():
     assert cfg.push   is True
 
     assert "pycalver.toml" in cfg.file_patterns
-    assert cfg.file_patterns["README.md"    ] == ["{pycalver}", "{pep440_pycalver}"]
-    assert cfg.file_patterns["pycalver.toml"] == ['current_version = "{pycalver}"']
+
+    raw_patterns_by_filepath = _parse_raw_patterns_by_filepath(cfg)
+    assert raw_patterns_by_filepath["README.md"    ] == ["{pycalver}", "{pep440_pycalver}"]
+    assert raw_patterns_by_filepath["pycalver.toml"] == ['current_version = "{pycalver}"']
 
 
 def test_parse_toml_2():
@@ -120,8 +129,10 @@ def test_parse_toml_2():
     assert cfg.push   is False
 
     assert "pycalver.toml" in cfg.file_patterns
-    assert cfg.file_patterns["README.md"    ] == ["{semver}", "{semver}"]
-    assert cfg.file_patterns["pycalver.toml"] == ['current_version = "{semver}"']
+
+    raw_patterns_by_filepath = _parse_raw_patterns_by_filepath(cfg)
+    assert raw_patterns_by_filepath["README.md"    ] == ["{semver}", "{semver}"]
+    assert raw_patterns_by_filepath["pycalver.toml"] == ['current_version = "{semver}"']
 
 
 def test_parse_v1_cfg():
@@ -136,8 +147,10 @@ def test_parse_v1_cfg():
     assert cfg.push   is True
 
     assert "setup.cfg" in cfg.file_patterns
-    assert cfg.file_patterns["setup.py" ] == ["{pycalver}", "{pep440_pycalver}"]
-    assert cfg.file_patterns["setup.cfg"] == ['current_version = "{pycalver}"']
+
+    raw_patterns_by_filepath = _parse_raw_patterns_by_filepath(cfg)
+    assert raw_patterns_by_filepath["setup.py" ] == ["{pycalver}", "{pep440_pycalver}"]
+    assert raw_patterns_by_filepath["setup.cfg"] == ['current_version = "{pycalver}"']
 
 
 def test_parse_v2_cfg():
@@ -153,10 +166,12 @@ def test_parse_v2_cfg():
 
     assert "setup.py" in cfg.file_patterns
     assert "setup.cfg" in cfg.file_patterns
+
     # TODO (mb 2020-09-18):
-    # assert cfg.file_patterns["setup.py"        ] == ["vYYYY0M.BUILD[-RELEASE]", "YYYY0M.BLD[PYTAGNUM]"]
-    # assert cfg.file_patterns["setup.cfg"       ] == ['current_version = "vYYYY0M.BUILD[-RELEASE]"']
-    # assert cfg.file_patterns["src/project/*.py"] == ['Copyright (c) 2018-YYYY"']
+    # raw_patterns_by_filepath = _parse_raw_patterns_by_filepath(cfg)
+    # assert raw_patterns_by_filepath["setup.py"        ] == ["vYYYY0M.BUILD[-RELEASE]", "YYYY0M.BLD[PYTAGNUM]"]
+    # assert raw_patterns_by_filepath["setup.cfg"       ] == ['current_version = "vYYYY0M.BUILD[-RELEASE]"']
+    # assert raw_patterns_by_filepath["src/project/*.py"] == ['Copyright (c) 2018-YYYY"']
 
 
 def test_parse_default_toml():
@@ -186,8 +201,9 @@ def test_parse_default_cfg():
 
 
 def test_parse_project_toml():
-    project_path = util.FIXTURES_DIR / "project_a"
-    config_path  = util.FIXTURES_DIR / "project_a" / "pycalver.toml"
+    project_path    = util.FIXTURES_DIR / "project_a"
+    config_path     = util.FIXTURES_DIR / "project_a" / "pycalver.toml"
+    config_rel_path = "pycalver.toml"
 
     with config_path.open() as fobj:
         config_data = fobj.read()
@@ -195,7 +211,7 @@ def test_parse_project_toml():
     assert "v201710.0123-alpha" in config_data
 
     ctx = config.init_project_ctx(project_path)
-    assert ctx == config.ProjectContext(project_path, config_path, "toml", None)
+    assert ctx == config.ProjectContext(project_path, config_path, config_rel_path, "toml", None)
 
     cfg = config.parse(ctx)
 
@@ -210,8 +226,9 @@ def test_parse_project_toml():
 
 
 def test_parse_project_cfg():
-    project_path = util.FIXTURES_DIR / "project_b"
-    config_path  = util.FIXTURES_DIR / "project_b" / "setup.cfg"
+    project_path    = util.FIXTURES_DIR / "project_b"
+    config_path     = util.FIXTURES_DIR / "project_b" / "setup.cfg"
+    config_rel_path = "setup.cfg"
 
     with config_path.open() as fobj:
         config_data = fobj.read()
@@ -219,7 +236,7 @@ def test_parse_project_cfg():
     assert "v201307.0456-beta" in config_data
 
     ctx = config.init_project_ctx(project_path)
-    assert ctx == config.ProjectContext(project_path, config_path, 'cfg', None)
+    assert ctx == config.ProjectContext(project_path, config_path, config_rel_path, 'cfg', None)
 
     cfg = config.parse(ctx)
 
@@ -241,9 +258,10 @@ def test_parse_toml_file(tmpdir):
     project_path = tmpdir.mkdir("minimal")
     setup_cfg    = project_path.join("pycalver.toml")
     setup_cfg.write(PYCALVER_TOML_FIXTURE_1)
+    setup_cfg_rel_path = "pycalver.toml"
 
     ctx = config.init_project_ctx(project_path)
-    assert ctx == config.ProjectContext(project_path, setup_cfg, 'toml', None)
+    assert ctx == config.ProjectContext(project_path, setup_cfg, setup_cfg_rel_path, 'toml', None)
 
     cfg = config.parse(ctx)
 
@@ -253,19 +271,21 @@ def test_parse_toml_file(tmpdir):
     assert cfg.commit is True
     assert cfg.push   is True
 
-    assert cfg.file_patterns == {
+    raw_patterns_by_filepath = _parse_raw_patterns_by_filepath(cfg)
+    assert raw_patterns_by_filepath == {
         "README.md"    : ["{pycalver}", "{pep440_pycalver}"],
         "pycalver.toml": ['current_version = "{pycalver}"'],
     }
 
 
 def test_parse_default_pattern():
-    project_path = util.FIXTURES_DIR / "project_c"
-    config_path  = util.FIXTURES_DIR / "project_c" / "pyproject.toml"
+    project_path    = util.FIXTURES_DIR / "project_c"
+    config_path     = util.FIXTURES_DIR / "project_c" / "pyproject.toml"
+    config_rel_path = "pyproject.toml"
 
     ctx = config.init_project_ctx(project_path)
 
-    assert ctx == config.ProjectContext(project_path, config_path, "toml", None)
+    assert ctx == config.ProjectContext(project_path, config_path, config_rel_path, "toml", None)
 
     cfg = config.parse(ctx)
 
@@ -276,7 +296,8 @@ def test_parse_default_pattern():
     assert cfg.tag    is True
     assert cfg.push   is True
 
-    assert cfg.file_patterns == {
+    raw_patterns_by_filepath = _parse_raw_patterns_by_filepath(cfg)
+    assert raw_patterns_by_filepath == {
         "pyproject.toml": [r'current_version = "v{year}q{quarter}.{build_no}"']
     }
 
@@ -285,9 +306,10 @@ def test_parse_cfg_file(tmpdir):
     project_path = tmpdir.mkdir("minimal")
     setup_cfg    = project_path.join("setup.cfg")
     setup_cfg.write(SETUP_CFG_FIXTURE)
+    setup_cfg_rel_path = "setup.cfg"
 
     ctx = config.init_project_ctx(project_path)
-    assert ctx == config.ProjectContext(project_path, setup_cfg, 'cfg', None)
+    assert ctx == config.ProjectContext(project_path, setup_cfg, setup_cfg_rel_path, 'cfg', None)
 
     cfg = config.parse(ctx)
 
@@ -297,7 +319,8 @@ def test_parse_cfg_file(tmpdir):
     assert cfg.commit is True
     assert cfg.push   is True
 
-    assert cfg.file_patterns == {
+    raw_patterns_by_filepath = _parse_raw_patterns_by_filepath(cfg)
+    assert raw_patterns_by_filepath == {
         "setup.py" : ["{pycalver}", "{pep440_pycalver}"],
         "setup.cfg": ['current_version = "{pycalver}"'],
     }

@@ -8,7 +8,6 @@
 >>> pattern = compile_pattern("vYYYY0M.BUILD[-RELEASE]")
 >>> version_info = pattern.regexp.match("v201712.0123-alpha")
 >>> assert version_info.groupdict() == {
-...     "version": "v201712.0123-alpha",
 ...     "year_y" : "2017",
 ...     "month"  : "12",
 ...     "bid"    : "0123",
@@ -23,7 +22,6 @@
 
 >>> version_info = pattern.regexp.match("v201712.1234")
 >>> assert version_info.groupdict() == {
-...     "version": "v201712.1234",
 ...     "year_y" : "2017",
 ...     "month"  : "12",
 ...     "bid"    : "1234",
@@ -251,6 +249,13 @@ def _convert_to_pep440(version_pattern: str) -> str:
         else:
             pep440_pattern = pep440_pattern.replace(part_name, substitution)
 
+    # PYTAG and NUM must be adjacent and also be the last (optional) part
+    if 'PYTAGNUM' not in pep440_pattern:
+        pep440_pattern = pep440_pattern.replace("PYTAG", "")
+        pep440_pattern = pep440_pattern.replace("NUM"  , "")
+        pep440_pattern = pep440_pattern.replace("[]"   , "")
+        pep440_pattern += "[PYTAGNUM]"
+
     return pep440_pattern
 
 
@@ -304,9 +309,8 @@ def _replace_pattern_parts(pattern: str) -> str:
     return result_pattern
 
 
-def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[str]:
-    normalized_pattern = normalize_pattern(version_pattern, raw_pattern)
-    escaped_pattern    = normalized_pattern
+def _compile_pattern_re(normalized_pattern: str) -> typ.Pattern[str]:
+    escaped_pattern = normalized_pattern
     for char, escaped in RE_PATTERN_ESCAPES:
         # [] braces are used for optional parts, such as [-RELEASE]/[-beta]
         # and need to be escaped manually.
@@ -321,6 +325,11 @@ def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[s
 
 @utils.memo
 def compile_pattern(version_pattern: str, raw_pattern: typ.Optional[str] = None) -> Pattern:
-    _raw_pattern = version_pattern if raw_pattern is None else raw_pattern
-    regexp       = _compile_pattern_re(version_pattern, _raw_pattern)
-    return Pattern(version_pattern, _raw_pattern, regexp)
+    _raw_pattern       = version_pattern if raw_pattern is None else raw_pattern
+    normalized_pattern = normalize_pattern(version_pattern, _raw_pattern)
+    regexp             = _compile_pattern_re(normalized_pattern)
+    return Pattern(version_pattern, normalized_pattern, regexp)
+
+
+def compile_patterns(version_pattern: str, raw_patterns: typ.List[str]) -> typ.List[Pattern]:
+    return [compile_pattern(version_pattern, raw_pattern) for raw_pattern in raw_patterns]

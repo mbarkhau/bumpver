@@ -81,8 +81,8 @@ PART_PATTERNS = {
     'month'      : r"(?:0[0-9]|1[0-2])",
     'month_short': r"(?:1[0-2]|[1-9])",
     'build_no'   : r"\d{4,}",
-    'pep440_tag' : r"(?:post|dev|rc|a|b)?\d*",
-    'tag'        : r"(?:preview|final|alpha|beta|post|pre|dev|rc|a|b|c|r)",
+    'pep440_tag' : r"(?:a|b|dev|rc|post)?\d*",
+    'tag'        : r"(?:alpha|beta|dev|rc|post|final)",
     'yy'         : r"\d{2}",
     'yyyy'       : r"\d{4}",
     'quarter'    : r"[1-4]",
@@ -198,26 +198,29 @@ def _init_composite_patterns() -> None:
 _init_composite_patterns()
 
 
-def _compile_pattern_re(version_pattern: str, raw_pattern: str) -> typ.Pattern[str]:
-    normalized_pattern = raw_pattern.replace(r"{version}", version_pattern)
-    if version_pattern == r"{pycalver}":
-        normalized_pattern = normalized_pattern.replace(r"{pep440_version}", r"{pep440_pycalver}")
-    elif version_pattern == r"{semver}":
-        normalized_pattern = normalized_pattern.replace(r"{pep440_version}", r"{semver}")
-    elif r"{pep440_version}" in raw_pattern:
-        logger.warning(f"No mapping of '{version_pattern}' to '{{pep440_version}}'")
-
+def _compile_pattern_re(normalized_pattern: str) -> typ.Pattern[str]:
     escaped_pattern = normalized_pattern
     for char, escaped in RE_PATTERN_ESCAPES:
         escaped_pattern = escaped_pattern.replace(char, escaped)
 
-    # TODO (mb 2020-09-19): replace {version} etc with version_pattern
     pattern_str = _replace_pattern_parts(escaped_pattern)
     return re.compile(pattern_str)
 
 
 @utils.memo
 def compile_pattern(version_pattern: str, raw_pattern: typ.Optional[str] = None) -> Pattern:
-    _raw_pattern = version_pattern if raw_pattern is None else raw_pattern
-    regexp       = _compile_pattern_re(version_pattern, _raw_pattern)
-    return Pattern(version_pattern, _raw_pattern, regexp)
+    _raw_pattern       = version_pattern if raw_pattern is None else raw_pattern
+    normalized_pattern = _raw_pattern.replace(r"{version}", version_pattern)
+    if version_pattern == r"{pycalver}":
+        normalized_pattern = normalized_pattern.replace(r"{pep440_version}", r"{pep440_pycalver}")
+    elif version_pattern == r"{semver}":
+        normalized_pattern = normalized_pattern.replace(r"{pep440_version}", r"{semver}")
+    elif r"{pep440_version}" in _raw_pattern:
+        logger.warning(f"No mapping of '{version_pattern}' to '{{pep440_version}}'")
+
+    regexp = _compile_pattern_re(normalized_pattern)
+    return Pattern(version_pattern, normalized_pattern, regexp)
+
+
+def compile_patterns(version_pattern: str, raw_patterns: typ.List[str]) -> typ.List[Pattern]:
+    return [compile_pattern(version_pattern, raw_pattern) for raw_pattern in raw_patterns]

@@ -22,7 +22,9 @@ from . import v2cli
 from . import config
 from . import rewrite
 from . import version
+from . import v1rewrite
 from . import v1version
+from . import v2rewrite
 from . import v2version
 from . import v1patterns
 
@@ -93,10 +95,10 @@ def cli(verbose: int = 0) -> None:
         f"{', '.join(VALID_RELEASE_VALUES)}."
     ),
 )
-@click.option("--major", is_flag=True, default=False, help="Increment major component.")
-@click.option("-m", "--minor", is_flag=True, default=False, help="Increment minor component.")
-@click.option("-p", "--patch", is_flag=True, default=False, help="Increment patch component.")
-@click.option("-r", "--release-num", is_flag=True, default=False, help="Increment release number.")
+@click.option("--major"   , is_flag=True, default=False, help="Increment major component.")
+@click.option("-m"        , "--minor"      , is_flag=True, default=False, help="Increment minor component.")
+@click.option("-p"        , "--patch"      , is_flag=True, default=False, help="Increment patch component.")
+@click.option("-r"        , "--release-num", is_flag=True, default=False, help="Increment release number.")
 @click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
 def test(
     old_version: str,
@@ -145,8 +147,7 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
     """Show current version of your project."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
 
-    ctx: config.ProjectContext = config.init_project_ctx(project_path=".")
-    cfg: config.MaybeConfig    = config.parse(ctx)
+    _, cfg = config.init(project_path=".")
 
     if cfg is None:
         logger.error("Could not parse configuration. Perhaps try 'pycalver init'.")
@@ -188,7 +189,7 @@ def _print_diff(cfg: config.Config, new_version: str) -> None:
     except Exception as ex:
         # pylint:disable=broad-except; Mostly we expect IOError here, but
         #   could be other things and there's no option to recover anyway.
-        logger.error(str(ex))
+        logger.error(str(ex), exc_info=True)
         sys.exit(1)
 
 
@@ -196,12 +197,12 @@ def _incr(
     old_version: str,
     raw_pattern: str,
     *,
-    release : str  = None,
-    major   : bool = False,
-    minor   : bool = False,
-    patch   : bool = False,
+    release    : str  = None,
+    major      : bool = False,
+    minor      : bool = False,
+    patch      : bool = False,
     release_num: bool = False,
-    pin_date: bool = False,
+    pin_date   : bool = False,
 ) -> typ.Optional[str]:
     v1_parts    = list(v1patterns.PART_PATTERNS) + list(v1patterns.FULL_PART_FORMATS)
     has_v1_part = any("{" + part + "}" in raw_pattern for part in v1_parts)
@@ -250,9 +251,11 @@ def _bump(
 
     try:
         if cfg.is_new_pattern:
-            v2cli.rewrite_files(cfg, new_version)
+            new_v2_vinfo = v2version.parse_version_info(new_version, cfg.version_pattern)
+            v2rewrite.rewrite_files(cfg.file_patterns, new_v2_vinfo)
         else:
-            v1cli.rewrite_files(cfg, new_version)
+            new_v1_vinfo = v1version.parse_version_info(new_version, cfg.version_pattern)
+            v1rewrite.rewrite_files(cfg.file_patterns, new_v1_vinfo)
     except rewrite.NoPatternMatch as ex:
         logger.error(str(ex))
         sys.exit(1)
@@ -291,8 +294,7 @@ def init(verbose: int = 0, dry: bool = False) -> None:
     """Initialize [pycalver] configuration."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
 
-    ctx: config.ProjectContext = config.init_project_ctx(project_path=".")
-    cfg: config.MaybeConfig    = config.parse(ctx)
+    ctx, cfg = config.init(project_path=".")
 
     if cfg:
         logger.error(f"Configuration already initialized in {ctx.config_rel_path}")
@@ -355,10 +357,10 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
         "to files with version strings."
     ),
 )
-@click.option("--major", is_flag=True, default=False, help="Increment major component.")
-@click.option("-m", "--minor", is_flag=True, default=False, help="Increment minor component.")
-@click.option("-p", "--patch", is_flag=True, default=False, help="Increment patch component.")
-@click.option("-r", "--release-num", is_flag=True, default=False, help="Increment release number.")
+@click.option("--major"   , is_flag=True, default=False, help="Increment major component.")
+@click.option("-m"        , "--minor"      , is_flag=True, default=False, help="Increment minor component.")
+@click.option("-p"        , "--patch"      , is_flag=True, default=False, help="Increment patch component.")
+@click.option("-r"        , "--release-num", is_flag=True, default=False, help="Increment release number.")
 @click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
 def bump(
     release    : typ.Optional[str] = None,
@@ -379,8 +381,7 @@ def bump(
     if release:
         _validate_release_tag(release)
 
-    ctx: config.ProjectContext = config.init_project_ctx(project_path=".")
-    cfg: config.MaybeConfig    = config.parse(ctx)
+    _, cfg = config.init(project_path=".")
 
     if cfg is None:
         logger.error("Could not parse configuration. Perhaps try 'pycalver init'.")
