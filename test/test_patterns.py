@@ -11,8 +11,6 @@ import pytest
 from pycalver import v1patterns
 from pycalver import v2patterns
 
-# TODO (mb 2020-09-06): test for v2patterns
-
 V2_PART_PATTERN_CASES = [
     (['YYYY', 'GGGG'], "2020" , "2020"),
     (['YYYY', 'GGGG'], ""     , None),

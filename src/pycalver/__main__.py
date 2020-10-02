@@ -12,6 +12,7 @@ Enables use as module: $ python -m pycalver --version
 import sys
 import typing as typ
 import logging
+import datetime as dt
 import subprocess as sp
 
 import click
@@ -62,7 +63,31 @@ def _configure_logging(verbose: int = 0) -> None:
 VALID_RELEASE_VALUES = ("alpha", "beta", "dev", "rc", "post", "final")
 
 
-def _validate_release_tag(release: str) -> None:
+_current_date = dt.date.today().isoformat()
+
+
+def _validate_date(date: typ.Optional[str], pin_date: bool) -> dt.date:
+    if date and pin_date:
+        logger.error(f"Can only use either --pin-date or --date='{date}', not both.")
+        sys.exit(1)
+
+    if date is None:
+        return
+
+    try:
+        dt_val = dt.datetime.strptime(date, "%Y-%m-%d")
+        return dt_val.date()
+    except ValueError:
+        logger.error(
+            f"Invalid parameter --date='{date}', must match format YYYY-0M-0D.", exc_info=True
+        )
+        sys.exit(1)
+
+
+def _validate_release_tag(release: typ.Optional[str]) -> None:
+    if release is None:
+        return
+
     if release in VALID_RELEASE_VALUES:
         return
 
@@ -96,27 +121,35 @@ def cli(verbose: int = 0) -> None:
     ),
 )
 @click.option("--major"   , is_flag=True, default=False, help="Increment major component.")
-@click.option("-m"        , "--minor"      , is_flag=True, default=False, help="Increment minor component.")
-@click.option("-p"        , "--patch"      , is_flag=True, default=False, help="Increment patch component.")
+@click.option("-m"        , "--minor", is_flag=True, default=False, help="Increment minor component.")
+@click.option("-p"        , "--patch", is_flag=True, default=False, help="Increment patch component.")
 @click.option("-r"        , "--release-num", is_flag=True, default=False, help="Increment release number.")
 @click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
+@click.option(
+    "-d",
+    "--date",
+    default=None,
+    metavar="<date>",
+    help=f"Set explicit date in format YYYY-0M-0D (eg. {_current_date}).",
+)
 def test(
     old_version: str,
-    pattern    : str  = "{pycalver}",
-    verbose    : int  = 0,
-    release    : str  = None,
+    pattern    : str = "{pycalver}",
+    verbose    : int = 0,
+    release    : str = None,
     major      : bool = False,
     minor      : bool = False,
     patch      : bool = False,
     release_num: bool = False,
+    date       : typ.Optional[str] = None,
     pin_date   : bool = False,
 ) -> None:
     """Increment a version number for demo purposes."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
     raw_pattern = pattern
 
-    if release:
-        _validate_release_tag(release)
+    _validate_release_tag(release)
+    _date = _validate_date(date, pin_date)
 
     new_version = _incr(
         old_version,
@@ -127,6 +160,7 @@ def test(
         patch=patch,
         release_num=release_num,
         pin_date=pin_date,
+        date=_date,
     )
     if new_version is None:
         logger.error(f"Invalid version '{old_version}' and/or pattern '{raw_pattern}'.")
@@ -197,12 +231,13 @@ def _incr(
     old_version: str,
     raw_pattern: str,
     *,
-    release    : str  = None,
+    release    : str = None,
     major      : bool = False,
     minor      : bool = False,
     patch      : bool = False,
     release_num: bool = False,
     pin_date   : bool = False,
+    date       : typ.Optional[dt.date] = None,
 ) -> typ.Optional[str]:
     v1_parts    = list(v1patterns.PART_PATTERNS) + list(v1patterns.FULL_PART_FORMATS)
     has_v1_part = any("{" + part + "}" in raw_pattern for part in v1_parts)
@@ -216,6 +251,7 @@ def _incr(
             patch=patch,
             release_num=release_num,
             pin_date=pin_date,
+            date=date,
         )
     else:
         return v2version.incr(
@@ -227,6 +263,7 @@ def _incr(
             patch=patch,
             release_num=release_num,
             pin_date=pin_date,
+            date=date,
         )
 
 
@@ -357,14 +394,21 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
         "to files with version strings."
     ),
 )
-@click.option("--major"   , is_flag=True, default=False, help="Increment major component.")
-@click.option("-m"        , "--minor"      , is_flag=True, default=False, help="Increment minor component.")
-@click.option("-p"        , "--patch"      , is_flag=True, default=False, help="Increment patch component.")
-@click.option("-r"        , "--release-num", is_flag=True, default=False, help="Increment release number.")
+@click.option("--major", is_flag=True, default=False, help="Increment major component.")
+@click.option("-m", "--minor", is_flag=True, default=False, help="Increment minor component.")
+@click.option("-p", "--patch", is_flag=True, default=False, help="Increment patch component.")
+@click.option("-r", "--release-num", is_flag=True, default=False, help="Increment release number.")
 @click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
+@click.option(
+    "-d",
+    "--date",
+    default=None,
+    metavar="<date>",
+    help=f"Set explicit date in format YYYY-0M-0D (eg. {_current_date}).",
+)
 def bump(
     release    : typ.Optional[str] = None,
-    verbose    : int  = 0,
+    verbose    : int = 0,
     dry        : bool = False,
     allow_dirty: bool = False,
     fetch      : bool = True,
@@ -373,13 +417,14 @@ def bump(
     patch      : bool = False,
     release_num: bool = False,
     pin_date   : bool = False,
+    date       : typ.Optional[str] = None,
 ) -> None:
     """Increment the current version string and update project files."""
     verbose = max(_VERBOSE, verbose)
     _configure_logging(verbose)
 
-    if release:
-        _validate_release_tag(release)
+    _validate_release_tag(release)
+    _date = _validate_date(date, pin_date)
 
     _, cfg = config.init(project_path=".")
 
@@ -399,6 +444,7 @@ def bump(
         patch=patch,
         release_num=release_num,
         pin_date=pin_date,
+        date=_date,
     )
 
     if new_version is None:

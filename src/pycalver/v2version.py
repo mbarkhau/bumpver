@@ -585,6 +585,7 @@ def incr(
     patch      : bool = False,
     release_num: bool = False,
     pin_date   : bool = False,
+    date       : typ.Optional[dt.date] = None,
 ) -> typ.Optional[str]:
     """Increment version string.
 
@@ -596,7 +597,7 @@ def incr(
         logger.error(str(ex))
         return None
 
-    cur_cinfo = _ver_to_cal_info(old_vinfo) if pin_date else cal_info()
+    cur_cinfo = _ver_to_cal_info(old_vinfo) if pin_date else cal_info(date)
 
     if _is_cal_gt(old_vinfo, cur_cinfo):
         logger.warning(f"Old version appears to be from the future '{old_version}'")
