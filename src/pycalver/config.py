@@ -406,8 +406,8 @@ def init(
 DEFAULT_CONFIGPARSER_BASE_TMPL = """
 [pycalver]
 current_version = "{initial_version}"
-version_pattern = "{{pycalver}}"
-commit_message = "bump version to {{new_version}}"
+version_pattern = "vYYYY0M.BUILD[-RELEASE]"
+commit_message = "bump version {{old_version}} -> {{new_version}}"
 commit = True
 tag = True
 push = True
@@ -446,8 +446,8 @@ README.md =
 DEFAULT_TOML_BASE_TMPL = """
 [pycalver]
 current_version = "{initial_version}"
-version_pattern = "{{pycalver}}"
-commit_message = "bump version to {{new_version}}"
+version_pattern = "vYYYY0M.BUILD[-RELEASE]"
+commit_message = "bump version {{old_version}} -> {{new_version}}"
 commit = true
 tag = true
 push = true

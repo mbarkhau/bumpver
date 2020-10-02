@@ -28,9 +28,7 @@ from . import v1version
 from . import v2rewrite
 from . import v2version
 from . import v1patterns
-
-_VERBOSE = 0
-
+from . import v2patterns
 
 try:
     import pretty_traceback
@@ -45,7 +43,14 @@ click.disable_unicode_literals_warning = True
 logger = logging.getLogger("pycalver.__main__")
 
 
+_VERBOSE = 0
+
+
 def _configure_logging(verbose: int = 0) -> None:
+    # pylint:disable=global-statement; global flag is global.
+    global _VERBOSE
+    _VERBOSE = verbose
+
     if verbose >= 2:
         log_format = "%(asctime)s.%(msecs)03d %(levelname)-7s %(name)-17s - %(message)s"
         log_level  = logging.DEBUG
@@ -102,9 +107,7 @@ def _validate_release_tag(release: typ.Optional[str]) -> None:
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 def cli(verbose: int = 0) -> None:
     """Automatically update PyCalVer version strings on python projects."""
-    # pylint:disable=global-statement; global flag is global.
-    global _VERBOSE
-    _VERBOSE = verbose
+    _configure_logging(verbose=max(_VERBOSE, verbose))
 
 
 @cli.command()
@@ -241,6 +244,14 @@ def _incr(
 ) -> typ.Optional[str]:
     v1_parts    = list(v1patterns.PART_PATTERNS) + list(v1patterns.FULL_PART_FORMATS)
     has_v1_part = any("{" + part + "}" in raw_pattern for part in v1_parts)
+    if _VERBOSE:
+        if has_v1_part:
+            pattern = v1patterns.compile_pattern(raw_pattern)
+        else:
+            pattern = v2patterns.compile_pattern(raw_pattern)
+
+        logger.info(f"Using pattern {raw_pattern}/{pattern.regexp.pattern}")
+
     if has_v1_part:
         return v1version.incr(
             old_version,
