@@ -109,12 +109,12 @@ def test_incr_default(runner):
     cmd    = ['test', "-vv", "--pin-date", "--release", "beta", old_version]
     result = runner.invoke(cli, cmd)
     assert result.exit_code == 0
-    assert f"Version: v201701.0005-beta\n" in result.output
+    assert "Version: v201701.0005-beta\n" in result.output
 
-    cmd = ['test', "-vv", "--pin-date", "--release", "beta", old_version, "vYYYY0M.BUILD[-RELEASE]"]
+    cmd    = ['test', "-vv", "--pin-date", "--release", "beta", old_version, "vYYYY0M.BUILD[-RELEASE]"]
     result = runner.invoke(cli, cmd)
     assert result.exit_code == 0
-    assert f"Version: v201701.1005-beta\n" in result.output
+    assert "Version: v201701.1005-beta\n" in result.output
 
 
 def test_incr_pin_date(runner):
@@ -611,6 +611,58 @@ def test_v2_get_diff(runner):
 
     assert '-current_version = "v202010.1001-alpha"' in diff_lines
     assert '+current_version = "v202010.1003-beta"' in diff_lines
+
+
+WEEKNUM_TEST_CASES = [
+    # 2020-12-26  Sat
+    ("2020-12-26", "YYYY.0W", "2020.51"),
+    ("2020-12-26", "YYYY.0U", "2020.51"),
+    ("2020-12-26", "GGGG.0V", "2020.52"),
+    # 2020-12-27  Sun
+    ("2020-12-27", "YYYY.0W", "2020.51"),
+    ("2020-12-27", "YYYY.0U", "2020.52"),
+    ("2020-12-27", "GGGG.0V", "2020.52"),
+    # 2020-12-28  Mon
+    ("2020-12-28", "YYYY.0W", "2020.52"),
+    ("2020-12-28", "YYYY.0U", "2020.52"),
+    ("2020-12-28", "GGGG.0V", "2020.53"),
+    # 2020-12-29  Tue
+    ("2020-12-29", "YYYY.0W", "2020.52"),
+    ("2020-12-29", "YYYY.0U", "2020.52"),
+    ("2020-12-29", "GGGG.0V", "2020.53"),
+    # 2020-12-30  Wed
+    ("2020-12-30", "YYYY.0W", "2020.52"),
+    ("2020-12-30", "YYYY.0U", "2020.52"),
+    ("2020-12-30", "GGGG.0V", "2020.53"),
+    # 2020-12-31  Thu
+    ("2020-12-31", "YYYY.0W", "2020.52"),
+    ("2020-12-31", "YYYY.0U", "2020.52"),
+    ("2020-12-31", "GGGG.0V", "2020.53"),
+    # 2021-01-01  Fri
+    ("2021-01-01", "YYYY.0W", "2021.00"),
+    ("2021-01-01", "YYYY.0U", "2021.00"),
+    ("2021-01-01", "GGGG.0V", "2020.53"),
+    # 2021-01-02  Sat
+    ("2021-01-02", "YYYY.0W", "2021.00"),
+    ("2021-01-02", "YYYY.0U", "2021.00"),
+    ("2021-01-02", "GGGG.0V", "2020.53"),
+    # 2021-01-03  Sun
+    ("2021-01-03", "YYYY.0W", "2021.00"),
+    ("2021-01-03", "YYYY.0U", "2021.01"),
+    ("2021-01-03", "GGGG.0V", "2020.53"),
+    # 2021-01-04  Mon
+    ("2021-01-04", "YYYY.0W", "2021.01"),
+    ("2021-01-04", "YYYY.0U", "2021.01"),
+    ("2021-01-04", "GGGG.0V", "2021.01"),
+]
+
+
+@pytest.mark.parametrize("date, pattern, expected", WEEKNUM_TEST_CASES)
+def test_weeknum(date, pattern, expected, runner):
+    cmd    = shlex.split(f"test -vv --date {date} 2020.40 {pattern}")
+    result = runner.invoke(cli, cmd)
+    assert result.exit_code == 0
+    assert "New Version: " + expected in result.output
 
 
 def test_hg_commit_message(runner, caplog):

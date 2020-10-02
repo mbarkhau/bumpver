@@ -13,8 +13,7 @@ from pycalver import version
 from pycalver import v1version
 from pycalver import v2version
 from pycalver import v1patterns
-
-# import pycalver2.patterns as v2patterns
+from pycalver import v2patterns
 
 # pylint:disable=protected-access ; allowed for test code
 
@@ -160,46 +159,58 @@ def test_part_field_mapping_v1():
     assert not any(b_extra_fields), sorted(b_extra_fields)
 
 
-def vnfo(**field_values):
+def v1vnfo(**field_values):
     return v1version._parse_field_values(field_values)
 
 
-PARSE_VERSION_TEST_CASES = [
-    # TODO (mb 2020-09-06): add tests for new style patterns
-    # ["YYYY.MM.DD"                      , "2017.06.07", vnfo(year="2017", month="06", dom="07")],
-    ["{year}.{month}.{dom}"            , "2017.06.07", vnfo(year="2017", month="06", dom="07")],
-    ["{year}.{month}.{dom_short}"      , "2017.06.7" , vnfo(year="2017", month="06", dom="7" )],
-    ["{year}.{month}.{dom_short}"      , "2017.06.7" , vnfo(year="2017", month="06", dom="7" )],
-    ["{year}.{month_short}.{dom_short}", "2017.6.7"  , vnfo(year="2017", month="6" , dom="7" )],
+def v2vnfo(**field_values):
+    return v2version._parse_version_info(field_values)
+
+
+PARSE_V1_VERSION_TEST_CASES = [
+    ["{year}.{month}.{dom}"            , "2017.06.07", v1vnfo(year="2017", month="06", dom="07")],
+    ["{year}.{month}.{dom_short}"      , "2017.06.7" , v1vnfo(year="2017", month="06", dom="7" )],
+    ["{year}.{month}.{dom_short}"      , "2017.06.7" , v1vnfo(year="2017", month="06", dom="7" )],
+    ["{year}.{month_short}.{dom_short}", "2017.6.7"  , v1vnfo(year="2017", month="6" , dom="7" )],
     ["{year}.{month}.{dom}"            , "2017.6.07" , None],
     ["{year}.{month}.{dom}"            , "2017.06.7" , None],
     ["{year}.{month_short}.{dom}"      , "2017.06.7" , None],
     ["{year}.{month}.{dom_short}"      , "2017.6.07" , None],
-    ["{year}.{month_short}.{MINOR}"    , "2017.6.7"  , vnfo(year="2017", month="6" , minor="7" )],
-    ["{year}.{month}.{MINOR}"          , "2017.06.7" , vnfo(year="2017", month="06", minor="7" )],
-    ["{year}.{month}.{MINOR}"          , "2017.06.07", vnfo(year="2017", month="06", minor="07")],
+    ["{year}.{month_short}.{MINOR}"    , "2017.6.7"  , v1vnfo(year="2017", month="6" , minor="7" )],
+    ["{year}.{month}.{MINOR}"          , "2017.06.7" , v1vnfo(year="2017", month="06", minor="7" )],
+    ["{year}.{month}.{MINOR}"          , "2017.06.07", v1vnfo(year="2017", month="06", minor="07")],
     ["{year}.{month}.{MINOR}"          , "2017.6.7"  , None],
+    ["YYYY.0M.0D"                      , "2017.06.07", v2vnfo(year_y="2017", month="06", dom="07")],
+    ["YYYY.MM.DD"                      , "2017.6.7"  , v2vnfo(year_y="2017", month="6" , dom="7" )],
+    ["YYYY.MM.MD"                      , "2017.06.07", None],
+    ["YYYY.0M.0D"                      , "2017.6.7"  , None],
 ]
 
 
-@pytest.mark.parametrize("pattern_str, line, expected_vinfo", PARSE_VERSION_TEST_CASES)
+@pytest.mark.parametrize("pattern_str, line, expected_vinfo", PARSE_V1_VERSION_TEST_CASES)
 def test_v1_parse_versions(pattern_str, line, expected_vinfo):
-    pattern       = v1patterns.compile_pattern(pattern_str)
-    version_match = pattern.regexp.search(line)
+    if "{" in pattern_str:
+        pattern       = v1patterns.compile_pattern(pattern_str)
+        version_match = pattern.regexp.search(line)
+    else:
+        pattern       = v2patterns.compile_pattern(pattern_str)
+        version_match = pattern.regexp.search(line)
 
     if expected_vinfo is None:
         assert version_match is None
-        return
+    else:
+        assert version_match is not None
 
-    assert version_match is not None
+        version_str = version_match.group(0)
 
-    version_str  = version_match.group(0)
-    version_info = v1version.parse_version_info(version_str, pattern_str)
+        if "{" in pattern_str:
+            version_info = v1version.parse_version_info(version_str, pattern_str)
+            assert version_info == expected_vinfo
+        else:
+            version_info = v2version.parse_version_info(version_str, pattern_str)
+            assert version_info == expected_vinfo
 
-    assert version_info == expected_vinfo
 
-
-# def test_v2_parse_versions(pattern_str, line, expected_vinfo):
 def test_v2_parse_versions():
     _vnfo = v2version.parse_version_info("v201712.0033", raw_pattern="vYYYY0M.BUILD[-RELEASE[NUM]]")
     fvals = {'year_y': 2017, 'month': 12, 'bid': "0033"}

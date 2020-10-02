@@ -23,26 +23,11 @@ The recommended approach to using `pylint-ignore` is:
 
 # Overview
 
- - [W0511: fixme (7x)](#w0511-fixme)
+ - [W0511: fixme (5x)](#w0511-fixme)
  - [W0703: broad-except (1x)](#w0703-broad-except)
 
 
 # W0511: fixme
-
-## File test/test_patterns.py - Line 14 - W0511 (fixme)
-
-- `message: TODO (mb 2020-09-06): test for v2patterns`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-18T17:01:05`
-
-```
-  12: from pycalver import v2patterns
-  13:
-> 14: # TODO (mb 2020-09-06): test for v2patterns
-  15:
-  16: V2_PART_PATTERN_CASES = [
-```
-
 
 ## File src/pycalver/vcs.py - Line 80 - W0511 (fixme)
 
@@ -61,23 +46,6 @@ The recommended approach to using `pylint-ignore` is:
 ```
 
 
-## File test/test_version.py - Line 168 - W0511 (fixme)
-
-- `message: TODO (mb 2020-09-06): add tests for new style patterns`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-18T17:01:05`
-
-```
-  163: def vnfo(**field_values):
-  ...
-  166:
-  167: PARSE_VERSION_TEST_CASES = [
-> 168:     # TODO (mb 2020-09-06): add tests for new style patterns
-  169:     # ["YYYY.MM.DD"                      , "2017.06.07", vnfo(year="2017", month="06", dom="07")],
-  170:     ["{year}.{month}.{dom}"            , "2017.06.07", vnfo(year="2017", month="06", dom="07")],
-```
-
-
 ## File test/test_config.py - Line 170 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-18):`
@@ -90,25 +58,8 @@ The recommended approach to using `pylint-ignore` is:
   168:     assert "setup.cfg" in cfg.file_patterns
   169:
 > 170:     # TODO (mb 2020-09-18):
-  171:     # raw_patterns_by_file = _parse_raw_patterns_by_file(cfg)
-  172:     # assert raw_patterns_by_file["setup.py"        ] == ["vYYYY0M.BUILD[-RELEASE]", "YYYY0M.BLD[PYTAGNUM]"]
-```
-
-
-## File src/pycalver/__main__.py - Line 259 - W0511 (fixme)
-
-- `message: TODO (mb 2020-09-18): Investigate error messages`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-19T16:24:10`
-
-```
-  231: def _bump(
-  ...
-  257:         sys.exit(1)
-  258:     except Exception as ex:
-> 259:         # TODO (mb 2020-09-18): Investigate error messages
-  260:         logger.error(str(ex))
-  261:         sys.exit(1)
+  171:     # raw_patterns_by_filepath = _parse_raw_patterns_by_filepath(cfg)
+  172:     # assert raw_patterns_by_filepath["setup.py"        ] == ["vYYYY0M.BUILD[-RELEASE]", "YYYY0M.BLD[PYTAGNUM]"]
 ```
 
 
@@ -129,7 +80,24 @@ The recommended approach to using `pylint-ignore` is:
 ```
 
 
-## File src/pycalver/v2version.py - Line 616 - W0511 (fixme)
+## File src/pycalver/__main__.py - Line 300 - W0511 (fixme)
+
+- `message: TODO (mb 2020-09-18): Investigate error messages`
+- `author : Manuel Barkhau <mbarkhau@gmail.com>`
+- `date   : 2020-09-19T16:24:10`
+
+```
+  270: def _bump(
+  ...
+  298:         sys.exit(1)
+  299:     except Exception as ex:
+> 300:         # TODO (mb 2020-09-18): Investigate error messages
+  301:         logger.error(str(ex))
+  302:         sys.exit(1)
+```
+
+
+## File src/pycalver/v2version.py - Line 617 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-20): New Rollover Behaviour:`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
@@ -138,29 +106,30 @@ The recommended approach to using `pylint-ignore` is:
 ```
   578: def incr(
   ...
-  614:     )
-  615:
-> 616:     # TODO (mb 2020-09-20): New Rollover Behaviour:
-  617:     #   Reset major, minor, patch to zero if any part to the left of it is incremented
-  618:
+  615:     )
+  616:
+> 617:     # TODO (mb 2020-09-20): New Rollover Behaviour:
+  618:     #   Reset major, minor, patch to zero if any part to the left of it is incremented
+  619:
 ```
 
 
 # W0703: broad-except
 
-## File src/pycalver/__main__.py - Line 258 - W0703 (broad-except)
+## File src/pycalver/__main__.py - Line 299 - W0703 (broad-except)
 
 - `message: Catching too general exception Exception`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-05T14:30:17`
 
 ```
-  231: def _bump(
+  270: def _bump(
   ...
-  256:         logger.error(str(ex))
-  257:         sys.exit(1)
-> 258:     except Exception as ex:
-  259:         # TODO (mb 2020-09-18): Investigate error messages
-  260:         logger.error(str(ex))
+  297:         logger.error(str(ex))
+  298:         sys.exit(1)
+> 299:     except Exception as ex:
+  300:         # TODO (mb 2020-09-18): Investigate error messages
+  301:         logger.error(str(ex))
 ```
+
 

@@ -66,13 +66,13 @@ VALID_RELEASE_VALUES = ("alpha", "beta", "dev", "rc", "post", "final")
 _current_date = dt.date.today().isoformat()
 
 
-def _validate_date(date: typ.Optional[str], pin_date: bool) -> dt.date:
+def _validate_date(date: typ.Optional[str], pin_date: bool) -> typ.Optional[dt.date]:
     if date and pin_date:
         logger.error(f"Can only use either --pin-date or --date='{date}', not both.")
         sys.exit(1)
 
     if date is None:
-        return
+        return None
 
     try:
         dt_val = dt.datetime.strptime(date, "%Y-%m-%d")
