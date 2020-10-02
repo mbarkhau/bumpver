@@ -104,13 +104,17 @@ def test_version(runner):
 
 
 def test_incr_default(runner):
-    old_version     = "v201701.0999-alpha"
-    initial_version = config._initial_version()
+    old_version = "v201701.0004-alpha"
 
-    result = runner.invoke(cli, ['test', "-vv", old_version])
+    cmd    = ['test', "-vv", "--pin-date", "--release", "beta", old_version]
+    result = runner.invoke(cli, cmd)
     assert result.exit_code == 0
-    new_version = initial_version.replace(".1001-alpha", ".11000-alpha")
-    assert f"Version: {new_version}\n" in result.output
+    assert f"Version: v201701.0005-beta\n" in result.output
+
+    cmd = ['test', "-vv", "--pin-date", "--release", "beta", old_version, "vYYYY0M.BUILD[-RELEASE]"]
+    result = runner.invoke(cli, cmd)
+    assert result.exit_code == 0
+    assert f"Version: v201701.1005-beta\n" in result.output
 
 
 def test_incr_pin_date(runner):
@@ -176,6 +180,17 @@ def test_incr_to_final(runner):
     result = runner.invoke(cli, ['test', old_version, "-vv", "--release", "final"])
     assert result.exit_code == 0
     new_version = initial_version.replace(".1001-alpha", ".11000")
+    assert f"Version: {new_version}\n" in result.output
+
+
+def test_incr_release_num(runner):
+    semver = "MAJOR.MINOR.PATCH[PYTAGNUM]"
+
+    old_version = "0.1.0b0"
+    new_version = "0.1.0b1"
+
+    result = runner.invoke(cli, ['test', "-vv", "--release-num", old_version, semver])
+    assert result.exit_code == 0
     assert f"Version: {new_version}\n" in result.output
 
 
