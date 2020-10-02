@@ -269,6 +269,8 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
                 f"Invalid character(s) '{invalid_chars.group(1)}'"
                 f" in pycalver.version_pattern = {raw_cfg['version_pattern']}"
             )
+        if not v2version.is_valid_week_pattern(version_pattern):
+            raise ValueError(f"Invalid week number pattern: {version_pattern}")
 
     # TODO (mb 2020-09-18): Validate Pattern
     #   detect YY with WW or UU -> suggest GG with VV

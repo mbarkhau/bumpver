@@ -575,6 +575,27 @@ def _incr_numeric(
     return vinfo
 
 
+def is_valid_week_pattern(raw_pattern) -> bool:
+    has_yy_part = any(part in raw_pattern for part in ["YYYY", "YY", "0Y"])
+    has_ww_part = any(part in raw_pattern for part in ["WW"  , "0W", "UU", "0U"])
+    has_gg_part = any(part in raw_pattern for part in ["GGGG", "GG", "0G"])
+    has_vv_part = any(part in raw_pattern for part in ["VV"  , "0V"])
+    if not ((has_yy_part or has_gg_part) and (has_ww_part or has_vv_part)):
+        return True
+    elif has_yy_part and has_vv_part:
+        alt1 = raw_pattern.replace("V", "W")
+        alt2 = raw_pattern.replace("Y", "G")
+        logger.error(f"Invalid pattern: '{raw_pattern}'. Maybe try {alt1} or {alt2}")
+        return False
+    elif has_gg_part and has_ww_part:
+        alt1 = raw_pattern.replace("W", "V").replace("U", "V")
+        alt2 = raw_pattern.replace("G", "Y")
+        logger.error(f"Invalid pattern: '{raw_pattern}'. Maybe try {alt1} or {alt2}")
+        return False
+    else:
+        return True
+
+
 def incr(
     old_version: str,
     raw_pattern: str = "vYYYY0M.BUILD[-RELEASE[NUM]]",
@@ -591,6 +612,9 @@ def incr(
 
     'old_version' is assumed to be a string that matches 'raw_pattern'
     """
+    if not is_valid_week_pattern(raw_pattern):
+        return None
+
     try:
         old_vinfo = parse_version_info(old_version, raw_pattern)
     except version.PatternError as ex:
