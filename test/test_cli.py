@@ -734,3 +734,33 @@ def test_grep(runner):
 
     search_re = r"^\s+3:\s+\[aka\. 201701\.1002a0 \!\]"
     assert re.search(search_re, result.output, flags=re.MULTILINE)
+
+
+SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE = r"""
+[pycalver]
+current_version = "v201701.1002-alpha"
+version_pattern = "{pycalver}"
+
+[pycalver:file_patterns]
+setup.cfg =
+    current_version = "{version}"
+README.md =
+    Hello World {version} !
+README.* =
+    [aka. {pep440_version} !]
+"""
+
+
+def test_multimatch_file_patterns(runner):
+    _add_project_files("README.md")
+    with pl.Path("setup.cfg").open(mode="w", encoding="utf-8") as fobj:
+        fobj.write(SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE)
+
+    result = runner.invoke(cli, ['bump', '--release', 'beta'])
+    assert result.exit_code == 0
+
+    with pl.Path("README.md").open(mode="r", encoding="utf-8") as fobj:
+        readme_text = fobj.read()
+
+    assert "Hello World v202010.1003-beta !" in readme_text
+    assert "[aka. 202010.1003b0 !]" in readme_text

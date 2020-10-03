@@ -248,8 +248,55 @@ def _compile_v2_file_patterns(raw_cfg: RawConfig) -> typ.Iterable[FilePatternsIt
         yield filepath, compiled_patterns
 
 
+def _compile_file_patterns(raw_cfg: RawConfig, is_new_pattern: bool) -> PatternsByFile:
+    if is_new_pattern:
+        _file_pattern_items = _compile_v2_file_patterns(raw_cfg)
+    else:
+        _file_pattern_items = _compile_v1_file_patterns(raw_cfg)
+
+    # NOTE (mb 2020-10-03): There can be multiple items for the same
+    #   path, so this is not an option:
+    #
+    # return dict(_file_pattern_items)
+
+    file_patterns: PatternsByFile = {}
+    for path, patterns in _file_pattern_items:
+        if path in file_patterns:
+            file_patterns[path].extend(patterns)
+        else:
+            file_patterns[path] = patterns
+    return file_patterns
+
+
+def _validate_version_with_pattern(
+    current_version: str,
+    version_pattern: str,
+    is_new_pattern : bool,
+) -> None:
+    """Provoke ValueError if version_pattern and current_version are not compatible."""
+    if is_new_pattern:
+        v2version.parse_version_info(current_version, version_pattern)
+    else:
+        v1version.parse_version_info(current_version, version_pattern)
+
+    if is_new_pattern:
+        invalid_chars = re.search(r"([\s]+)", version_pattern)
+        if invalid_chars:
+            errmsg = (
+                f"Invalid character(s) '{invalid_chars.group(1)}'"
+                f' in pycalver.version_pattern = "{version_pattern}"'
+            )
+            raise ValueError(errmsg)
+        if not v2version.is_valid_week_pattern(version_pattern):
+            errmsg = f"Invalid week number pattern: {version_pattern}"
+            raise ValueError(errmsg)
+
+
 def _parse_config(raw_cfg: RawConfig) -> Config:
     """Parse configuration which was loaded from an .ini/.cfg or .toml file."""
+
+    commit_message: str = raw_cfg.get('commit_message', DEFAULT_COMMIT_MESSAGE)
+    commit_message = raw_cfg['commit_message'] = commit_message.strip("'\" ")
 
     current_version: str = raw_cfg['current_version']
     current_version = raw_cfg['current_version'] = current_version.strip("'\" ")
@@ -257,34 +304,12 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     version_pattern: str = raw_cfg['version_pattern']
     version_pattern = raw_cfg['version_pattern'] = version_pattern.strip("'\" ")
 
-    commit_message: str = raw_cfg.get('commit_message', DEFAULT_COMMIT_MESSAGE)
-    commit_message = raw_cfg['commit_message'] = commit_message.strip("'\" ")
-
     is_new_pattern = "{" not in version_pattern and "}" not in version_pattern
-
-    if is_new_pattern:
-        invalid_chars = re.search(r"([\s]+)", raw_cfg['version_pattern'])
-        if invalid_chars:
-            raise ValueError(
-                f"Invalid character(s) '{invalid_chars.group(1)}'"
-                f" in pycalver.version_pattern = {raw_cfg['version_pattern']}"
-            )
-        if not v2version.is_valid_week_pattern(version_pattern):
-            raise ValueError(f"Invalid week number pattern: {version_pattern}")
-
-    # TODO (mb 2020-09-18): Validate Pattern
-    #   detect YY with WW or UU -> suggest GG with VV
-    #   detect YYMM -> suggest YY0M
-    #   detect YYWW -> suggest YY0W
-
-    # NOTE (mb 2019-01-05): Provoke ValueError if version_pattern
-    #   and current_version are not compatible.
-    if is_new_pattern:
-        v2version.parse_version_info(current_version, version_pattern)
-    else:
-        v1version.parse_version_info(current_version, version_pattern)
+    _validate_version_with_pattern(current_version, version_pattern, is_new_pattern)
 
     pep440_version = version.to_pep440(current_version)
+
+    file_patterns = _compile_file_patterns(raw_cfg, is_new_pattern)
 
     commit = raw_cfg['commit']
     tag    = raw_cfg['tag']
@@ -300,11 +325,6 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
 
     if push and not commit:
         raise ValueError("pycalver.commit = true required if pycalver.push = true")
-
-    if is_new_pattern:
-        file_patterns = dict(_compile_v2_file_patterns(raw_cfg))
-    else:
-        file_patterns = dict(_compile_v1_file_patterns(raw_cfg))
 
     cfg = Config(
         current_version=current_version,
