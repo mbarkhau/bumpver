@@ -13,6 +13,7 @@
  - Fix gitlab #8: Push tags only pushed tags, not actual commit.
  - Fix gitlab #9: Make commit message configurable.
  - Fix gitlab #11: Show regexp when `--verbose` is used.
+ - Fix: Disallow `--release=dev` which has different semantics than other release tags.
  - Switch main repo from gitlab to github.
 
 

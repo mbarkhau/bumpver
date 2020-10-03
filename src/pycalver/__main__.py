@@ -69,7 +69,7 @@ def _configure_logging(verbose: int = 0) -> None:
     logger.debug("Logging configured.")
 
 
-VALID_RELEASE_VALUES = ("alpha", "beta", "dev", "rc", "post", "final")
+VALID_RELEASE_VALUES = ("alpha", "beta", "rc", "post", "final")
 
 
 _current_date = dt.date.today().isoformat()
