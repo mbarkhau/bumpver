@@ -13,6 +13,7 @@ from . import parse
 from . import config
 from . import rewrite
 from . import version
+from . import regexfmt
 from . import v2version
 from . import v2patterns
 from .patterns import Pattern
@@ -43,7 +44,14 @@ def rewrite_lines(
     if non_matched_patterns:
         for nmp in non_matched_patterns:
             logger.error(f"No match for pattern '{nmp.raw_pattern}'")
-            logger.error(f"Pattern compiles to regex '{nmp.regexp.pattern}'")
+            msg = (
+                "\n# "
+                + regexfmt.regex101_url(nmp.regexp.pattern)
+                + "\nregex = "
+                + regexfmt.pyexpr_regex(nmp.regexp.pattern)
+            )
+            logger.error(msg)
+            logger.error(msg)
         raise rewrite.NoPatternMatch("Invalid pattern(s)")
     else:
         return new_lines

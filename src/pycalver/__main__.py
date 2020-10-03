@@ -148,8 +148,8 @@ def test(
     minor      : bool = False,
     patch      : bool = False,
     release_num: bool = False,
-    date       : typ.Optional[str] = None,
     pin_date   : bool = False,
+    date       : typ.Optional[str] = None,
 ) -> None:
     """Increment a version number for demo purposes."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
@@ -177,6 +177,109 @@ def test(
 
     click.echo(f"New Version: {new_version}")
     click.echo(f"PEP440     : {pep440_version}")
+
+
+def _grep_text(pattern: patterns.Pattern, text: str, color: bool) -> int:
+    match_count = 0
+    all_lines   = text.splitlines()
+    for match in pattern.regexp.finditer(text):
+        match_count += 1
+        match_start, match_end = match.span()
+
+        line_idx   = text[:match_start].count("\n")
+        line_start = text.rfind("\n", 0, match_start) + 1
+        line_end   = text.find("\n", match_end, -1)
+        if color:
+            matched_line = (
+                text[line_start:match_start]
+                + colorama.Style.BRIGHT
+                + text[match_start:match_end]
+                + colorama.Style.RESET_ALL
+                + text[match_end:line_end]
+            )
+        else:
+            matched_line = (
+                text[line_start:match_start]
+                + text[match_start:match_end]
+                + text[match_end:line_end]
+            )
+
+        lines_offset = max(0, line_idx - 1) + 1
+        lines        = all_lines[line_idx - 1 : line_idx + 2]
+
+        if line_idx == 0:
+            lines[0] = matched_line
+        else:
+            lines[1] = matched_line
+
+        for i, line in enumerate(lines):
+            print(f"{lines_offset + i:>4}: {line}")
+
+        print()
+    return match_count
+
+
+def _grep(
+    raw_pattern: str,
+    file_ios   : typ.Tuple[io.TextIOWrapper],
+    color      : bool,
+) -> None:
+    pattern = v2patterns.compile_pattern(raw_pattern)
+
+    match_count = 0
+    for file_io in file_ios:
+        text = file_io.read()
+
+        _match_count = _grep_text(pattern, text, color)
+
+        print()
+        print(f"Found {_match_count} match for pattern '{raw_pattern}' in {file_io.name}")
+        print()
+
+        match_count += _match_count
+
+    if match_count == 0 or _VERBOSE:
+        pyexpr_regex = regexfmt.pyexpr_regex(pattern.regexp.pattern)
+
+        print(f"# pycalver pattern: '{raw_pattern}'")
+        print("# " + regexfmt.regex101_url(pattern.regexp.pattern))
+        print(pyexpr_regex)
+        print()
+
+    if match_count == 0:
+        sys.exit(1)
+
+
+@cli.command()
+@click.option(
+    "-v",
+    "--verbose",
+    count=True,
+    help="Control log level. -vv for debug level.",
+)
+@click.argument("pattern")
+@click.argument('files', nargs=-1, type=click.File('r'))
+def grep(
+    pattern: str,
+    files  : typ.Tuple[io.TextIOWrapper],
+    verbose: int = 0,
+) -> None:
+    """Search file(s) for a version pattern."""
+    verbose = max(_VERBOSE, verbose)
+    _configure_logging(verbose)
+
+    raw_pattern = pattern  # use internal naming convention
+
+    isatty = getattr(sys.stdout, 'isatty', lambda: False)
+
+    if isatty():
+        colorama.init()
+        try:
+            _grep(raw_pattern, files, color=True)
+        finally:
+            colorama.deinit()
+    else:
+        _grep(raw_pattern, files, color=False)
 
 
 @cli.command()
@@ -254,7 +357,8 @@ def _incr(
         else:
             pattern = v2patterns.compile_pattern(raw_pattern)
 
-        logger.info(f"Using pattern {raw_pattern}/{pattern.regexp.pattern}")
+        logger.info("Using pattern " + raw_pattern)
+        logger.info("regex = " + regexfmt.pyexpr_regex(pattern.regexp.pattern))
 
     if has_v1_part:
         return v1version.incr(
@@ -493,109 +597,6 @@ def bump(
     commit_message = cfg.commit_message.format(**commit_message_kwargs)
 
     _try_bump(cfg, new_version, commit_message, allow_dirty)
-
-
-def _grep_text(pattern: patterns.Pattern, text: str, color: bool) -> int:
-    match_count = 0
-    all_lines   = text.splitlines()
-    for match in pattern.regexp.finditer(text):
-        match_count += 1
-        match_start, match_end = match.span()
-
-        line_idx   = text[:match_start].count("\n")
-        line_start = text.rfind("\n", 0, match_start) + 1
-        line_end   = text.find("\n", match_end, -1)
-        if color:
-            matched_line = (
-                text[line_start:match_start]
-                + colorama.Style.BRIGHT
-                + text[match_start:match_end]
-                + colorama.Style.RESET_ALL
-                + text[match_end:line_end]
-            )
-        else:
-            matched_line = (
-                text[line_start:match_start]
-                + text[match_start:match_end]
-                + text[match_end:line_end]
-            )
-
-        lines_offset = max(0, line_idx - 1) + 1
-        lines        = all_lines[line_idx - 1 : line_idx + 2]
-
-        if line_idx == 0:
-            lines[0] = matched_line
-        else:
-            lines[1] = matched_line
-
-        for i, line in enumerate(lines):
-            print(f"{lines_offset + i:>4}: {line}")
-
-        print()
-    return match_count
-
-
-def _grep(
-    raw_pattern: str,
-    file_ios   : typ.Tuple[io.TextIOWrapper],
-    color      : bool,
-) -> None:
-    pattern = v2patterns.compile_pattern(raw_pattern)
-
-    match_count = 0
-    for file_io in file_ios:
-        text = file_io.read()
-
-        _match_count = _grep_text(pattern, text, color)
-
-        print()
-        print(f"Found {_match_count} match for pattern '{raw_pattern}' in {file_io.name}")
-        print()
-
-        match_count += _match_count
-
-    if match_count == 0 or _VERBOSE:
-        pyexpr_regex = regexfmt.pyexpr_regex(pattern.regexp.pattern)
-
-        print(f"# pycalver pattern: '{raw_pattern}'")
-        print("# " + regexfmt.regex101_url(pattern))
-        print(pyexpr_regex)
-        print()
-
-    if match_count == 0:
-        sys.exit(1)
-
-
-@cli.command()
-@click.option(
-    "-v",
-    "--verbose",
-    count=True,
-    help="Control log level. -vv for debug level.",
-)
-@click.argument("pattern")
-@click.argument('files', nargs=-1, type=click.File('r'))
-def grep(
-    pattern: str,
-    files  : typ.Tuple[io.TextIOWrapper],
-    verbose: int = 0,
-) -> None:
-    """Search files for a version pattern."""
-    verbose = max(_VERBOSE, verbose)
-    _configure_logging(verbose)
-
-    raw_pattern = pattern  # use internal naming convention
-
-    isatty = getattr(sys.stdout, 'isatty', lambda: False)
-
-    if isatty():
-        colorama.init()
-        try:
-            _grep(raw_pattern, files, color=True)
-        finally:
-            colorama.deinit()
-    else:
-        _grep(raw_pattern, files, color=False)
 
 
 if __name__ == '__main__':

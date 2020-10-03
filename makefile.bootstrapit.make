@@ -395,7 +395,7 @@ test:
 		--cov-report term \
 		--html=reports/pytest/index.html \
 		--junitxml reports/pytest.xml \
-		-k "$${PYTEST_FILTER}" \
+		-k "$${PYTEST_FILTER-$${FLTR}}" \
 		$(shell cd src/ && ls -1 */__init__.py | awk '{ sub(/\/__init__.py/, "", $$1); print "--cov "$$1 }') \
 		test/ src/;
 
@@ -515,7 +515,7 @@ devtest:
 		--capture=no \
 		--exitfirst \
 		--failed-first \
-		-k "$${PYTEST_FILTER}" \
+		-k "$${PYTEST_FILTER-$${FLTR}}" \
 		test/ src/;
 
 	@rm -rf "src/__pycache__";

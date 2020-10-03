@@ -148,8 +148,9 @@ V2_PART_PATTERN_CASES = [
 
 
 def _compile_part_re(pattern_str):
-    grouped_pattern_str = r"(?:" + pattern_str + r")"
-    return re.compile(grouped_pattern_str)
+    grouped_pattern_str = r"^(?:" + pattern_str + r")$"
+    # print("\n", grouped_pattern_str)
+    return re.compile(grouped_pattern_str, flags=re.MULTILINE)
 
 
 @pytest.mark.parametrize("parts, testcase, expected", V2_PART_PATTERN_CASES)
@@ -157,7 +158,10 @@ def test_v2_part_patterns(parts, testcase, expected):
     for part in parts:
         part_re = _compile_part_re(v2patterns.PART_PATTERNS[part])
         match   = part_re.match(testcase)
-        assert (match is None and expected is None) or (match.group(0) == expected)
+        if match is None:
+            assert expected is None
+        else:
+            assert match.group(0) == expected
 
 
 @pytest.mark.parametrize("part_name", v2patterns.PART_PATTERNS.keys())
@@ -176,8 +180,8 @@ PATTERN_PART_CASES = [
     ("pep440_pycalver", "201712.0033-alpha"  , None),
     ("pycalver"       , "v201712.0034"       , "v201712.0034"),
     ("pycalver"       , "v201712.0035-alpha" , "v201712.0035-alpha"),
-    ("pycalver"       , "v201712.0036-alpha0", "v201712.0036-alpha"),
-    ("pycalver"       , "v201712.0037-pre"   , "v201712.0037"),
+    ("pycalver"       , "v201712.0036-alpha0", None),
+    ("pycalver"       , "v201712.0037-pre"   , None),  # pre not available for v1 patterns
     ("pycalver"       , "201712.38a0"        , None),
     ("pycalver"       , "201712.0039"        , None),
     ("semver"         , "1.23.456"           , "1.23.456"),
@@ -194,17 +198,17 @@ PATTERN_PART_CASES = [
     ("release"        , "-dev"               , "-dev"),
     ("release"        , "-rc"                , "-rc"),
     ("release"        , "-post"              , "-post"),
-    ("release"        , "-pre"               , ""),
-    ("release"        , "alpha"              , ""),
+    ("release"        , "-pre"               , None),  # pre not available for v1 patterns
+    ("release"        , "alpha"              , None),  # missing dash "-" prefix
 ]
 
 
 @pytest.mark.parametrize("part_name, line, expected", PATTERN_PART_CASES)
 def test_v1_re_pattern_parts(part_name, line, expected):
     part_re = _compile_part_re(v1patterns.PART_PATTERNS[part_name])
-    result  = part_re.search(line)
+    result  = part_re.match(line)
     if result is None:
-        assert expected is None, (part_name, line)
+        assert expected is None, (part_name, line, result)
     else:
         result_val = result.group(0)
         assert result_val == expected, (part_name, line)

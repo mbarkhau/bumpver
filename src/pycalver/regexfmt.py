@@ -1,8 +1,15 @@
+# This file is part of the pycalver project
+# https://github.com/mbarkhau/pycalver
+#
+# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# SPDX-License-Identifier: MIT
 import re
+import logging
 import textwrap
 
 from . import pysix
-from . import patterns
+
+logger = logging.getLogger("pycalver.regexfmt")
 
 
 def format_regex(regex: str) -> str:
@@ -53,16 +60,16 @@ def pyexpr_regex(regex: str) -> str:
         return f"re.compile({repr(regex)})"
 
 
-def regex101_url(pattern: patterns.Pattern) -> str:
+def regex101_url(regex_pattern: str) -> str:
     try:
-        regex_text = format_regex(pattern.regexp.pattern)
+        regex_pattern = format_regex(regex_pattern)
     except re.error:
-        regex_text = pattern.regexp.pattern
+        logger.warning(f"Error formatting regex '{repr(regex_pattern)}'")
 
     return "".join(
         (
             "https://regex101.com/",
             "?flavor=python",
-            "&flags=gmx" "&regex=" + pysix.quote(regex_text),
+            "&flags=gmx" "&regex=" + pysix.quote(regex_pattern),
         )
     )
