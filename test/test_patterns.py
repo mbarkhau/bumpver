@@ -147,21 +147,27 @@ V2_PART_PATTERN_CASES = [
 ]
 
 
+def _compile_part_re(pattern_str):
+    grouped_pattern_str = r"(?:" + pattern_str + r")"
+    return re.compile(grouped_pattern_str)
+
+
 @pytest.mark.parametrize("parts, testcase, expected", V2_PART_PATTERN_CASES)
-def test_part_patterns(parts, testcase, expected):
+def test_v2_part_patterns(parts, testcase, expected):
     for part in parts:
-        pattern_str = v2patterns.PART_PATTERNS[part]
-        match       = re.match("^" + pattern_str + "$", testcase)
+        part_re = _compile_part_re(v2patterns.PART_PATTERNS[part])
+        match   = part_re.match(testcase)
         assert (match is None and expected is None) or (match.group(0) == expected)
 
 
-def _part_re_by_name(name):
-    return re.compile(v1patterns.PART_PATTERNS[name])
+@pytest.mark.parametrize("part_name", v2patterns.PART_PATTERNS.keys())
+def test_v1_part_compilation(part_name):
+    assert _compile_part_re(v2patterns.PART_PATTERNS[part_name])
 
 
 @pytest.mark.parametrize("part_name", v1patterns.PART_PATTERNS.keys())
-def test_part_compilation(part_name):
-    assert _part_re_by_name(part_name)
+def test_v2_part_compilation(part_name):
+    assert _compile_part_re(v1patterns.PART_PATTERNS[part_name])
 
 
 PATTERN_PART_CASES = [
@@ -194,8 +200,8 @@ PATTERN_PART_CASES = [
 
 
 @pytest.mark.parametrize("part_name, line, expected", PATTERN_PART_CASES)
-def test_re_pattern_parts(part_name, line, expected):
-    part_re = _part_re_by_name(part_name)
+def test_v1_re_pattern_parts(part_name, line, expected):
+    part_re = _compile_part_re(v1patterns.PART_PATTERNS[part_name])
     result  = part_re.search(line)
     if result is None:
         assert expected is None, (part_name, line)
@@ -213,7 +219,7 @@ PATTERN_V1_CASES = [
 
 
 @pytest.mark.parametrize("pattern_str, line, expected", PATTERN_V1_CASES)
-def test_patterns_v1(pattern_str, line, expected):
+def test_v1_patterns(pattern_str, line, expected):
     pattern = v1patterns.compile_pattern(pattern_str)
     result  = pattern.regexp.search(line)
     if result is None:
@@ -234,7 +240,7 @@ PATTERN_V2_CASES = [
 
 
 @pytest.mark.parametrize("pattern_str, line, expected", PATTERN_V2_CASES)
-def test_patterns_v2(pattern_str, line, expected):
+def test_v2_patterns(pattern_str, line, expected):
     pattern    = v2patterns.compile_pattern(pattern_str)
     result     = pattern.regexp.search(line)
     result_val = None if result is None else result.group(0)
