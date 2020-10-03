@@ -81,7 +81,7 @@ setuptools.setup(
     author="Manuel Barkhau",
     author_email="mbarkhau@gmail.com",
     url="https://github.com/mbarkhau/pycalver",
-    version="202010.1038b0",
+    version="202010.1039b0",
     keywords="version versioning bumpversion calver",
     description="CalVer for python libraries.",
     long_description=long_description,
