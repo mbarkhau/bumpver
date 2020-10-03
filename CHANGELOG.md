@@ -8,12 +8,15 @@
      - Better support for optional parts.
      - New: Start `BUILD` parts at `1000` to avoid leading zero truncation.
  - New gitlab #2: Added `grep` subcommand to find and debug patterns.
+ - New: Added better error messages to debug regular expressions.
  - New gitlab #10: `--pin-date` to keep date parts unchanged, and only increment non-date parts.
- - New add `--release-num` to increment the `alphaN`/`betaN`/`a0`/`b0`/etc. release number
+ - New: Added `--release-num` to increment the `alphaN`/`betaN`/`a0`/`b0`/etc. release number
+ - New: Added `--date=<iso-date>` parameter to set explicit date (instead of current date).
  - Fix gitlab #8: Push tags only pushed tags, not actual commit.
  - Fix gitlab #9: Make commit message configurable.
  - Fix gitlab #11: Show regexp when `--verbose` is used.
  - Fix: Disallow `--release=dev` which has different semantics than other release tags.
+ - Fix: Entries in `file_patterns` were ignored if there were multiple for the same file.
  - Switch main repo from gitlab to github.
 
 

@@ -133,11 +133,10 @@ def cli(verbose: int = 0) -> None:
 @click.option("-r"        , "--release-num", is_flag=True, default=False, help="Increment release number.")
 @click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
 @click.option(
-    "-d",
     "--date",
     default=None,
-    metavar="<date>",
-    help=f"Set explicit date in format YYYY-0M-0D (eg. {_current_date}).",
+    metavar="<iso-date>",
+    help=f"Set explicit date in format YYYY-0M-0D\n(eg. {_current_date}).",
 )
 def test(
     old_version: str,
@@ -212,10 +211,11 @@ def _grep_text(pattern: patterns.Pattern, text: str, color: bool) -> int:
         else:
             lines[1] = matched_line
 
+        print()
+
         for i, line in enumerate(lines):
             print(f"{lines_offset + i:>4}: {line}")
 
-        print()
     return match_count
 
 
@@ -444,7 +444,7 @@ def _try_bump(
 @cli.command()
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 @click.option(
-    "--dry", default=False, is_flag=True, help="Display diff of changes, don't rewrite files."
+    '-d', "--dry", default=False, is_flag=True, help="Display diff of changes, don't rewrite files."
 )
 def init(verbose: int = 0, dry: bool = False) -> None:
     """Initialize [pycalver] configuration."""
@@ -457,7 +457,7 @@ def init(verbose: int = 0, dry: bool = False) -> None:
         sys.exit(1)
 
     if dry:
-        click.echo(f"Exiting because of '--dry'. Would have written to {ctx.config_rel_path}:")
+        click.echo(f"Exiting because of '-d/--dry'. Would have written to {ctx.config_rel_path}:")
         cfg_text: str = config.default_config(ctx)
         click.echo("\n    " + "\n    ".join(cfg_text.splitlines()))
         sys.exit(0)
@@ -489,6 +489,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     help="Sync tags from remote origin.",
 )
 @click.option(
+    "-d",
     "--dry",
     default=False,
     is_flag=True,
@@ -519,11 +520,10 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 @click.option("-r", "--release-num", is_flag=True, default=False, help="Increment release number.")
 @click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
 @click.option(
-    "-d",
     "--date",
     default=None,
-    metavar="<date>",
-    help=f"Set explicit date in format YYYY-0M-0D (eg. {_current_date}).",
+    metavar="<iso-date>",
+    help=f"Set explicit date in format YYYY-0M-0D\n(eg. {_current_date}).",
 )
 def bump(
     release    : typ.Optional[str] = None,

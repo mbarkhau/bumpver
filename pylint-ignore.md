@@ -63,37 +63,20 @@ The recommended approach to using `pylint-ignore` is:
 ```
 
 
-## File src/pycalver/config.py - Line 275 - W0511 (fixme)
-
-- `message: TODO (mb 2020-09-18): Validate Pattern`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-18T19:04:06`
-
-```
-  251: def _parse_config(raw_cfg: RawConfig) -> Config:
-  ...
-  273:             raise ValueError(f"Invalid week number pattern: {version_pattern}")
-  274:
-> 275:     # TODO (mb 2020-09-18): Validate Pattern
-  276:     #   detect YY with WW or UU -> suggest GG with VV
-  277:     #   detect YYMM -> suggest YY0M
-```
-
-
-## File src/pycalver/__main__.py - Line 317 - W0511 (fixme)
+## File src/pycalver/__main__.py - Line 419 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-18): Investigate error messages`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-19T16:24:10`
 
 ```
-  287: def _bump(
+  389: def _bump(
   ...
-  315:         sys.exit(1)
-  316:     except Exception as ex:
-> 317:         # TODO (mb 2020-09-18): Investigate error messages
-  318:         logger.error(str(ex))
-  319:         sys.exit(1)
+  417:         sys.exit(1)
+  418:     except Exception as ex:
+> 419:         # TODO (mb 2020-09-18): Investigate error messages
+  420:         logger.error(str(ex))
+  421:         sys.exit(1)
 ```
 
 
@@ -101,7 +84,7 @@ The recommended approach to using `pylint-ignore` is:
 
 - `message: TODO (mb 2020-09-20): New Rollover Behaviour:`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-09-20T17:36:38`
+- `date   : 2020-10-03T19:31:28`
 
 ```
   599: def incr(
@@ -116,20 +99,20 @@ The recommended approach to using `pylint-ignore` is:
 
 # W0703: broad-except
 
-## File src/pycalver/__main__.py - Line 316 - W0703 (broad-except)
+## File src/pycalver/__main__.py - Line 418 - W0703 (broad-except)
 
 - `message: Catching too general exception Exception`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-05T14:30:17`
 
 ```
-  287: def _bump(
+  389: def _bump(
   ...
-  314:         logger.error(str(ex))
-  315:         sys.exit(1)
-> 316:     except Exception as ex:
-  317:         # TODO (mb 2020-09-18): Investigate error messages
-  318:         logger.error(str(ex))
+  416:         logger.error(str(ex))
+  417:         sys.exit(1)
+> 418:     except Exception as ex:
+  419:         # TODO (mb 2020-09-18): Investigate error messages
+  420:         logger.error(str(ex))
 ```
 
 

@@ -77,7 +77,7 @@ $ cd myproject
 ~/myproject/
 $ pycalver init --dry
 WARNING - File not found: pycalver.toml
-Exiting because of '--dry'. Would have written to pycalver.toml:
+Exiting because of '-d/--dry'. Would have written to pycalver.toml:
 
     [pycalver]
     current_version = "v202010.1001-alpha"
@@ -541,7 +541,7 @@ The steps performed by `bump` are:
 5. *Tag* the new commit.
 6. *Push* the new commit and tag.
 
-Again, you can use `--dry` to inspect the changes first.
+Again, you can use `-d/--dry` to inspect the changes first.
 
 ```
 $ pycalver bump --dry
@@ -597,12 +597,13 @@ TODO: Descriptions
 |   CLI Argument   | Description |
 |------------------|-------------|
 | --major          |             |
-| -m --minor       |             |
-| -p --patch       |             |
-| -r --release-num |             |
+| -m/--minor       |             |
+| -p/--patch       |             |
+| -r/--release-num |             |
+| --date           |             |
 | --pin-date       |             |
-| --no-fetch       |             |
-| --dry            |             |
+| -n/--no-fetch    |             |
+| -d/--dry         |             |
 | --allow-dirty    |             |
 
 
