@@ -23,11 +23,28 @@ The recommended approach to using `pylint-ignore` is:
 
 # Overview
 
- - [W0511: fixme (5x)](#w0511-fixme)
+ - [W0511: fixme (4x)](#w0511-fixme)
  - [W0703: broad-except (1x)](#w0703-broad-except)
 
 
 # W0511: fixme
+
+## File src/pycalver/v1cli.py - Line 29 - W0511 (fixme)
+
+- `message: TODO (mb 2020-10-03): This codepath is not tested since switch to`
+- `author : Manuel Barkhau <mbarkhau@gmail.com>`
+- `date   : 2020-10-03T23:40:01`
+
+```
+  23: def update_cfg_from_vcs(cfg: config.Config, all_tags: typ.List[str]) -> config.Config:
+  ...
+  27:         return cfg
+  28:
+> 29:     # TODO (mb 2020-10-03): This codepath is not tested since switch to
+  30:     #   v2 as default version_pattern.
+  31:     version_tags.sort(reverse=True)
+```
+
 
 ## File src/pycalver/vcs.py - Line 80 - W0511 (fixme)
 

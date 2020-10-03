@@ -26,6 +26,8 @@ def update_cfg_from_vcs(cfg: config.Config, all_tags: typ.List[str]) -> config.C
         logger.debug("no vcs tags found")
         return cfg
 
+    # TODO (mb 2020-10-03): This codepath is not tested since switch to
+    #   v2 as default version_pattern.
     version_tags.sort(reverse=True)
     _debug_tags = ", ".join(version_tags[:3])
     logger.debug(f"found tags: {_debug_tags} ... ({len(version_tags)} in total)")

@@ -414,7 +414,6 @@ def _format_segment_tree(
     segtree    : SegmentTree,
     part_values: PartValues,
 ) -> FormatedSeg:
-    # print("??>>>", seg_tree)
     # NOTE (mb 2020-10-02): starting from the right, if there is any non-zero
     #   part, all further parts going left will be used. In other words, a part
     #   is only omitted, if all parts to the right of it were also omitted.
@@ -432,7 +431,6 @@ def _format_segment_tree(
             is_zero = is_zero and formatted_seg.is_zero
             result_parts.append(formatted_seg.result)
 
-    # print("<<<<", is_zero, result_parts)
     result = "" if is_zero else "".join(result_parts)
     return FormatedSeg(False, is_zero, result)
 
