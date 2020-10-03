@@ -28,7 +28,7 @@ from pycalver.__main__ import cli
 
 README_TEXT_FIXTURE = """
         Hello World v201701.1002-alpha !
-        aka. 201701.1002a0 !
+        [aka. 201701.1002a0 !]
 """
 
 
@@ -421,7 +421,7 @@ def test_novcs_bump(runner):
     with pl.Path("README.md").open() as fobj:
         content = fobj.read()
         assert calver + ".1002-alpha !\n" in content
-        assert calver[1:] + ".1002a0 !\n" in content
+        assert calver[1:] + ".1002a0 !]\n" in content
 
     result = runner.invoke(cli, ['bump', "-vv", "--release", "beta"])
     assert result.exit_code == 0
@@ -429,7 +429,7 @@ def test_novcs_bump(runner):
     with pl.Path("README.md").open() as fobj:
         content = fobj.read()
         assert calver + ".1003-beta !\n" in content
-        assert calver[1:] + ".1003b0 !\n" in content
+        assert calver[1:] + ".1003b0 !]\n" in content
 
 
 def test_git_bump(runner):
@@ -584,9 +584,9 @@ def test_v1_get_diff(runner):
     diff_lines  = set(diff_str.splitlines())
 
     assert "-        Hello World v201701.1002-alpha !" in diff_lines
-    assert "-        aka. 201701.1002a0 !" in diff_lines
+    assert "-        [aka. 201701.1002a0 !]" in diff_lines
     assert "+        Hello World v202010.1003-beta !" in diff_lines
-    assert "+        aka. 202010.1003b0 !" in diff_lines
+    assert "+        [aka. 202010.1003b0 !]" in diff_lines
 
     assert '-current_version = "v202010.1001-alpha"' in diff_lines
     assert '+current_version = "v202010.1003-beta"' in diff_lines
@@ -605,9 +605,9 @@ def test_v2_get_diff(runner):
     diff_lines  = set(diff_str.splitlines())
 
     assert "-        Hello World v201701.1002-alpha !" in diff_lines
-    assert "-        aka. 201701.1002a0 !" in diff_lines
+    assert "-        [aka. 201701.1002a0 !]" in diff_lines
     assert "+        Hello World v202010.1003-beta !" in diff_lines
-    assert "+        aka. 202010.1003b0 !" in diff_lines
+    assert "+        [aka. 202010.1003b0 !]" in diff_lines
 
     assert '-current_version = "v202010.1001-alpha"' in diff_lines
     assert '+current_version = "v202010.1003-beta"' in diff_lines
@@ -687,11 +687,9 @@ def test_hg_commit_message(runner, caplog):
 
     commits = shell(*shlex.split("hg log -l 2")).decode("utf-8").split("\n\n")
 
-    summary = commits[1].split("summary:")[-1]
-    assert (
-        "bump from v201903.1001-alpha (201903.1001a0) to v201903.1002-beta (201903.1002b0)"
-        in summary
-    )
+    expected = "bump from v201903.1001-alpha (201903.1001a0) to v201903.1002-beta (201903.1002b0)"
+    summary  = commits[1].split("summary:")[-1]
+    assert expected in summary
 
 
 def test_git_commit_message(runner, caplog):
@@ -716,7 +714,23 @@ def test_git_commit_message(runner, caplog):
 
     commits = shell(*shlex.split("git log -l 2")).decode("utf-8").split("\n\n")
 
-    summary = commits[1]
-    assert (
-        "bump: v201903.1001-alpha (201903.1001a0) -> v201903.1002-beta (201903.1002b0)" in summary
-    )
+    expected = "bump: v201903.1001-alpha (201903.1001a0) -> v201903.1002-beta (201903.1002b0)"
+    assert expected in commits[1]
+
+
+def test_grep(runner):
+    _add_project_files("README.md")
+
+    result = runner.invoke(cli, ['grep', r"vYYYY0M.BUILD[-RELEASE]", "README.md"])
+    assert result.exit_code == 0
+    assert "Found 1 match for pattern" in result.output
+
+    search_re = r"^\s+2:\s+Hello World v201701\.1002-alpha !"
+    assert re.search(search_re, result.output, flags=re.MULTILINE)
+
+    result = runner.invoke(cli, ['grep', r"\[aka. YYYY0M.BLD[PYTAGNUM] \!\]", "README.md"])
+    assert result.exit_code == 0
+    assert "Found 1 match for pattern" in result.output
+
+    search_re = r"^\s+3:\s+\[aka\. 201701\.1002a0 \!\]"
+    assert re.search(search_re, result.output, flags=re.MULTILINE)

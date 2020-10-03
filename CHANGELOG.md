@@ -7,10 +7,12 @@
      - Better support for week numbering.
      - Better support for optional parts.
      - New: Start `BUILD` parts at `1000` to avoid leading zero truncation.
+ - New gitlab #2: Added `grep` subcommand to find and debug patterns.
  - New gitlab #10: `--pin-date` to keep date parts unchanged, and only increment non-date parts.
  - New add `--release-num` to increment the `alphaN`/`betaN`/`a0`/`b0`/etc. release number
  - Fix gitlab #8: Push tags only pushed tags, not actual commit.
  - Fix gitlab #9: Make commit message configurable.
+ - Fix gitlab #11: Show regexp when `--verbose` is used.
  - Switch main repo from gitlab to github.
 
 

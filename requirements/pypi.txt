@@ -12,3 +12,4 @@ typing; python_version < "3.5"
 click
 toml
 lexid
+colorama>=0.4

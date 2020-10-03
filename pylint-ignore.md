@@ -63,7 +63,7 @@ The recommended approach to using `pylint-ignore` is:
 ```
 
 
-## File src/pycalver/config.py - Line 273 - W0511 (fixme)
+## File src/pycalver/config.py - Line 275 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-18): Validate Pattern`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
@@ -72,64 +72,64 @@ The recommended approach to using `pylint-ignore` is:
 ```
   251: def _parse_config(raw_cfg: RawConfig) -> Config:
   ...
-  271:             )
-  272:
-> 273:     # TODO (mb 2020-09-18): Validate Pattern
-  274:     #   detect YY with WW or UU -> suggest GG with VV
-  275:     #   detect YYMM -> suggest YY0M
+  273:             raise ValueError(f"Invalid week number pattern: {version_pattern}")
+  274:
+> 275:     # TODO (mb 2020-09-18): Validate Pattern
+  276:     #   detect YY with WW or UU -> suggest GG with VV
+  277:     #   detect YYMM -> suggest YY0M
 ```
 
 
-## File src/pycalver/__main__.py - Line 300 - W0511 (fixme)
+## File src/pycalver/__main__.py - Line 317 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-18): Investigate error messages`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-19T16:24:10`
 
 ```
-  270: def _bump(
+  287: def _bump(
   ...
-  298:         sys.exit(1)
-  299:     except Exception as ex:
-> 300:         # TODO (mb 2020-09-18): Investigate error messages
-  301:         logger.error(str(ex))
-  302:         sys.exit(1)
+  315:         sys.exit(1)
+  316:     except Exception as ex:
+> 317:         # TODO (mb 2020-09-18): Investigate error messages
+  318:         logger.error(str(ex))
+  319:         sys.exit(1)
 ```
 
 
-## File src/pycalver/v2version.py - Line 617 - W0511 (fixme)
+## File src/pycalver/v2version.py - Line 641 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-20): New Rollover Behaviour:`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-20T17:36:38`
 
 ```
-  578: def incr(
+  599: def incr(
   ...
-  615:     )
-  616:
-> 617:     # TODO (mb 2020-09-20): New Rollover Behaviour:
-  618:     #   Reset major, minor, patch to zero if any part to the left of it is incremented
-  619:
+  639:     )
+  640:
+> 641:     # TODO (mb 2020-09-20): New Rollover Behaviour:
+  642:     #   Reset major, minor, patch to zero if any part to the left of it is incremented
+  643:
 ```
 
 
 # W0703: broad-except
 
-## File src/pycalver/__main__.py - Line 299 - W0703 (broad-except)
+## File src/pycalver/__main__.py - Line 316 - W0703 (broad-except)
 
 - `message: Catching too general exception Exception`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-05T14:30:17`
 
 ```
-  270: def _bump(
+  287: def _bump(
   ...
-  297:         logger.error(str(ex))
-  298:         sys.exit(1)
-> 299:     except Exception as ex:
-  300:         # TODO (mb 2020-09-18): Investigate error messages
-  301:         logger.error(str(ex))
+  314:         logger.error(str(ex))
+  315:         sys.exit(1)
+> 316:     except Exception as ex:
+  317:         # TODO (mb 2020-09-18): Investigate error messages
+  318:         logger.error(str(ex))
 ```
 
 
