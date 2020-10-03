@@ -63,56 +63,39 @@ The recommended approach to using `pylint-ignore` is:
 ```
 
 
-## File src/pycalver/__main__.py - Line 419 - W0511 (fixme)
+## File src/pycalver/__main__.py - Line 421 - W0511 (fixme)
 
 - `message: TODO (mb 2020-09-18): Investigate error messages`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-19T16:24:10`
 
 ```
-  389: def _bump(
+  391: def _bump(
   ...
-  417:         sys.exit(1)
-  418:     except Exception as ex:
-> 419:         # TODO (mb 2020-09-18): Investigate error messages
-  420:         logger.error(str(ex))
-  421:         sys.exit(1)
-```
-
-
-## File src/pycalver/v2version.py - Line 641 - W0511 (fixme)
-
-- `message: TODO (mb 2020-09-20): New Rollover Behaviour:`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-10-03T19:31:28`
-
-```
-  599: def incr(
-  ...
-  639:     )
-  640:
-> 641:     # TODO (mb 2020-09-20): New Rollover Behaviour:
-  642:     #   Reset major, minor, patch to zero if any part to the left of it is incremented
-  643:
+  419:         sys.exit(1)
+  420:     except Exception as ex:
+> 421:         # TODO (mb 2020-09-18): Investigate error messages
+  422:         logger.error(str(ex))
+  423:         sys.exit(1)
 ```
 
 
 # W0703: broad-except
 
-## File src/pycalver/__main__.py - Line 418 - W0703 (broad-except)
+## File src/pycalver/__main__.py - Line 420 - W0703 (broad-except)
 
 - `message: Catching too general exception Exception`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-09-05T14:30:17`
 
 ```
-  389: def _bump(
+  391: def _bump(
   ...
-  416:         logger.error(str(ex))
-  417:         sys.exit(1)
-> 418:     except Exception as ex:
-  419:         # TODO (mb 2020-09-18): Investigate error messages
-  420:         logger.error(str(ex))
+  418:         logger.error(str(ex))
+  419:         sys.exit(1)
+> 420:     except Exception as ex:
+  421:         # TODO (mb 2020-09-18): Investigate error messages
+  422:         logger.error(str(ex))
 ```
 
 

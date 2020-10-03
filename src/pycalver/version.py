@@ -109,18 +109,30 @@ assert set(RELEASE_BY_PEP440_TAG.keys()) == set(PEP440_TAG_BY_RELEASE.values())
 assert set(RELEASE_BY_PEP440_TAG.values()) < set(PEP440_TAG_BY_RELEASE.keys())
 
 
-ZERO_VALUES = {
+PART_ZERO_VALUES = {
     'MAJOR'  : "0",
     'MINOR'  : "0",
     'PATCH'  : "0",
     'RELEASE': "final",
     'PYTAG'  : "",
     'NUM'    : "0",
+    'INC'    : "0",
+}
+
+
+V2_FIELD_ZERO_VALUES = {
+    'major': "0",
+    'minor': "0",
+    'patch': "0",
+    'tag'  : "final",
+    'pytag': "",
+    'num'  : "0",
+    'inc'  : "0",
 }
 
 
 def is_zero_val(part: str, part_value: str) -> bool:
-    return part in ZERO_VALUES and part_value == ZERO_VALUES[part]
+    return part in PART_ZERO_VALUES and part_value == PART_ZERO_VALUES[part]
 
 
 class PatternError(Exception):

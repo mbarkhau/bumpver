@@ -10,6 +10,7 @@ import re
 import time
 import shlex
 import shutil
+import datetime as dt
 import subprocess as sp
 
 import pytest
@@ -21,6 +22,7 @@ from pycalver import v2cli
 from pycalver import config
 from pycalver import v1patterns
 from pycalver.__main__ import cli
+from pycalver.__main__ import incr_dispatch
 
 # pylint:disable=redefined-outer-name ; pytest fixtures
 # pylint:disable=protected-access ; allowed for test code
@@ -764,3 +766,32 @@ def test_multimatch_file_patterns(runner):
 
     assert "Hello World v202010.1003-beta !" in readme_text
     assert "[aka. 202010.1003b0 !]" in readme_text
+
+
+def _kwargs(month, minor):
+    return {'date': dt.date(2020, month, 1), 'minor': minor}
+
+
+ROLLOVER_TEST_CASES = [
+    # v1 cases
+    ["{year}.{month}.{MINOR}", "2020.10.3", "2020.10.4", _kwargs(10, True)],
+    ["{year}.{month}.{MINOR}", "2020.10.3", None, _kwargs(10, False)],
+    ["{year}.{month}.{MINOR}", "2020.10.3", "2020.11.4", _kwargs(11, True)],
+    ["{year}.{month}.{MINOR}", "2020.10.3", "2020.11.3", _kwargs(11, False)],
+    # v2 cases
+    ["YYYY.MM.MINOR"  , "2020.10.3", "2020.10.4", _kwargs(10, True)],
+    ["YYYY.MM.MINOR"  , "2020.10.3", None, _kwargs(10, False)],
+    ["YYYY.MM.MINOR"  , "2020.10.3", "2020.11.0", _kwargs(11, True)],
+    ["YYYY.MM.MINOR"  , "2020.10.3", "2020.11.0", _kwargs(11, False)],
+    ["YYYY.MM[.MINOR]", "2020.10.3", "2020.10.4", _kwargs(10, True)],
+    ["YYYY.MM[.MINOR]", "2020.10.3", "2020.11", _kwargs(11, False)],
+]
+
+
+@pytest.mark.parametrize("version_pattern, old_version, expected, kwargs", ROLLOVER_TEST_CASES)
+def test_rollover(version_pattern, old_version, expected, kwargs):
+    new_version = incr_dispatch(old_version, raw_pattern=version_pattern, **kwargs)
+    if new_version is None:
+        assert expected is None
+    else:
+        assert new_version == expected

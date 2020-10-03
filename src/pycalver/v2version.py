@@ -318,36 +318,19 @@ def _format_part_values(vinfo: version.V2VersionInfo) -> PartValues:
     return sorted(kwargs.items(), key=lambda item: -len(item[0]))
 
 
-def _clear_zero_segments(
-    formatted_segs: typ.List[str], is_zero_segment: typ.List[bool]
-) -> typ.List[str]:
-    non_zero_segs = list(formatted_segs)
-
-    has_val_to_right = False
-    for idx, is_zero in reversed(list(enumerate(is_zero_segment))):
-        is_optional = 0 < idx < len(formatted_segs) - 1
-        if is_optional:
-            if is_zero and not has_val_to_right:
-                non_zero_segs[idx] = ""
-            else:
-                has_val_to_right = True
-
-    return non_zero_segs
-
-
 Segment = str
 # mypy limitation wrt. cyclic definition
 # SegmentTree = typ.List[typ.Union[Segment, "SegmentTree"]]
 SegmentTree = typ.Any
 
 
-def _parse_segment_tree(raw_pattern: str) -> SegmentTree:
+def _parse_segtree(raw_pattern: str) -> SegmentTree:
     """Generate segment tree from pattern string.
 
-    >>> tree = _parse_segment_tree("aa[bb[cc]]")
-    >>> assert tree == ["aa", ["bb", ["cc"]]]
-    >>> tree = _parse_segment_tree("aa[bb[cc]dd[ee]ff]gg")
-    >>> assert tree == ["aa", ["bb", ["cc"], "dd", ["ee"], "ff"], "gg"]
+    >>> _parse_segtree('aa[bb[cc]]')
+    ['aa', ['bb', ['cc']]]
+    >>> _parse_segtree('aa[bb[cc]dd[ee]ff]gg')
+    ['aa', ['bb', ['cc'], 'dd', ['ee'], 'ff'], 'gg']
     """
 
     internal_root: SegmentTree = []
@@ -428,7 +411,7 @@ def _format_segment(seg: Segment, part_values: PartValues) -> FormatedSeg:
 
 
 def _format_segment_tree(
-    seg_tree   : SegmentTree,
+    segtree    : SegmentTree,
     part_values: PartValues,
 ) -> FormatedSeg:
     # print("??>>>", seg_tree)
@@ -437,7 +420,7 @@ def _format_segment_tree(
     #   is only omitted, if all parts to the right of it were also omitted.
     result_parts: typ.List[str] = []
     is_zero = True
-    for seg in seg_tree:
+    for seg in segtree:
         if isinstance(seg, list):
             formatted_seg = _format_segment_tree(seg, part_values)
         else:
@@ -541,38 +524,95 @@ def format_version(vinfo: version.V2VersionInfo, raw_pattern: str) -> str:
     '__version__ = "v1.0.0-rc2"'
     """
     part_values   = _format_part_values(vinfo)
-    seg_tree      = _parse_segment_tree(raw_pattern)
-    formatted_seg = _format_segment_tree(seg_tree, part_values)
+    segtree       = _parse_segtree(raw_pattern)
+    formatted_seg = _format_segment_tree(segtree, part_values)
     return formatted_seg.result
 
 
+def _iter_flat_segtree(segtree: SegmentTree) -> typ.Iterable[Segment]:
+    """Flatten a SegmentTree (mixed nested list of lists or str).
+
+    >>> list(_iter_flat_segtree(['aa', ['bb', ['cc'], 'dd', ['ee'], 'ff'], 'gg']))
+    ['aa', 'bb', 'cc', 'dd', 'ee', 'ff', 'gg']
+    """
+    for subtree in segtree:
+        if isinstance(subtree, list):
+            for seg in _iter_flat_segtree(subtree):
+                yield seg
+        else:
+            yield subtree
+
+
+def _parse_pattern_fields(raw_pattern: str) -> typ.List[str]:
+    parts = list(v2patterns.PATTERN_PART_FIELDS.keys())
+    parts.sort(key=len, reverse=True)
+
+    segtree  = _parse_segtree(raw_pattern)
+    segments = _iter_flat_segtree(segtree)
+
+    fields_by_index = {}
+    for segment_index, segment in enumerate(segments):
+        for part in parts:
+            part_index = segment.find(part)
+            if part_index >= 0:
+                field = v2patterns.PATTERN_PART_FIELDS[part]
+                fields_by_index[segment_index, part_index] = field
+
+    return [field for _, field in sorted(fields_by_index.items())]
+
+
+def _iter_reset_field_items(
+    fields   : typ.List[str],
+    old_vinfo: version.V2VersionInfo,
+    cur_vinfo: version.V2VersionInfo,
+) -> typ.Iterable[typ.Tuple[str, str]]:
+    # Any field to the left of another can reset all to the right
+    has_reset = False
+    for field in fields:
+        zero_val = version.V2_FIELD_ZERO_VALUES.get(field)
+        if has_reset and zero_val is not None:
+            yield field, zero_val
+        elif getattr(old_vinfo, field) != getattr(cur_vinfo, field):
+            has_reset = True
+
+
 def _incr_numeric(
-    vinfo      : version.V2VersionInfo,
+    raw_pattern: str,
+    old_vinfo  : version.V2VersionInfo,
+    cur_vinfo  : version.V2VersionInfo,
     major      : bool,
     minor      : bool,
     patch      : bool,
-    release    : typ.Optional[str],
+    tag        : typ.Optional[str],
     release_num: bool,
 ) -> version.V2VersionInfo:
+    # Reset major/minor/patch/num/inc to zero if any part to the left of it is incremented
+    fields       = _parse_pattern_fields(raw_pattern)
+    reset_fields = dict(_iter_reset_field_items(fields, old_vinfo, cur_vinfo))
+
+    cur_kwargs = cur_vinfo._asdict()
+    cur_kwargs.update(reset_fields)
+    cur_vinfo = version.V2VersionInfo(**cur_kwargs)
+
     # prevent truncation of leading zeros
-    if int(vinfo.bid) < 1000:
-        vinfo = vinfo._replace(bid=str(int(vinfo.bid) + 1000))
+    if int(cur_vinfo.bid) < 1000:
+        cur_vinfo = cur_vinfo._replace(bid=str(int(cur_vinfo.bid) + 1000))
 
-    vinfo = vinfo._replace(bid=lexid.next_id(vinfo.bid))
+    cur_vinfo = cur_vinfo._replace(bid=lexid.next_id(cur_vinfo.bid))
 
-    if major:
-        vinfo = vinfo._replace(major=vinfo.major + 1, minor=0, patch=0)
-    if minor:
-        vinfo = vinfo._replace(minor=vinfo.minor + 1, patch=0)
-    if patch:
-        vinfo = vinfo._replace(patch=vinfo.patch + 1)
-    if release_num:
-        vinfo = vinfo._replace(num=vinfo.num + 1)
-    if release:
-        if release != vinfo.tag:
-            vinfo = vinfo._replace(num=0)
-        vinfo = vinfo._replace(tag=release)
-    return vinfo
+    if major and 'major' not in reset_fields:
+        cur_vinfo = cur_vinfo._replace(major=cur_vinfo.major + 1, minor=0, patch=0)
+    if minor and 'minor' not in reset_fields:
+        cur_vinfo = cur_vinfo._replace(minor=cur_vinfo.minor + 1, patch=0)
+    if patch and 'patch' not in reset_fields:
+        cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
+    if release_num and 'release_num' not in reset_fields:
+        cur_vinfo = cur_vinfo._replace(num=cur_vinfo.num + 1)
+    if tag and 'tag' not in reset_fields:
+        if tag != cur_vinfo.tag:
+            cur_vinfo = cur_vinfo._replace(num=0)
+        cur_vinfo = cur_vinfo._replace(tag=tag)
+    return cur_vinfo
 
 
 def is_valid_week_pattern(raw_pattern) -> bool:
@@ -580,9 +620,7 @@ def is_valid_week_pattern(raw_pattern) -> bool:
     has_ww_part = any(part in raw_pattern for part in ["WW"  , "0W", "UU", "0U"])
     has_gg_part = any(part in raw_pattern for part in ["GGGG", "GG", "0G"])
     has_vv_part = any(part in raw_pattern for part in ["VV"  , "0V"])
-    if not ((has_yy_part or has_gg_part) and (has_ww_part or has_vv_part)):
-        return True
-    elif has_yy_part and has_vv_part:
+    if has_yy_part and has_vv_part:
         alt1 = raw_pattern.replace("V", "W")
         alt2 = raw_pattern.replace("Y", "G")
         logger.error(f"Invalid pattern: '{raw_pattern}'. Maybe try {alt1} or {alt2}")
@@ -630,16 +668,15 @@ def incr(
         cur_vinfo = old_vinfo._replace(**cur_cinfo._asdict())
 
     cur_vinfo = _incr_numeric(
+        raw_pattern,
+        old_vinfo,
         cur_vinfo,
         major=major,
         minor=minor,
         patch=patch,
-        release=release,
+        tag=tag,
         release_num=release_num,
     )
-
-    # TODO (mb 2020-09-20): New Rollover Behaviour:
-    #   Reset major, minor, patch to zero if any part to the left of it is incremented
 
     new_version = format_version(cur_vinfo, raw_pattern)
     if new_version == old_version:
