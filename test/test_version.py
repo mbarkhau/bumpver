@@ -22,20 +22,20 @@ def test_bump_beta():
     cur_version = "v201712.0001-beta"
     assert cur_version < v1version.incr(cur_version)
     assert v1version.incr(cur_version).endswith("-beta")
-    assert v1version.incr(cur_version, release="alpha").endswith("-alpha")
-    assert v1version.incr(cur_version, release="final").endswith("0002")
+    assert v1version.incr(cur_version, tag="alpha").endswith("-alpha")
+    assert v1version.incr(cur_version, tag="final").endswith("0002")
 
 
 def test_bump_final():
     cur_version = "v201712.0001"
     assert cur_version < v1version.incr(cur_version)
     assert v1version.incr(cur_version).endswith(".0002")
-    assert v1version.incr(cur_version, release="alpha").endswith("-alpha")
+    assert v1version.incr(cur_version, tag="alpha").endswith("-alpha")
 
-    assert v1version.incr(cur_version, release="final").endswith(".0002")
+    assert v1version.incr(cur_version, tag="final").endswith(".0002")
 
     pre_version = cur_version + "-beta"
-    assert v1version.incr(pre_version, release="final").endswith(".0002")
+    assert v1version.incr(pre_version, tag="final").endswith(".0002")
 
 
 def test_bump_future():
@@ -56,7 +56,7 @@ def test_bump_random(monkeypatch):
     for _ in range(1000):
         cur_date += dt.timedelta(days=int((1 + random.random()) ** 10))
         new_version = v1version.incr(
-            cur_version, release=random.choice([None, "alpha", "beta", "rc", "final", "post"])
+            cur_version, tag=random.choice([None, "alpha", "beta", "rc", "final", "post"])
         )
         assert cur_version < new_version
         cur_version = new_version

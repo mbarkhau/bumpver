@@ -638,7 +638,7 @@ def incr(
     old_version: str,
     raw_pattern: str = "vYYYY0M.BUILD[-RELEASE]",
     *,
-    release    : typ.Optional[str] = None,
+    tag        : typ.Optional[str] = None,
     major      : bool = False,
     minor      : bool = False,
     patch      : bool = False,

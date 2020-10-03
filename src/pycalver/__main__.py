@@ -69,7 +69,7 @@ def _configure_logging(verbose: int = 0) -> None:
     logger.debug("Logging configured.")
 
 
-VALID_RELEASE_VALUES = ("alpha", "beta", "rc", "post", "final")
+VALID_RELEASE_TAG_VALUES = ("alpha", "beta", "rc", "post", "final")
 
 
 _current_date = dt.date.today().isoformat()
@@ -93,15 +93,15 @@ def _validate_date(date: typ.Optional[str], pin_date: bool) -> typ.Optional[dt.d
         sys.exit(1)
 
 
-def _validate_release_tag(release: typ.Optional[str]) -> None:
-    if release is None:
+def _validate_release_tag(tag: typ.Optional[str]) -> None:
+    if tag is None:
         return
 
-    if release in VALID_RELEASE_VALUES:
+    if tag in VALID_RELEASE_TAG_VALUES:
         return
 
-    logger.error(f"Invalid argument --release={release}")
-    logger.error(f"Valid arguments are: {', '.join(VALID_RELEASE_VALUES)}")
+    logger.error(f"Invalid argument --release={tag}")
+    logger.error(f"Valid arguments are: {', '.join(VALID_RELEASE_TAG_VALUES)}")
     sys.exit(1)
 
 
@@ -124,7 +124,7 @@ def cli(verbose: int = 0) -> None:
     metavar="<name>",
     help=(
         f"Override release name of current_version. Valid options are: "
-        f"{', '.join(VALID_RELEASE_VALUES)}."
+        f"{', '.join(VALID_RELEASE_TAG_VALUES)}."
     ),
 )
 @click.option("--major"   , is_flag=True, default=False, help="Increment major component.")
@@ -154,13 +154,14 @@ def test(
     _configure_logging(verbose=max(_VERBOSE, verbose))
     raw_pattern = pattern  # use internal naming convention
 
-    _validate_release_tag(release)
+    tag = release  # use internal naming convention
+    _validate_release_tag(tag)
     _date = _validate_date(date, pin_date)
 
-    new_version = _incr(
+    new_version = incr_dispatch(
         old_version,
         raw_pattern=raw_pattern,
-        release=release,
+        tag=tag,
         major=major,
         minor=minor,
         patch=patch,
@@ -337,11 +338,11 @@ def _print_diff(cfg: config.Config, new_version: str) -> None:
         sys.exit(1)
 
 
-def _incr(
+def incr_dispatch(
     old_version: str,
     raw_pattern: str,
     *,
-    release    : str = None,
+    tag        : str = None,
     major      : bool = False,
     minor      : bool = False,
     patch      : bool = False,
@@ -351,6 +352,7 @@ def _incr(
 ) -> typ.Optional[str]:
     v1_parts    = list(v1patterns.PART_PATTERNS) + list(v1patterns.FULL_PART_FORMATS)
     has_v1_part = any("{" + part + "}" in raw_pattern for part in v1_parts)
+
     if _VERBOSE:
         if has_v1_part:
             pattern = v1patterns.compile_pattern(raw_pattern)
@@ -364,7 +366,7 @@ def _incr(
         return v1version.incr(
             old_version,
             raw_pattern=raw_pattern,
-            release=release,
+            tag=tag,
             major=major,
             minor=minor,
             patch=patch,
@@ -376,7 +378,7 @@ def _incr(
         return v2version.incr(
             old_version,
             raw_pattern=raw_pattern,
-            release=release,
+            tag=tag,
             major=major,
             minor=minor,
             patch=patch,
@@ -501,7 +503,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     metavar="<name>",
     help=(
         f"Override release name of current_version. Valid options are: "
-        f"{', '.join(VALID_RELEASE_VALUES)}."
+        f"{', '.join(VALID_RELEASE_TAG_VALUES)}."
     ),
 )
 @click.option(
@@ -542,7 +544,8 @@ def bump(
     verbose = max(_VERBOSE, verbose)
     _configure_logging(verbose)
 
-    _validate_release_tag(release)
+    tag = release  # use internal naming convention
+    _validate_release_tag(tag)
     _date = _validate_date(date, pin_date)
 
     _, cfg = config.init(project_path=".")
@@ -554,10 +557,10 @@ def bump(
     cfg = _update_cfg_from_vcs(cfg, fetch)
 
     old_version = cfg.current_version
-    new_version = _incr(
+    new_version = incr_dispatch(
         old_version,
         raw_pattern=cfg.version_pattern,
-        release=release,
+        tag=tag,
         major=major,
         minor=minor,
         patch=patch,

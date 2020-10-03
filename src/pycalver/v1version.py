@@ -374,7 +374,7 @@ def incr(
     old_version: str,
     raw_pattern: str = "{pycalver}",
     *,
-    release    : typ.Optional[str] = None,
+    tag        : typ.Optional[str] = None,
     major      : bool = False,
     minor      : bool = False,
     patch      : bool = False,
@@ -410,8 +410,8 @@ def incr(
         cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
     if release_num:
         raise NotImplementedError("--release-num not supported for old style patterns")
-    if release:
-        cur_vinfo = cur_vinfo._replace(tag=release)
+    if tag:
+        cur_vinfo = cur_vinfo._replace(tag=tag)
 
     new_version = format_version(cur_vinfo, raw_pattern)
     if new_version == old_version:
