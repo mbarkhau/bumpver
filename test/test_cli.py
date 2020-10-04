@@ -738,21 +738,14 @@ def test_grep(runner):
     #
     search_re = r"^\s+2:\s+Hello World v201701\.1002-alpha !"
 
-    result1 = runner.invoke(cli, ['grep', r"vYYYY0M.BUILD[-RELEASE]", "README.md"])
+    cmd1    = r'grep "vYYYY0M.BUILD[-RELEASE]" README.md'
+    result1 = runner.invoke(cli, shlex.split(cmd1))
     assert result1.exit_code == 0
     assert "README.md" in result1.output
     assert re.search(search_re, result1.output, flags=re.MULTILINE)
 
-    result2 = runner.invoke(
-        cli,
-        [
-            'grep',
-            "--version-pattern",
-            r"vYYYY0M.BUILD[-RELEASE]",
-            "{version}",
-            "README.md",
-        ],
-    )
+    cmd2    = r'grep --version-pattern "vYYYY0M.BUILD[-RELEASE]" "{version}" README.md'
+    result2 = runner.invoke(cli, shlex.split(cmd2))
     assert result2.exit_code == 0
     assert "README.md" in result2.output
     assert re.search(search_re, result2.output, flags=re.MULTILINE)
@@ -761,21 +754,16 @@ def test_grep(runner):
 
     search_re = r"^\s+3:\s+\[aka\. 201701\.1002a0 \!\]"
 
-    result3 = runner.invoke(cli, ['grep', r"\[aka. YYYY0M.BLD[PYTAGNUM] \!\]", "README.md"])
+    cmd3    = r'grep "\[aka. YYYY0M.BLD[PYTAGNUM] \!\]"  README.md'
+    result3 = runner.invoke(cli, shlex.split(cmd3))
     assert result3.exit_code == 0
     assert "README.md" in result3.output
     assert re.search(search_re, result3.output, flags=re.MULTILINE)
 
-    result4 = runner.invoke(
-        cli,
-        [
-            'grep',
-            "--version-pattern",
-            r"vYYYY0M.BUILD[-RELEASE]",
-            r"\[aka. {pep440_version} \!\]",
-            "README.md",
-        ],
+    cmd4 = (
+        r'grep --version-pattern "vYYYY0M.BUILD[-RELEASE]" "\[aka. {pep440_version} \!\]" README.md'
     )
+    result4 = runner.invoke(cli, shlex.split(cmd4))
     assert result4.exit_code == 0
     assert "README.md" in result4.output
     assert re.search(search_re, result4.output, flags=re.MULTILINE)

@@ -285,21 +285,23 @@ def grep(
             )
             sys.exit(1)
     else:
-        if is_version_pattern_required:
-            normalize_pattern = v2patterns.normalize_pattern(version_pattern, raw_pattern)
-        else:
-            normalize_pattern = raw_pattern
+        version_pattern = "vYYYY0M.BUILD[-RELEASE]"
+
+    if is_version_pattern_required:
+        normalized_pattern = v2patterns.normalize_pattern(version_pattern, raw_pattern)
+    else:
+        normalized_pattern = raw_pattern
 
     isatty = getattr(sys.stdout, 'isatty', lambda: False)
 
     if isatty():
         colorama.init()
         try:
-            _grep(normalize_pattern, files, color=True)
+            _grep(normalized_pattern, files, color=True)
         finally:
             colorama.deinit()
     else:
-        _grep(normalize_pattern, files, color=False)
+        _grep(normalized_pattern, files, color=False)
 
 
 @cli.command()
