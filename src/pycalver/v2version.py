@@ -628,7 +628,7 @@ def _incr_numeric(
     return cur_vinfo
 
 
-def is_valid_week_pattern(raw_pattern) -> bool:
+def is_valid_week_pattern(raw_pattern: str) -> bool:
     has_yy_part = any(part in raw_pattern for part in ["YYYY", "YY", "0Y"])
     has_ww_part = any(part in raw_pattern for part in ["WW"  , "0W", "UU", "0U"])
     has_gg_part = any(part in raw_pattern for part in ["GGGG", "GG", "0G"])

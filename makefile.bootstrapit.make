@@ -337,6 +337,15 @@ lint_flake8:
 
 
 ## Run pylint.
+.PHONY: lint_pylint_errors
+lint_pylint_errors:
+	@printf "pylint ..\n";
+	@$(DEV_ENV)/bin/pylint --errors-only --jobs=4 --rcfile=setup.cfg \
+		src/ test/
+	@printf "\e[1F\e[9C ok\n"
+
+
+## Run pylint.
 .PHONY: lint_pylint
 lint_pylint:
 	@mkdir -p "reports/";
