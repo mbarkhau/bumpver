@@ -110,7 +110,7 @@ def _validate_release_tag(tag: typ.Optional[str]) -> None:
 @click.help_option()
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 def cli(verbose: int = 0) -> None:
-    """Automatically update PyCalVer version strings on python projects."""
+    """Automatically update PyCalVer version strings in all project files."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
 
 
@@ -121,7 +121,7 @@ def cli(verbose: int = 0) -> None:
 @click.option(
     "--release",
     default=None,
-    metavar="<name>",
+    metavar="<NAME>",
     help=(
         f"Override release name of current_version. Valid options are: "
         f"{', '.join(VALID_RELEASE_TAG_VALUES)}."
@@ -135,7 +135,7 @@ def cli(verbose: int = 0) -> None:
 @click.option(
     "--date",
     default=None,
-    metavar="<iso-date>",
+    metavar="<ISODATE>",
     help=f"Set explicit date in format YYYY-0M-0D (e.g. {_current_date}).",
 )
 def test(
@@ -179,11 +179,9 @@ def test(
     click.echo(f"PEP440     : {pep440_version}")
 
 
-def _grep_text(pattern: patterns.Pattern, text: str, color: bool) -> int:
-    match_count = 0
+def _grep_text(pattern: patterns.Pattern, text: str, color: bool) -> typ.Iterable[str]:
     all_lines   = text.splitlines()
     for match in pattern.regexp.finditer(text):
-        match_count += 1
         match_start, match_end = match.span()
 
         line_idx   = text[:match_start].count("\n")
@@ -212,12 +210,11 @@ def _grep_text(pattern: patterns.Pattern, text: str, color: bool) -> int:
         else:
             lines[1] = matched_line
 
-        print()
-
-        for i, line in enumerate(lines):
-            print(f"{lines_offset + i:>4}: {line}")
-
-    return match_count
+        prefixed_lines = [
+            f"{lines_offset + i:>4}: {line}"
+            for i, line in enumerate(lines)
+        ]
+        yield "\n".join(prefixed_lines)
 
 
 def _grep(
@@ -231,18 +228,21 @@ def _grep(
     for file_io in file_ios:
         text = file_io.read()
 
-        _match_count = _grep_text(pattern, text, color)
+        match_strs = list(_grep_text(pattern, text, color))
+        if len(match_strs) > 0:
+            print(file_io.name)
+            for match_str in match_strs:
+                print(match_str)
+            print()
 
-        print()
-        print(f"Found {_match_count} match for pattern '{raw_pattern}' in {file_io.name}")
-        print()
+        match_count += len(match_strs)
 
-        match_count += _match_count
+    if match_count == 0:
+        logger.error(f"Pattern not found: '{raw_pattern}'")
 
     if match_count == 0 or _VERBOSE:
         pyexpr_regex = regexfmt.pyexpr_regex(pattern.regexp.pattern)
 
-        print(f"# pycalver pattern: '{raw_pattern}'")
         print("# " + regexfmt.regex101_url(pattern.regexp.pattern))
         print(pyexpr_regex)
         print()
@@ -258,12 +258,19 @@ def _grep(
     count=True,
     help="Control log level. -vv for debug level.",
 )
+@click.option(
+    "--version-pattern",
+    default=None,
+    metavar="<PATTERN>",
+    help="Pattern to use for placeholders: {version}/{pep440_version}",
+)
 @click.argument("pattern")
 @click.argument('files', nargs=-1, type=click.File('r'))
 def grep(
-    pattern: str,
-    files  : typ.Tuple[io.TextIOWrapper],
-    verbose: int = 0,
+    pattern        : str,
+    files          : typ.Tuple[io.TextIOWrapper],
+    version_pattern: typ.Optional[str] = None,
+    verbose        : int = 0,
 ) -> None:
     """Search file(s) for a version pattern."""
     verbose = max(_VERBOSE, verbose)
@@ -271,16 +278,29 @@ def grep(
 
     raw_pattern = pattern  # use internal naming convention
 
+    is_version_pattern_required = "{version}" in raw_pattern or "{pep440_version}" in raw_pattern
+
+    if is_version_pattern_required and version_pattern is None:
+        logger.error(
+            "Argument --version-pattern=<PATTERN> is required"
+            " for placeholders: {version}/{pep440_version}."
+        )
+        sys.exit(1)
+    elif is_version_pattern_required:
+        normalize_pattern = v2patterns.normalize_pattern(version_pattern, raw_pattern)
+    else:
+        normalize_pattern = raw_pattern
+
     isatty = getattr(sys.stdout, 'isatty', lambda: False)
 
     if isatty():
         colorama.init()
         try:
-            _grep(raw_pattern, files, color=True)
+            _grep(normalize_pattern, files, color=True)
         finally:
             colorama.deinit()
     else:
-        _grep(raw_pattern, files, color=False)
+        _grep(normalize_pattern, files, color=False)
 
 
 @cli.command()
@@ -448,7 +468,7 @@ def init(verbose: int = 0, dry: bool = False) -> None:
     """Initialize [pycalver] configuration."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
 
-    ctx, cfg = config.init(project_path=".")
+    ctx, cfg = config.init(project_path=".", cfg_missing_ok=True)
 
     if cfg:
         logger.error(f"Configuration already initialized in {ctx.config_rel_path}")
@@ -496,7 +516,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 @click.option(
     "--release",
     default=None,
-    metavar="<name>",
+    metavar="<NAME>",
     help=(
         f"Override release name of current_version. Valid options are: "
         f"{', '.join(VALID_RELEASE_TAG_VALUES)}."
@@ -520,7 +540,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 @click.option(
     "--date",
     default=None,
-    metavar="<iso-date>",
+    metavar="<ISODATE>",
     help=f"Set explicit date in format YYYY-0M-0D (e.g. {_current_date}).",
 )
 def bump(

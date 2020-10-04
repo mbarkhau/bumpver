@@ -401,7 +401,7 @@ def _parse_raw_config(ctx: ProjectContext) -> RawConfig:
     return raw_cfg
 
 
-def parse(ctx: ProjectContext) -> MaybeConfig:
+def parse(ctx: ProjectContext, cfg_missing_ok: bool = False) -> MaybeConfig:
     """Parse config file if available."""
     if ctx.config_filepath.exists():
         try:
@@ -411,15 +411,17 @@ def parse(ctx: ProjectContext) -> MaybeConfig:
             logger.warning(f"Couldn't parse {ctx.config_rel_path}: {str(ex)}")
             return None
     else:
-        logger.warning(f"File not found: {ctx.config_rel_path}")
+        if not cfg_missing_ok:
+            logger.warning(f"File not found: {ctx.config_rel_path}")
         return None
 
 
 def init(
-    project_path: typ.Union[str, pl.Path, None] = "."
+    project_path: typ.Union[str, pl.Path, None] = ".",
+    cfg_missing_ok: bool = False,
 ) -> typ.Tuple[ProjectContext, MaybeConfig]:
     ctx = init_project_ctx(project_path)
-    cfg = parse(ctx)
+    cfg = parse(ctx, cfg_missing_ok)
     return (ctx, cfg)
 
 
