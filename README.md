@@ -229,14 +229,16 @@ These patterns are closely based on https://calver.org/
 | `0D`        | 01, 02, 03..31       | `%d`                   |
 | `JJJ`       | 1,2,3..366           | `int(%j)`              |
 | `00J`       | 001, 002..366        | `%j`                   |
-| `BUILD`     | 0011, 1001, 1002, .. | build number (lexid)   |
-| `BLD`       | 11, 1001, 1002, ..   | zero truncated `BUILD` |
 | `MAJOR`     | 0..9, 10..99, 100..  | `--major`              |
 | `MINOR`     | 0..9, 10..99, 100..  | `-m/--minor`           |
 | `PATCH`     | 0..9, 10..99, 100..  | `-p/--patch`           |
-| `NUM`       | 0, 1, 2...           | `-r/--release-num`     |
+| `INC0`      | 0, 1, 2...           |                        |
+| `INC1`      | 1, 2...              |                        |
+| `BUILD`     | 0011, 1001, 1002, .. | build number (lexid)   |
+| `BLD`       | 11, 1001, 1002, ..   | zero truncated `BUILD` |
 | `RELEASE`   | alpha, beta, rc      | `--release=<tag>`      |
 | `PYTAG`     | a, b, rc             | `--release=<tag>`      |
+| `NUM`       | 0, 1, 2...           | `-r/--release-num`     |
 
 
 ### Week Numbering

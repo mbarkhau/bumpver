@@ -86,6 +86,8 @@ PART_PATTERNS = {
     'RELEASE': r"preview|final|alpha|beta|post|rc",
     'PYTAG'  : r"post|rc|a|b",
     'NUM'    : r"[0-9]+",
+    'INC0'   : r"[0-9]+",
+    'INC1'   : r"[1-9][0-9]*",
 }
 
 
@@ -111,6 +113,8 @@ PATTERN_PART_FIELDS = {
     'RELEASE': 'tag',
     'PYTAG'  : 'pytag',
     'NUM'    : 'num',
+    'INC0'   : 'inc0',
+    'INC1'   : 'inc1',
     'WW'     : 'week_w',
     '0W'     : 'week_w',
     'UU'     : 'week_u',
@@ -183,7 +187,10 @@ def _fmt_0v(week_v: FieldValue) -> str:
     return "{0:02}".format(int(week_v))
 
 
-PART_FORMATS: typ.Dict[str, typ.Callable[[FieldValue], str]] = {
+FormatterFunc = typ.Callable[[FieldValue], str]
+
+
+PART_FORMATS: typ.Dict[str, FormatterFunc] = {
     'YYYY'   : _fmt_num,
     'YY'     : _fmt_yy,
     '0Y'     : _fmt_0y,
@@ -205,6 +212,8 @@ PART_FORMATS: typ.Dict[str, typ.Callable[[FieldValue], str]] = {
     'RELEASE': _fmt_num,
     'PYTAG'  : _fmt_num,
     'NUM'    : _fmt_num,
+    'INC0'   : _fmt_num,
+    'INC1'   : _fmt_num,
     'WW'     : _fmt_num,
     '0W'     : _fmt_0w,
     'UU'     : _fmt_num,

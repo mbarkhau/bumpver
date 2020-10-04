@@ -201,6 +201,8 @@ def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
     patch = int(fvals.get('patch') or 0)
     num   = int(fvals.get('num'  ) or 0)
     bid   = fvals['bid'] if 'bid' in fvals else "1000"
+    inc0  = int(fvals.get('inc0') or 0)
+    inc1  = int(fvals.get('inc1') or 1)
 
     vinfo = version.V2VersionInfo(
         year_y=year_y,
@@ -219,6 +221,8 @@ def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
         bid=bid,
         tag=tag,
         pytag=pytag,
+        inc0=inc0,
+        inc1=inc1,
     )
     return vinfo
 
@@ -567,9 +571,9 @@ def _iter_reset_field_items(
     # Any field to the left of another can reset all to the right
     has_reset = False
     for field in fields:
-        zero_val = version.V2_FIELD_ZERO_VALUES.get(field)
-        if has_reset and zero_val is not None:
-            yield field, zero_val
+        initial_val = version.V2_FIELD_INITIAL_VALUES.get(field)
+        if has_reset and initial_val is not None:
+            yield field, initial_val
         elif getattr(old_vinfo, field) != getattr(cur_vinfo, field):
             has_reset = True
 
@@ -597,6 +601,16 @@ def _incr_numeric(
         cur_vinfo = cur_vinfo._replace(bid=str(int(cur_vinfo.bid) + 1000))
 
     cur_vinfo = cur_vinfo._replace(bid=lexid.next_id(cur_vinfo.bid))
+
+    if 'inc0' in reset_fields:
+        cur_vinfo = cur_vinfo._replace(inc0=0)
+    else:
+        cur_vinfo = cur_vinfo._replace(inc0=cur_vinfo.inc0 + 1)
+
+    if 'inc1' in reset_fields:
+        cur_vinfo = cur_vinfo._replace(inc1=1)
+    else:
+        cur_vinfo = cur_vinfo._replace(inc1=cur_vinfo.inc1 + 1)
 
     if major and 'major' not in reset_fields:
         cur_vinfo = cur_vinfo._replace(major=cur_vinfo.major + 1, minor=0, patch=0)

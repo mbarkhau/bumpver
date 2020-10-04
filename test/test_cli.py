@@ -768,23 +768,31 @@ def test_multimatch_file_patterns(runner):
     assert "[aka. 202010.1003b0 !]" in readme_text
 
 
-def _kwargs(month, minor):
-    return {'date': dt.date(2020, month, 1), 'minor': minor}
+def _kwargs(year, month, minor=False):
+    return {'date': dt.date(year, month, 1), 'minor': minor}
 
 
 ROLLOVER_TEST_CASES = [
     # v1 cases
-    ["{year}.{month}.{MINOR}", "2020.10.3", "2020.10.4", _kwargs(10, True)],
-    ["{year}.{month}.{MINOR}", "2020.10.3", None, _kwargs(10, False)],
-    ["{year}.{month}.{MINOR}", "2020.10.3", "2020.11.4", _kwargs(11, True)],
-    ["{year}.{month}.{MINOR}", "2020.10.3", "2020.11.3", _kwargs(11, False)],
+    ["{year}.{month}.{MINOR}", "2020.10.3", "2020.10.4", _kwargs(2020, 10, True)],
+    ["{year}.{month}.{MINOR}", "2020.10.3", None, _kwargs(2020, 10, False)],
+    ["{year}.{month}.{MINOR}", "2020.10.3", "2020.11.4", _kwargs(2020, 11, True)],
+    ["{year}.{month}.{MINOR}", "2020.10.3", "2020.11.3", _kwargs(2020, 11, False)],
     # v2 cases
-    ["YYYY.MM.MINOR"  , "2020.10.3", "2020.10.4", _kwargs(10, True)],
-    ["YYYY.MM.MINOR"  , "2020.10.3", None, _kwargs(10, False)],
-    ["YYYY.MM.MINOR"  , "2020.10.3", "2020.11.0", _kwargs(11, True)],
-    ["YYYY.MM.MINOR"  , "2020.10.3", "2020.11.0", _kwargs(11, False)],
-    ["YYYY.MM[.MINOR]", "2020.10.3", "2020.10.4", _kwargs(10, True)],
-    ["YYYY.MM[.MINOR]", "2020.10.3", "2020.11", _kwargs(11, False)],
+    ["YYYY.MM.MINOR"  , "2020.10.3", "2020.10.4", _kwargs(2020, 10, True)],
+    ["YYYY.MM.MINOR"  , "2020.10.3", None, _kwargs(2020, 10, False)],
+    ["YYYY.MM.MINOR"  , "2020.10.3", "2020.11.0", _kwargs(2020, 11, True)],
+    ["YYYY.MM.MINOR"  , "2020.10.3", "2020.11.0", _kwargs(2020, 11, False)],
+    ["YYYY.MM[.MINOR]", "2020.10.3", "2020.10.4", _kwargs(2020, 10, True)],
+    ["YYYY.MM[.MINOR]", "2020.10.3", "2020.11", _kwargs(2020, 11, False)],
+    ["YYYY.MM.MINOR"  , "2020.10.3", "2021.10.0", _kwargs(2021, 10, False)],
+    # incr0/incr1 part
+    ["YYYY.MM.INC0", "2020.10.3", "2020.10.4", _kwargs(2020, 10)],
+    ["YYYY.MM.INC0", "2020.10.3", "2020.11.0", _kwargs(2020, 11)],
+    ["YYYY.MM.INC0", "2020.10.3", "2021.10.0", _kwargs(2021, 10)],
+    ["YYYY.MM.INC1", "2020.10.3", "2020.10.4", _kwargs(2020, 10)],
+    ["YYYY.MM.INC1", "2020.10.3", "2020.11.1", _kwargs(2020, 11)],
+    ["YYYY.MM.INC1", "2020.10.3", "2021.10.1", _kwargs(2021, 10)],
 ]
 
 

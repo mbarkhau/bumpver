@@ -7,6 +7,7 @@
      - Better support for week numbering.
      - Better support for optional parts.
      - New: Start `BUILD` parts at `1000` to avoid leading zero truncation.
+     - New: Add `INC0` (0-based) and `INC1` (1-based) parts that do auto increment and rollover.
      - New: `MAJOR`/`MINOR`/`PATCH`/`INC` will roll over when a date part changes to their left.
  - New gitlab #2: Added `grep` subcommand to find and debug patterns.
  - New: Added better error messages to debug regular expressions.

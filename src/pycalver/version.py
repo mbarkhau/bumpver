@@ -73,6 +73,8 @@ class V2VersionInfo(typ.NamedTuple):
     bid    : str
     tag    : str
     pytag  : str
+    inc0   : int
+    inc1   : int
 
 
 # The test suite may replace this.
@@ -116,18 +118,19 @@ PART_ZERO_VALUES = {
     'RELEASE': "final",
     'PYTAG'  : "",
     'NUM'    : "0",
-    'INC'    : "0",
+    'INC0'   : "0",
 }
 
 
-V2_FIELD_ZERO_VALUES = {
+V2_FIELD_INITIAL_VALUES = {
     'major': "0",
     'minor': "0",
     'patch': "0",
     'tag'  : "final",
     'pytag': "",
     'num'  : "0",
-    'inc'  : "0",
+    'inc0' : "0",
+    'inc1' : "1",
 }
 
 
