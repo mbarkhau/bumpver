@@ -277,18 +277,19 @@ def grep(
 
     is_version_pattern_required = "{version}" in raw_pattern or "{pep440_version}" in raw_pattern
 
-    if version_pattern is None:
-        if is_version_pattern_required:
-            logger.error(
-                "Argument --version-pattern=<PATTERN> is required"
-                " for placeholders: {version}/{pep440_version}."
-            )
-            sys.exit(1)
+    if is_version_pattern_required and version_pattern is None:
+        logger.error(
+            "Argument --version-pattern=<PATTERN> is required"
+            " for placeholders: {version}/{pep440_version}."
+        )
+        sys.exit(1)
+    elif version_pattern is None:
+        _version_pattern = "INVALID"  # pacify mypy, it's not referenced in raw_pattern
     else:
-        version_pattern = "vYYYY0M.BUILD[-RELEASE]"
+        _version_pattern = version_pattern
 
     if is_version_pattern_required:
-        normalized_pattern = v2patterns.normalize_pattern(version_pattern, raw_pattern)
+        normalized_pattern = v2patterns.normalize_pattern(_version_pattern, raw_pattern)
     else:
         normalized_pattern = raw_pattern
 
