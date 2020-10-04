@@ -252,21 +252,9 @@ def test_novcs_nocfg_init(runner, caplog):
     assert result.exit_code == 0
     assert not os.path.exists("pycalver.toml")
 
-    # check logging
-    assert len(caplog.records) == 1
-    log = caplog.records[0]
-    assert log.levelname == 'WARNING'
-    assert "File not found" in log.message
-
     # non dry mode
     result = runner.invoke(cli, ['init', "-vv"])
     assert result.exit_code == 0
-
-    # check logging
-    assert len(caplog.records) == 2
-    log = caplog.records[1]
-    assert log.levelname == 'WARNING'
-    assert "File not found" in log.message
 
     assert os.path.exists("pycalver.toml")
     with pl.Path("pycalver.toml").open(mode="r", encoding="utf-8") as fobj:
@@ -285,8 +273,8 @@ def test_novcs_nocfg_init(runner, caplog):
     assert result.exit_code == 1
 
     # check logging
-    assert len(caplog.records) == 3
-    log = caplog.records[2]
+    assert len(caplog.records) == 1
+    log = caplog.records[0]
     assert log.levelname == 'ERROR'
     assert "Configuration already initialized" in log.message
 
@@ -747,19 +735,52 @@ def test_git_commit_message(runner, caplog):
 def test_grep(runner):
     _add_project_files("README.md")
 
-    result = runner.invoke(cli, ['grep', r"vYYYY0M.BUILD[-RELEASE]", "README.md"])
-    assert result.exit_code == 0
-    assert "Found 1 match for pattern" in result.output
-
+    #
     search_re = r"^\s+2:\s+Hello World v201701\.1002-alpha !"
-    assert re.search(search_re, result.output, flags=re.MULTILINE)
 
-    result = runner.invoke(cli, ['grep', r"\[aka. YYYY0M.BLD[PYTAGNUM] \!\]", "README.md"])
-    assert result.exit_code == 0
-    assert "Found 1 match for pattern" in result.output
+    result1 = runner.invoke(cli, ['grep', r"vYYYY0M.BUILD[-RELEASE]", "README.md"])
+    assert result1.exit_code == 0
+    assert "README.md" in result1.output
+    assert re.search(search_re, result1.output, flags=re.MULTILINE)
+
+    result2 = runner.invoke(
+        cli,
+        [
+            'grep',
+            "--version-pattern",
+            r"vYYYY0M.BUILD[-RELEASE]",
+            "{version}",
+            "README.md",
+        ],
+    )
+    assert result2.exit_code == 0
+    assert "README.md" in result2.output
+    assert re.search(search_re, result2.output, flags=re.MULTILINE)
+
+    assert result1.output == result2.output
 
     search_re = r"^\s+3:\s+\[aka\. 201701\.1002a0 \!\]"
-    assert re.search(search_re, result.output, flags=re.MULTILINE)
+
+    result3 = runner.invoke(cli, ['grep', r"\[aka. YYYY0M.BLD[PYTAGNUM] \!\]", "README.md"])
+    assert result3.exit_code == 0
+    assert "README.md" in result3.output
+    assert re.search(search_re, result3.output, flags=re.MULTILINE)
+
+    result4 = runner.invoke(
+        cli,
+        [
+            'grep',
+            "--version-pattern",
+            r"vYYYY0M.BUILD[-RELEASE]",
+            r"\[aka. {pep440_version} \!\]",
+            "README.md",
+        ],
+    )
+    assert result4.exit_code == 0
+    assert "README.md" in result4.output
+    assert re.search(search_re, result4.output, flags=re.MULTILINE)
+
+    assert result3.output == result4.output
 
 
 SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE = r"""

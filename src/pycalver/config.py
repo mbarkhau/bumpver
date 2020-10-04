@@ -417,7 +417,7 @@ def parse(ctx: ProjectContext, cfg_missing_ok: bool = False) -> MaybeConfig:
 
 
 def init(
-    project_path: typ.Union[str, pl.Path, None] = ".",
+    project_path  : typ.Union[str, pl.Path, None] = ".",
     cfg_missing_ok: bool = False,
 ) -> typ.Tuple[ProjectContext, MaybeConfig]:
     ctx = init_project_ctx(project_path)

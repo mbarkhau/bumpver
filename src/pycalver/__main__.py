@@ -180,7 +180,7 @@ def test(
 
 
 def _grep_text(pattern: patterns.Pattern, text: str, color: bool) -> typ.Iterable[str]:
-    all_lines   = text.splitlines()
+    all_lines = text.splitlines()
     for match in pattern.regexp.finditer(text):
         match_start, match_end = match.span()
 
@@ -210,10 +210,7 @@ def _grep_text(pattern: patterns.Pattern, text: str, color: bool) -> typ.Iterabl
         else:
             lines[1] = matched_line
 
-        prefixed_lines = [
-            f"{lines_offset + i:>4}: {line}"
-            for i, line in enumerate(lines)
-        ]
+        prefixed_lines = [f"{lines_offset + i:>4}: {line}" for i, line in enumerate(lines)]
         yield "\n".join(prefixed_lines)
 
 
