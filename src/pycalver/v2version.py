@@ -141,6 +141,7 @@ def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
     >>> (vinfo.year_y, vinfo.week_w, vinfo.year_y, vinfo.week_u,vinfo.year_g, vinfo.week_v)
     (2021, 0, 2021, 1, 2020, 53)
     """
+    # pylint:disable=dangerous-default-value; We don't mutate args, mypy would fail if we did.
     for key in field_values:
         assert key in VALID_FIELD_KEYS, key
 

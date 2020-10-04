@@ -167,11 +167,13 @@ def test_parse_v2_cfg():
     assert "setup.py" in cfg.file_patterns
     assert "setup.cfg" in cfg.file_patterns
 
-    # TODO (mb 2020-09-18):
-    # raw_patterns_by_filepath = _parse_raw_patterns_by_filepath(cfg)
-    # assert raw_patterns_by_filepath["setup.py"        ] == ["vYYYY0M.BUILD[-RELEASE]", "YYYY0M.BLD[PYTAGNUM]"]
-    # assert raw_patterns_by_filepath["setup.cfg"       ] == ['current_version = "vYYYY0M.BUILD[-RELEASE]"']
-    # assert raw_patterns_by_filepath["src/project/*.py"] == ['Copyright (c) 2018-YYYY"']
+    raw_patterns_by_filepath = _parse_raw_patterns_by_filepath(cfg)
+    assert raw_patterns_by_filepath["setup.py"] == [
+        "vYYYY0M.BUILD[-RELEASE]",
+        "YYYY0M.BLD[PYTAGNUM]",
+    ]
+    assert raw_patterns_by_filepath["setup.cfg"] == ['current_version = "vYYYY0M.BUILD[-RELEASE]"']
+    assert raw_patterns_by_filepath["src/project/*.py"] == ["Copyright (c) 2018-YYYY"]
 
 
 def test_parse_default_toml():

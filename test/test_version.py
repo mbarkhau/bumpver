@@ -239,3 +239,36 @@ def test_v2_format_version():
 
     result = v2version.format_version(vinfo, raw_pattern='__version__ = "YYYY.BLD"')
     assert result == '__version__ = "2007.33"'
+
+
+WEEK_PATTERN_TEXT_CASES = [
+    ("YYYYWW.PATCH", True),
+    ("YYYYUU.PATCH", True),
+    ("GGGGVV.PATCH", True),
+    ("YYWW.PATCH"  , True),
+    ("YYUU.PATCH"  , True),
+    ("GGVV.PATCH"  , True),
+    ("0YWW.PATCH"  , True),
+    ("0YUU.PATCH"  , True),
+    ("0GVV.PATCH"  , True),
+    ("0Y0W.PATCH"  , True),
+    ("0Y0U.PATCH"  , True),
+    ("0G0V.PATCH"  , True),
+    ("GGGGWW.PATCH", False),
+    ("GGGGUU.PATCH", False),
+    ("YYYYVV.PATCH", False),
+    ("GGWW.PATCH"  , False),
+    ("GGUU.PATCH"  , False),
+    ("YYVV.PATCH"  , False),
+    ("0GWW.PATCH"  , False),
+    ("0GUU.PATCH"  , False),
+    ("0YVV.PATCH"  , False),
+    ("0G0W.PATCH"  , False),
+    ("0G0U.PATCH"  , False),
+    ("0Y0V.PATCH"  , False),
+]
+
+
+@pytest.mark.parametrize("pattern, expected", WEEK_PATTERN_TEXT_CASES)
+def test_is_valid_week_pattern(pattern, expected):
+    assert v2version.is_valid_week_pattern(pattern) == expected

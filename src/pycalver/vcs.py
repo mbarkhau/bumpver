@@ -77,9 +77,7 @@ class VCSAPI:
         cmd_parts = shlex.split(cmd_str)
         output_data: bytes = sp.check_output(cmd_parts, env=env, stderr=sp.STDOUT)
 
-        # TODO (mb 2018-11-15): Detect encoding of output? Use chardet?
-        _encoding = "utf-8"
-        return output_data.decode(_encoding)
+        return output_data.decode("utf-8")
 
     @property
     def is_usable(self) -> bool:

@@ -303,19 +303,24 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
     click.echo(f"PEP440         : {cfg.pep440_version}")
 
 
+def _colored_diff_lines(diff: str) -> typ.Iterable[str]:
+    for line in diff.splitlines():
+        if line.startswith("+++") or line.startswith("---"):
+            yield line
+        elif line.startswith("+"):
+            yield "\u001b[32m" + line + "\u001b[0m"
+        elif line.startswith("-"):
+            yield "\u001b[31m" + line + "\u001b[0m"
+        elif line.startswith("@"):
+            yield "\u001b[36m" + line + "\u001b[0m"
+        else:
+            yield line
+
+
 def _print_diff_str(diff: str) -> None:
+    colored_diff = "\n".join(_colored_diff_lines(diff))
     if sys.stdout.isatty():
-        for line in diff.splitlines():
-            if line.startswith("+++") or line.startswith("---"):
-                click.echo(line)
-            elif line.startswith("+"):
-                click.echo("\u001b[32m" + line + "\u001b[0m")
-            elif line.startswith("-"):
-                click.echo("\u001b[31m" + line + "\u001b[0m")
-            elif line.startswith("@"):
-                click.echo("\u001b[36m" + line + "\u001b[0m")
-            else:
-                click.echo(line)
+        click.echo(colored_diff)
     else:
         click.echo(diff)
 
@@ -330,11 +335,6 @@ def _print_diff(cfg: config.Config, new_version: str) -> None:
         _print_diff_str(diff)
     except rewrite.NoPatternMatch as ex:
         logger.error(str(ex))
-        sys.exit(1)
-    except Exception as ex:
-        # pylint:disable=broad-except; Mostly we expect IOError here, but
-        #   could be other things and there's no option to recover anyway.
-        logger.error(str(ex), exc_info=True)
         sys.exit(1)
 
 
@@ -415,10 +415,6 @@ def _bump(
             new_v1_vinfo = v1version.parse_version_info(new_version, cfg.version_pattern)
             v1rewrite.rewrite_files(cfg.file_patterns, new_v1_vinfo)
     except rewrite.NoPatternMatch as ex:
-        logger.error(str(ex))
-        sys.exit(1)
-    except Exception as ex:
-        # TODO (mb 2020-09-18): Investigate error messages
         logger.error(str(ex))
         sys.exit(1)
 
