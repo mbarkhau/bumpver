@@ -52,27 +52,9 @@ classifiers = [
 package_dir = {"": "src"}
 
 
-is_lib3to6_fix_required = (
-    any(arg.startswith("bdist") for arg in sys.argv)
-    and (
-        "Programming Language :: Python :: 2.7" in classifiers
-        or "Programming Language :: Python :: 2" in classifiers
-    )
-)
-
-
-if is_lib3to6_fix_required:
-    try:
-        import lib3to6
-        package_dir = lib3to6.fix(package_dir)
-    except ImportError:
-        if sys.version_info < (3, 6):
-            raise
-        else:
-            sys.stderr.write((
-                "WARNING: Creating non-universal bdist of pycalver, "
-                "this should only be used for development.\n"
-            ))
+if any(arg.startswith("bdist") for arg in sys.argv):
+    import lib3to6
+    package_dir = lib3to6.fix(package_dir)
 
 
 setuptools.setup(
