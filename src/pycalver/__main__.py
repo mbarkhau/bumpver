@@ -277,16 +277,18 @@ def grep(
 
     is_version_pattern_required = "{version}" in raw_pattern or "{pep440_version}" in raw_pattern
 
-    if is_version_pattern_required and version_pattern is None:
-        logger.error(
-            "Argument --version-pattern=<PATTERN> is required"
-            " for placeholders: {version}/{pep440_version}."
-        )
-        sys.exit(1)
-    elif is_version_pattern_required:
-        normalize_pattern = v2patterns.normalize_pattern(version_pattern, raw_pattern)
+    if version_pattern is None:
+        if is_version_pattern_required:
+            logger.error(
+                "Argument --version-pattern=<PATTERN> is required"
+                " for placeholders: {version}/{pep440_version}."
+            )
+            sys.exit(1)
     else:
-        normalize_pattern = raw_pattern
+        if is_version_pattern_required:
+            normalize_pattern = v2patterns.normalize_pattern(version_pattern, raw_pattern)
+        else:
+            normalize_pattern = raw_pattern
 
     isatty = getattr(sys.stdout, 'isatty', lambda: False)
 
