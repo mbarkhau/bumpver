@@ -390,11 +390,11 @@ def _parse_raw_config(ctx: ProjectContext) -> RawConfig:
             raise RuntimeError(err_msg)
 
     if ctx.config_rel_path not in raw_cfg['file_patterns']:
-        # NOTE (mb 2020-09-19): By default we always add
-        #   a pattern for the config section itself.
         with ctx.config_filepath.open(mode="rt", encoding="utf-8") as fobj:
             raw_cfg_text = fobj.read()
 
+        # NOTE (mb 2020-09-19): By default we always add
+        #   a pattern for the config section itself.
         raw_version_pattern = _parse_current_version_default_pattern(raw_cfg, raw_cfg_text)
         raw_cfg['file_patterns'][ctx.config_rel_path] = [raw_version_pattern]
 
