@@ -21,8 +21,8 @@ lint:
 unit:
   # NOTE: Resource_group is conservative and can be disabled
   #    for simple tests. It should be enabled if the tests
-  #    need exclusive access to some resource common external
-  #    resource. This will prevent multiple pipelines from
+  #    need exclusive access to some common resource. The
+  #    resource_group will prevent multiple pipelines from
   #    running concurrently.
   # resource_group: test-unit
   stage: test

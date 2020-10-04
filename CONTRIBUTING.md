@@ -213,9 +213,9 @@ projects by reducing the burden of project setup to a minimum.
     CHANGELOG.md       # short documentation of release history
     LICENSE            # for public libraries (MIT preferred)
 
-    makefile                    # project specific configuration
+    Makefile                    # project specific configuration
                                 # variables and make targets
-    makefile.bootstrapit.make   # bootstrapit make include library
+    Makefile.bootstrapit.make   # bootstrapit make include library
 
     docker_base.Dockerfile  # base image for CI (only conda envs)
     Dockerfile              # image with source of the project

@@ -11,12 +11,15 @@ LICENSE_ID="MIT"
 
 PACKAGE_NAME="pycalver"
 GIT_REPO_NAMESPACE="mbarkhau"
-GIT_REPO_DOMAIN="gitlab.com"
+GIT_REPO_DOMAIN="github.com"
 
 PACKAGE_VERSION="v202010.1040-beta"
 
-DEFAULT_PYTHON_VERSION="python=3.6"
-SUPPORTED_PYTHON_VERSIONS="python=2.7 python=3.5 python=3.6 python=3.7 pypy2.7 pypy3.5"
+DEFAULT_PYTHON_VERSION="python=3.8"
+SUPPORTED_PYTHON_VERSIONS="python=2.7 python=3.6 python=3.8 pypy2.7 pypy3.5"
+
+DOCKER_REGISTRY_DOMAIN=registry.gitlab.com
+
 
 IS_PUBLIC=1
 

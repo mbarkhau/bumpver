@@ -57,8 +57,7 @@ CONDA_ENV_BIN_PYTHON_PATHS := \
 empty :=
 literal_space := $(empty) $(empty)
 
-BDIST_WHEEL_PYTHON_TAG := \
-	$(subst python,py,$(subst $(literal_space),.,$(subst .,,$(subst =,,$(SUPPORTED_PYTHON_VERSIONS)))))
+BDIST_WHEEL_PYTHON_TAG := py2.py3
 
 SDIST_FILE_CMD = ls -1t dist/*.tar.gz | head -n 1
 
@@ -182,7 +181,7 @@ help:
 				helpMessage = ""; \
 			} \
 		}' \
-		makefile.bootstrapit.make makefile
+		Makefile.bootstrapit.make Makefile
 
 	@if [[ ! -f $(DEV_ENV_PY) ]]; then \
 	echo "Missing python interpreter at $(DEV_ENV_PY) !"; \
@@ -236,7 +235,7 @@ helpverbose:
 				helpMessage = ""; \
 			} \
 		}' \
-		makefile.bootstrapit.make makefile
+		Makefile.bootstrapit.make Makefile
 
 
 ## -- Project Setup --
@@ -568,7 +567,7 @@ bump_version:
 .PHONY: dist_build
 dist_build:
 	$(DEV_ENV_PY) setup.py sdist;
-	$(DEV_ENV_PY) setup.py bdist_wheel --python-tag=py2.py3;
+	$(DEV_ENV_PY) setup.py bdist_wheel --python-tag=$(BDIST_WHEEL_PYTHON_TAG);
 	@rm -rf src/*.egg-info
 
 
