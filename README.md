@@ -1,6 +1,6 @@
 <div align="center">
 <p align="center">
-  <img alt="logo" src="https://gitlab.com/mbarkhau/pycalver/-/raw/pycalver2/pycalver1k_128.png">
+  <img alt="logo" src="https://gitlab.com/mbarkhau/pycalver/-/raw/master/pycalver1k2_128.png">
 </p>
 </div>
 
@@ -834,16 +834,13 @@ To maintain lexical ordering of version numbers, the version number is padded
 with extra zeros (see [Lexical Ids](#lexical-ids) ).
 
 
-### Lexical Ids
-
-VCS tags.
+## Semantics of PyCalVer
 
 
 
 This sorting even works correctly in JavaScript!
 
 
-## Semantics of PyCalVer
 
 > Disclaimer: This section can of course only be aspirational. There is nothing
 > to prevent package maintainers from publishing packages with different

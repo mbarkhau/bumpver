@@ -136,7 +136,7 @@ def cli(verbose: int = 0) -> None:
     "--date",
     default=None,
     metavar="<iso-date>",
-    help=f"Set explicit date in format YYYY-0M-0D\n(eg. {_current_date}).",
+    help=f"Set explicit date in format YYYY-0M-0D (e.g. {_current_date}).",
 )
 def test(
     old_version: str,
@@ -521,7 +521,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     "--date",
     default=None,
     metavar="<iso-date>",
-    help=f"Set explicit date in format YYYY-0M-0D\n(eg. {_current_date}).",
+    help=f"Set explicit date in format YYYY-0M-0D (e.g. {_current_date}).",
 )
 def bump(
     release    : typ.Optional[str] = None,

@@ -64,7 +64,8 @@ test_compat: $(COMPAT_TEST_FILES)
 
 	rm -rf compat_test/
 
-depgraph:
+
+pycalver_deps.svg:
 	pydeps src/pycalver \
 		--no-show --noise-level 3 \
 		--reverse  --include-missing \

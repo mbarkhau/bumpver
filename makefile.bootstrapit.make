@@ -336,7 +336,7 @@ lint_flake8:
 	@printf "\e[1F\e[9C ok\n"
 
 
-## Run pylint.
+## Run pylint --errors-only.
 .PHONY: lint_pylint_errors
 lint_pylint_errors:
 	@printf "pylint ..\n";
