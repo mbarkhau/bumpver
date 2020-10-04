@@ -70,3 +70,22 @@ depgraph:
 		--reverse  --include-missing \
 		-x 'click.*' 'toml.*' 'pretty_traceback.*' \
 		-o pycalver_deps.svg
+
+
+README.md: src/pycalver/__main__.py makefile
+	@git add README.md
+	@printf '\n```\n$$ pycalver --help\n' > /tmp/pycalver_help.txt
+	@$(DEV_ENV)/bin/pycalver --help >> /tmp/pycalver_help.txt
+	@printf '```\n\n' >> /tmp/pycalver_help.txt
+
+	sed -i -ne '/<!-- BEGIN pycalver --help -->/ {p; r /tmp/pycalver_help.txt' \
+		-e ':a; n; /<!-- END pycalver --help -->/ {p; b}; ba}; p' \
+		README.md
+
+	@printf '\n```\n$$ pycalver bump --help\n' > /tmp/pycalver_help.txt
+	@$(DEV_ENV)/bin/pycalver bump --help >> /tmp/pycalver_help.txt
+	@printf '```\n\n' >> /tmp/pycalver_help.txt
+
+	sed -i -ne '/<!-- BEGIN pycalver bump --help -->/ {p; r /tmp/pycalver_help.txt' \
+		-e ':a; n; /<!-- END pycalver bump --help -->/ {p; b}; ba}; p' \
+		README.md

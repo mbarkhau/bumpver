@@ -5,30 +5,68 @@
 </div>
 
 
-# [PyCalVer: Automatic Calendar Versioning][repo_ref]
+# [PyCalVer: Automatic Calendar Versioning][url_repo]
 
-PyCalVer is a CLI-tool to search and replace version strings in your project files. This project follows the pattern conventions from [calver.org][calver_org_ref].
+
+PyCalVer is a CLI-tool to search and replace version strings ([calver][url_calver_org], [semver][url_semver_org] or other) in your project files.
+
+[url_repo]: https://gitlab.com/mbarkhau/pycalver
+[url_calver_org]: https://calver.org/
+[url_semver_org]: https://semver.org/
+
 
 Project/Repo:
 
-[![MIT License][license_img]][license_ref]
-[![Supported Python Versions][pyversions_img]][pyversions_ref]
-[![PyCalVer v202010.1040-beta][version_img]][version_ref]
-[![PyPI Releases][pypi_img]][pypi_ref]
-[![PyPI Downloads][downloads_img]][downloads_ref]
+[![MIT License][img_license]][url_license]
+[![Supported Python Versions][img_pyversions]][url_pyversions]
+[![PyCalVer v202010.1040-beta][img_version]][url_version]
+[![PyPI Releases][img_pypi]][url_pypi]
+[![PyPI Downloads][img_downloads]][url_downloads]
 
 Code Quality/CI:
 
-[![GitHub Build Status][github_build_img]][github_build_ref]
-[![GitLab Build Status][gitlab_build_img]][gitlab_build_ref]
-[![Type Checked with mypy][mypy_img]][mypy_ref]
-[![Code Coverage][codecov_img]][codecov_ref]
-[![Code Style: sjfmt][style_img]][style_ref]
+[![GitHub Build Status][img_github_build]][url_github_build]
+[![GitLab Build Status][img_gitlab_build]][url_gitlab_build]
+[![Type Checked with mypy][img_mypy]][url_mypy]
+[![Code Coverage][img_codecov]][url_codecov]
+[![Code Style: sjfmt][img_style]][url_style]
 
 
 |                Name                 |    role           |  since  | until |
 |-------------------------------------|-------------------|---------|-------|
 | Manuel Barkhau (mbarkhau@gmail.com) | author/maintainer | 2018-09 | -     |
+
+
+
+[img_github_build]: https://github.com/mbarkhau/pycalver/workflows/CI/badge.svg
+[url_github_build]: https://github.com/mbarkhau/pycalver/actions?query=workflow%3ACI
+
+[img_gitlab_build]: https://gitlab.com/mbarkhau/pycalver/badges/master/pipeline.svg
+[url_gitlab_build]: https://gitlab.com/mbarkhau/pycalver/pipelines
+
+[img_codecov]: https://gitlab.com/mbarkhau/pycalver/badges/master/coverage.svg
+[url_codecov]: https://mbarkhau.gitlab.io/pycalver/cov
+
+[img_license]: https://img.shields.io/badge/License-MIT-blue.svg
+[url_license]: https://gitlab.com/mbarkhau/pycalver/blob/master/LICENSE
+
+[img_mypy]: https://img.shields.io/badge/mypy-checked-green.svg
+[url_mypy]: https://mbarkhau.gitlab.io/pycalver/mypycov
+
+[img_style]: https://img.shields.io/badge/code%20style-%20sjfmt-f71.svg
+[url_style]: https://gitlab.com/mbarkhau/straitjacket/
+
+[img_downloads]: https://pepy.tech/badge/pycalver/month
+[url_downloads]: https://pepy.tech/project/pycalver
+
+[img_version]: https://img.shields.io/static/v1.svg?label=PyCalVer&message=v202010.1040-beta&color=blue
+[url_version]: https://pypi.org/project/pycalver/
+
+[img_pypi]: https://img.shields.io/badge/PyPI-wheels-green.svg
+[url_pypi]: https://pypi.org/project/pycalver/#files
+
+[img_pyversions]: https://img.shields.io/pypi/pyversions/pycalver.svg
+[url_pyversions]: https://pypi.python.org/pypi/pycalver
 
 
 <!--
@@ -592,21 +630,68 @@ TODO: Descriptions
   - `{old_version_pep440}`
 
 
-### CLI Arguments
+### CLI Reference
 
-TODO: Descriptions
+<!-- BEGIN pycalver --help -->
 
-|   CLI Argument   | Description |
-|------------------|-------------|
-| --major          |             |
-| -m/--minor       |             |
-| -p/--patch       |             |
-| -r/--release-num |             |
-| --date           |             |
-| --pin-date       |             |
-| -n/--no-fetch    |             |
-| -d/--dry         |             |
-| --allow-dirty    |             |
+```
+$ pycalver --help
+Usage: pycalver [OPTIONS] COMMAND [ARGS]...
+
+  Automatically update PyCalVer version strings on python projects.
+
+Options:
+  --version      Show the version and exit.
+  --help         Show this message and exit.
+  -v, --verbose  Control log level. -vv for debug level.
+
+Commands:
+  bump  Increment the current version string and update project files.
+  grep  Search file(s) for a version pattern.
+  init  Initialize [pycalver] configuration.
+  show  Show current version of your project.
+  test  Increment a version number for demo purposes.
+```
+
+<!-- END pycalver --help -->
+
+<!-- BEGIN pycalver bump --help -->
+
+```
+$ pycalver bump --help
+Usage: pycalver bump [OPTIONS]
+
+  Increment the current version string and update project files.
+
+Options:
+  -v, --verbose                 Control log level. -vv for debug level.
+  -f, --fetch / -n, --no-fetch  Sync tags from remote origin.
+  -d, --dry                     Display diff of changes, don't rewrite files.
+  --release <name>              Override release name of current_version.
+                                Valid options are: alpha, beta, rc, post,
+                                final.
+
+  --allow-dirty                 Commit even when working directory is has
+                                uncomitted changes. (WARNING: The commit will
+                                still be aborted if there are uncomitted to
+                                files with version strings.
+
+  --major                       Increment major component.
+  -m, --minor                   Increment minor component.
+  -p, --patch                   Increment patch component.
+  -r, --release-num             Increment release number.
+  --pin-date                    Leave date components unchanged.
+  --date <iso-date>             Set explicit date in format YYYY-0M-0D (e.g.
+                                2020-10-04).
+
+  --help                        Show this message and exit.
+```
+
+<!-- END pycalver bump --help -->
+
+<!-- BEGIN pycalver bump --help -->
+
+<!-- END pycalver --help -->
 
 
 ## The PyCalVer Format
@@ -1019,10 +1104,6 @@ of the software as a whole, it is metadata about a particular release
 artifact of a package, eg. a `.whl` file.
 
 
-[calver_org_ref]: https://calver.org/
-
-[repo_ref]: https://gitlab.com/mbarkhau/pycalver
-
 [setuptools_ref]: https://setuptools.readthedocs.io/en/latest/setuptools.html#specifying-your-project-s-version
 
 [ssot_ref]: https://en.wikipedia.org/wiki/Single_source_of_truth
@@ -1040,35 +1121,4 @@ artifact of a package, eg. a `.whl` file.
 [bootstrapit_ref]: https://gitlab.com/mbarkhau/bootstrapit
 
 [cookiecutter_ref]: https://cookiecutter.readthedocs.io
-
-
-[github_build_img]: https://github.com/mbarkhau/pycalver/workflows/CI/badge.svg
-[github_build_ref]: https://github.com/mbarkhau/pycalver/actions?query=workflow%3ACI
-
-[gitlab_build_img]: https://gitlab.com/mbarkhau/pycalver/badges/master/pipeline.svg
-[gitlab_build_ref]: https://gitlab.com/mbarkhau/pycalver/pipelines
-
-[codecov_img]: https://gitlab.com/mbarkhau/pycalver/badges/master/coverage.svg
-[codecov_ref]: https://mbarkhau.gitlab.io/pycalver/cov
-
-[license_img]: https://img.shields.io/badge/License-MIT-blue.svg
-[license_ref]: https://gitlab.com/mbarkhau/pycalver/blob/master/LICENSE
-
-[mypy_img]: https://img.shields.io/badge/mypy-checked-green.svg
-[mypy_ref]: https://mbarkhau.gitlab.io/pycalver/mypycov
-
-[style_img]: https://img.shields.io/badge/code%20style-%20sjfmt-f71.svg
-[style_ref]: https://gitlab.com/mbarkhau/straitjacket/
-
-[downloads_img]: https://pepy.tech/badge/pycalver/month
-[downloads_ref]: https://pepy.tech/project/pycalver
-
-[version_img]: https://img.shields.io/static/v1.svg?label=PyCalVer&message=v202010.1040-beta&color=blue
-[version_ref]: https://pypi.org/project/pycalver/
-
-[pypi_img]: https://img.shields.io/badge/PyPI-wheels-green.svg
-[pypi_ref]: https://pypi.org/project/pycalver/#files
-
-[pyversions_img]: https://img.shields.io/pypi/pyversions/pycalver.svg
-[pyversions_ref]: https://pypi.python.org/pypi/pycalver
 
