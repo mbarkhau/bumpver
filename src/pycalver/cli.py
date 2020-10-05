@@ -655,3 +655,7 @@ def bump(
     commit_message = cfg.commit_message.format(**commit_message_kwargs)
 
     _try_bump(cfg, new_version, commit_message, allow_dirty)
+
+
+if __name__ == '__main__':
+    cli()

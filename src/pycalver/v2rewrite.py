@@ -51,7 +51,6 @@ def rewrite_lines(
                 + regexfmt.pyexpr_regex(nmp.regexp.pattern)
             )
             logger.error(msg)
-            logger.error(msg)
         raise rewrite.NoPatternMatch("Invalid pattern(s)")
     else:
         return new_lines
