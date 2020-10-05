@@ -17,8 +17,8 @@ import pytest
 import pathlib2 as pl
 from click.testing import CliRunner
 
-from pycalver import config
 from pycalver import cli
+from pycalver import config
 from pycalver import v1patterns
 
 # pylint:disable=redefined-outer-name ; pytest fixtures
