@@ -18,10 +18,9 @@ import subprocess as sp
 
 import click
 import colorama
+import pkg_resources
 
 from . import vcs
-from . import v1cli
-from . import v2cli
 from . import config
 from . import rewrite
 from . import version
@@ -339,6 +338,25 @@ def _colored_diff_lines(diff: str) -> typ.Iterable[str]:
             yield line
 
 
+def _v2_get_diff(cfg: config.Config, new_version: str) -> str:
+    old_vinfo = v2version.parse_version_info(cfg.current_version, cfg.version_pattern)
+    new_vinfo = v2version.parse_version_info(new_version, cfg.version_pattern)
+    return v2rewrite.diff(old_vinfo, new_vinfo, cfg.file_patterns)
+
+
+def _v1_get_diff(cfg: config.Config, new_version: str) -> str:
+    old_vinfo = v1version.parse_version_info(cfg.current_version, cfg.version_pattern)
+    new_vinfo = v1version.parse_version_info(new_version, cfg.version_pattern)
+    return v1rewrite.diff(old_vinfo, new_vinfo, cfg.file_patterns)
+
+
+def get_diff(cfg, new_version) -> str:
+    if cfg.is_new_pattern:
+        return _v2_get_diff(cfg, new_version)
+    else:
+        return _v1_get_diff(cfg, new_version)
+
+
 def _print_diff_str(diff: str) -> None:
     colored_diff = "\n".join(_colored_diff_lines(diff))
     if sys.stdout.isatty():
@@ -349,11 +367,7 @@ def _print_diff_str(diff: str) -> None:
 
 def _print_diff(cfg: config.Config, new_version: str) -> None:
     try:
-        if cfg.is_new_pattern:
-            diff = v2cli.get_diff(cfg, new_version)
-        else:
-            diff = v1cli.get_diff(cfg, new_version)
-
+        diff = get_diff(cfg, new_version)
         _print_diff_str(diff)
     except rewrite.NoPatternMatch as ex:
         logger.error(str(ex))
@@ -489,9 +503,29 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     all_tags = vcs.get_tags(fetch=fetch)
 
     if cfg.is_new_pattern:
-        return v2cli.update_cfg_from_vcs(cfg, all_tags)
+        version_tags = [tag for tag in all_tags if v2version.is_valid(tag, cfg.version_pattern)]
     else:
-        return v1cli.update_cfg_from_vcs(cfg, all_tags)
+        version_tags = [tag for tag in all_tags if v1version.is_valid(tag, cfg.version_pattern)]
+
+    if not version_tags:
+        logger.debug("no vcs tags found")
+        return cfg
+    else:
+        version_tags.sort(key=pkg_resources.parse_version, reverse=True)
+
+        _debug_tags = ", ".join(version_tags[:3])
+        logger.debug(f"found tags: {_debug_tags} ... ({len(version_tags)} in total)")
+        latest_version_tag    = version_tags[0]
+        latest_version_pep440 = version.to_pep440(latest_version_tag)
+        if latest_version_tag <= cfg.current_version:
+            return cfg
+        else:
+            logger.info(f"Working dir version        : {cfg.current_version}")
+            logger.info(f"Latest version from VCS tag: {latest_version_tag}")
+            return cfg._replace(
+                current_version=latest_version_tag,
+                pep440_version=latest_version_pep440,
+            )
 
 
 @cli.command()
