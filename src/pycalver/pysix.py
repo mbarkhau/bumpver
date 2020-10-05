@@ -6,7 +6,7 @@
 import sys
 import typing as typ
 
-PY2 = sys.version < "3"
+PY2 = sys.version_info.major < 3
 
 
 try:
