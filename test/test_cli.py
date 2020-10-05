@@ -18,7 +18,7 @@ import pathlib2 as pl
 from click.testing import CliRunner
 
 from pycalver import config
-from pycalver import __main__ as main
+from pycalver import cli
 from pycalver import v1patterns
 
 # pylint:disable=redefined-outer-name ; pytest fixtures
@@ -85,7 +85,7 @@ def runner(tmpdir):
 
 
 def test_help(runner):
-    result = runner.invoke(main.cli, ['--help', "-vv"])
+    result = runner.invoke(cli.cli, ['--help', "-vv"])
     assert result.exit_code == 0
     assert "PyCalVer" in result.output
     assert "bump " in result.output
@@ -95,7 +95,7 @@ def test_help(runner):
 
 
 def test_version(runner):
-    result = runner.invoke(main.cli, ['--version', "-vv"])
+    result = runner.invoke(cli.cli, ['--version', "-vv"])
     assert result.exit_code == 0
     assert " version v20" in result.output
     match = v1patterns.PYCALVER_RE.search(result.output)
@@ -106,19 +106,19 @@ def test_incr_default(runner):
     old_version = "v201701.0004-alpha"
 
     cmd    = ['test', "-vv", "--pin-date", "--release", "beta", old_version]
-    result = runner.invoke(main.cli, cmd)
+    result = runner.invoke(cli.cli, cmd)
     assert result.exit_code == 0
     assert "Version: v201701.0005-beta\n" in result.output
 
     cmd    = ['test', "-vv", "--pin-date", "--release", "beta", old_version, "vYYYY0M.BUILD[-RELEASE]"]
-    result = runner.invoke(main.cli, cmd)
+    result = runner.invoke(cli.cli, cmd)
     assert result.exit_code == 0
     assert "Version: v201701.1005-beta\n" in result.output
 
 
 def test_incr_pin_date(runner):
     old_version = "v201701.0999-alpha"
-    result      = runner.invoke(main.cli, ['test', "-vv", "--pin-date", old_version])
+    result      = runner.invoke(cli.cli, ['test', "-vv", "--pin-date", old_version])
     assert result.exit_code == 0
     assert "Version: v201701.11000-alpha\n" in result.output
 
@@ -134,27 +134,27 @@ def test_incr_semver(runner):
         old_version = "0.1.0"
         new_version = "0.1.1"
 
-        result = runner.invoke(main.cli, ['test', "-vv", "--patch", old_version, semver_pattern])
+        result = runner.invoke(cli.cli, ['test', "-vv", "--patch", old_version, semver_pattern])
         assert result.exit_code == 0
         assert f"Version: {new_version}\n" in result.output
 
         old_version = "0.1.1"
         new_version = "0.2.0"
 
-        result = runner.invoke(main.cli, ['test', "-vv", "--minor", old_version, semver_pattern])
+        result = runner.invoke(cli.cli, ['test', "-vv", "--minor", old_version, semver_pattern])
         assert result.exit_code == 0
         assert f"Version: {new_version}\n" in result.output
 
         old_version = "0.1.1"
         new_version = "1.0.0"
 
-        result = runner.invoke(main.cli, ['test', "-vv", "--major", old_version, semver_pattern])
+        result = runner.invoke(cli.cli, ['test', "-vv", "--major", old_version, semver_pattern])
         assert result.exit_code == 0
         assert f"Version: {new_version}\n" in result.output
 
 
 def test_incr_semver_invalid(runner, caplog):
-    result = runner.invoke(main.cli, ['test', "-vv", "--patch", "0.1.1"])
+    result = runner.invoke(cli.cli, ['test', "-vv", "--patch", "0.1.1"])
     assert result.exit_code == 1
     assert len(caplog.records) > 0
     log_record = caplog.records[0]
@@ -166,7 +166,7 @@ def test_incr_to_beta(runner):
     old_version     = "v201701.0999-alpha"
     initial_version = config._initial_version()
 
-    result = runner.invoke(main.cli, ['test', old_version, "-vv", "--release", "beta"])
+    result = runner.invoke(cli.cli, ['test', old_version, "-vv", "--release", "beta"])
     assert result.exit_code == 0
     new_version = initial_version.replace(".1001-alpha", ".11000-beta")
     assert f"Version: {new_version}\n" in result.output
@@ -176,7 +176,7 @@ def test_incr_to_final(runner):
     old_version     = "v201701.0999-alpha"
     initial_version = config._initial_version()
 
-    result = runner.invoke(main.cli, ['test', old_version, "-vv", "--release", "final"])
+    result = runner.invoke(cli.cli, ['test', old_version, "-vv", "--release", "final"])
     assert result.exit_code == 0
     new_version = initial_version.replace(".1001-alpha", ".11000")
     assert f"Version: {new_version}\n" in result.output
@@ -188,7 +188,7 @@ def test_incr_release_num(runner):
     old_version = "0.1.0b0"
     new_version = "0.1.0b1"
 
-    result = runner.invoke(main.cli, ['test', "-vv", "--release-num", old_version, semver])
+    result = runner.invoke(cli.cli, ['test', "-vv", "--release-num", old_version, semver])
     assert result.exit_code == 0
     assert f"Version: {new_version}\n" in result.output
 
@@ -196,7 +196,7 @@ def test_incr_release_num(runner):
 def test_incr_invalid(runner):
     old_version = "v201701.0999-alpha"
 
-    result = runner.invoke(main.cli, ['test', old_version, "-vv", "--release", "alfa"])
+    result = runner.invoke(cli.cli, ['test', old_version, "-vv", "--release", "alfa"])
     assert result.exit_code == 1
 
 
@@ -236,7 +236,7 @@ def _update_config_val(filename, **kwargs):
 
 def test_nocfg(runner, caplog):
     _add_project_files("README.md")
-    result = runner.invoke(main.cli, ['show', "-vv"])
+    result = runner.invoke(cli.cli, ['show', "-vv"])
     assert result.exit_code == 1
     expected_msg = "Could not parse configuration. Perhaps try 'pycalver init'."
     assert any(expected_msg in r.message for r in caplog.records)
@@ -245,12 +245,12 @@ def test_nocfg(runner, caplog):
 def test_novcs_nocfg_init(runner, caplog):
     _add_project_files("README.md")
     # dry mode test
-    result = runner.invoke(main.cli, ['init', "-vv", "--dry"])
+    result = runner.invoke(cli.cli, ['init', "-vv", "--dry"])
     assert result.exit_code == 0
     assert not os.path.exists("pycalver.toml")
 
     # non dry mode
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     assert os.path.exists("pycalver.toml")
@@ -261,12 +261,12 @@ def test_novcs_nocfg_init(runner, caplog):
     assert base_str                          in cfg_content
     assert config.DEFAULT_TOML_README_MD_STR in cfg_content
 
-    result = runner.invoke(main.cli, ['show', "-vv"])
+    result = runner.invoke(cli.cli, ['show', "-vv"])
     assert result.exit_code == 0
     assert f"Current Version: {config._initial_version()}\n" in result.output
     assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
 
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 1
 
     # check logging
@@ -278,7 +278,7 @@ def test_novcs_nocfg_init(runner, caplog):
 
 def test_novcs_setupcfg_init(runner):
     _add_project_files("README.md", "setup.cfg")
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     with pl.Path("setup.cfg").open(mode="r", encoding="utf-8") as fobj:
@@ -290,7 +290,7 @@ def test_novcs_setupcfg_init(runner):
     assert base_str                                  in cfg_content
     assert config.DEFAULT_CONFIGPARSER_README_MD_STR in cfg_content
 
-    result = runner.invoke(main.cli, ['show', "-vv"])
+    result = runner.invoke(cli.cli, ['show', "-vv"])
     assert result.exit_code == 0
     assert f"Current Version: {config._initial_version()}\n" in result.output
     assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
@@ -298,7 +298,7 @@ def test_novcs_setupcfg_init(runner):
 
 def test_novcs_pyproject_init(runner):
     _add_project_files("README.md", "pyproject.toml")
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     with pl.Path("pyproject.toml").open(mode="r", encoding="utf-8") as fobj:
@@ -308,7 +308,7 @@ def test_novcs_pyproject_init(runner):
     assert base_str                          in cfg_content
     assert config.DEFAULT_TOML_README_MD_STR in cfg_content
 
-    result = runner.invoke(main.cli, ['show'])
+    result = runner.invoke(cli.cli, ['show'])
     assert result.exit_code == 0
     assert f"Current Version: {config._initial_version()}\n" in result.output
     assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
@@ -337,12 +337,12 @@ def test_git_init(runner, version_pattern):
     _add_project_files("README.md")
     _vcs_init("git")
 
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     _update_config_val("pycalver.toml", version_pattern=version_pattern)
 
-    result = runner.invoke(main.cli, ['show'])
+    result = runner.invoke(cli.cli, ['show'])
     assert result.exit_code == 0
     assert f"Current Version: {config._initial_version()}\n" in result.output
     assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
@@ -353,12 +353,12 @@ def test_hg_init(runner, version_pattern):
     _add_project_files("README.md")
     _vcs_init("hg")
 
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     _update_config_val("pycalver.toml", version_pattern=version_pattern)
 
-    result = runner.invoke(main.cli, ['show'])
+    result = runner.invoke(cli.cli, ['show'])
     assert result.exit_code == 0
     assert f"Current Version: {config._initial_version()}\n" in result.output
     assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
@@ -371,7 +371,7 @@ def test_v1_git_tag_eval(runner, version_pattern):
 
     # This will set a version that is older than the version tag
     # we set in the vcs, which should take precedence.
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     _update_config_val("pycalver.toml", version_pattern=version_pattern)
@@ -382,7 +382,7 @@ def test_v1_git_tag_eval(runner, version_pattern):
 
     shell("git", "tag", "--annotate", tag_version, "--message", f"bump version to {tag_version}")
 
-    result = runner.invoke(main.cli, ['show', "-vv"])
+    result = runner.invoke(cli.cli, ['show', "-vv"])
     assert result.exit_code == 0
     assert f"Current Version: {tag_version}\n" in result.output
     assert f"PEP440         : {tag_version_pep440}\n" in result.output
@@ -395,7 +395,7 @@ def test_hg_tag_eval(runner, version_pattern):
 
     # This will set a version that is older than the version tag
     # we set in the vcs, which should take precedence.
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     _update_config_val("pycalver.toml", version_pattern=version_pattern)
@@ -406,7 +406,7 @@ def test_hg_tag_eval(runner, version_pattern):
 
     shell("hg", "tag", tag_version, "--message", f"bump version to {tag_version}")
 
-    result = runner.invoke(main.cli, ['show', "-vv"])
+    result = runner.invoke(cli.cli, ['show', "-vv"])
     assert result.exit_code == 0
     assert f"Current Version: {tag_version}\n" in result.output
     assert f"PEP440         : {tag_version_pep440}\n" in result.output
@@ -416,12 +416,12 @@ def test_hg_tag_eval(runner, version_pattern):
 def test_novcs_bump(runner, version_pattern):
     _add_project_files("README.md")
 
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     _update_config_val("pycalver.toml", version_pattern=version_pattern)
 
-    result = runner.invoke(main.cli, ['bump', "-vv"])
+    result = runner.invoke(cli.cli, ['bump', "-vv"])
     assert result.exit_code == 0
 
     calver = config._initial_version().split(".")[0]
@@ -431,7 +431,7 @@ def test_novcs_bump(runner, version_pattern):
         assert calver + ".1002-alpha !\n" in content
         assert calver[1:] + ".1002a0 !]\n" in content
 
-    result = runner.invoke(main.cli, ['bump', "-vv", "--release", "beta"])
+    result = runner.invoke(cli.cli, ['bump', "-vv", "--release", "beta"])
     assert result.exit_code == 0
 
     with pl.Path("README.md").open() as fobj:
@@ -445,7 +445,7 @@ def test_git_bump(runner, version_pattern):
     _add_project_files("README.md")
     _vcs_init("git")
 
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     _update_config_val("pycalver.toml", version_pattern=version_pattern)
@@ -453,7 +453,7 @@ def test_git_bump(runner, version_pattern):
     shell("git", "add", "pycalver.toml")
     shell("git", "commit", "-m", "initial commit")
 
-    result = runner.invoke(main.cli, ['bump', "-vv"])
+    result = runner.invoke(cli.cli, ['bump', "-vv"])
     assert result.exit_code == 0
 
     calver = config._initial_version()[:7]
@@ -468,7 +468,7 @@ def test_hg_bump(runner, version_pattern):
     _add_project_files("README.md")
     _vcs_init("hg")
 
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     _update_config_val("pycalver.toml", version_pattern=version_pattern)
@@ -476,7 +476,7 @@ def test_hg_bump(runner, version_pattern):
     shell("hg", "add", "pycalver.toml")
     shell("hg", "commit", "-m", "initial commit")
 
-    result = runner.invoke(main.cli, ['bump', "-vv"])
+    result = runner.invoke(cli.cli, ['bump', "-vv"])
     assert result.exit_code == 0
 
     calver = config._initial_version()[:7]
@@ -490,7 +490,7 @@ def test_empty_git_bump(runner, caplog):
     shell("git", "init")
     with pl.Path("setup.cfg").open(mode="w") as fobj:
         fobj.write("")
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     with pl.Path("setup.cfg").open(mode="r") as fobj:
@@ -501,7 +501,7 @@ def test_empty_git_bump(runner, caplog):
     assert "\n[pycalver:file_patterns]\n" in default_cfg_data
     assert "\nsetup.cfg =\n" in default_cfg_data
 
-    result = runner.invoke(main.cli, ['bump'])
+    result = runner.invoke(cli.cli, ['bump'])
 
     assert any(("working directory is not clean" in r.message) for r in caplog.records)
     assert any(("setup.cfg" in r.message) for r in caplog.records)
@@ -511,7 +511,7 @@ def test_empty_hg_bump(runner, caplog):
     shell("hg", "init")
     with pl.Path("setup.cfg").open(mode="w") as fobj:
         fobj.write("")
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     with pl.Path("setup.cfg").open(mode="r") as fobj:
@@ -522,7 +522,7 @@ def test_empty_hg_bump(runner, caplog):
     assert "\n[pycalver:file_patterns]\n" in default_cfg_text
     assert "\nsetup.cfg =\n" in default_cfg_text
 
-    result = runner.invoke(main.cli, ['bump'])
+    result = runner.invoke(cli.cli, ['bump'])
 
     assert any(("working directory is not clean" in r.message) for r in caplog.records)
     assert any(("setup.cfg" in r.message) for r in caplog.records)
@@ -562,13 +562,13 @@ def test_v1_bump_semver_warning(runner, caplog, version_pattern):
 
     _vcs_init("hg", files=["README.md", "setup.cfg"])
 
-    result = runner.invoke(main.cli, ['bump', "-vv", "-n", "--dry"])
+    result = runner.invoke(cli.cli, ['bump', "-vv", "-n", "--dry"])
     assert result.exit_code == 1
 
     assert any("version did not change" in r.message for r in caplog.records)
     assert any("--major/--minor/--patch required" in r.message for r in caplog.records)
 
-    result = runner.invoke(main.cli, ['bump', "-vv", "-n", "--dry", "--patch"])
+    result = runner.invoke(cli.cli, ['bump', "-vv", "-n", "--dry", "--patch"])
     assert result.exit_code == 0
 
 
@@ -586,7 +586,7 @@ def test_v1_bump_semver_diff(runner, caplog, version_pattern):
     cases = [("--major", "1.0.0"), ("--minor", "0.2.0"), ("--patch", "0.1.1")]
 
     for flag, expected in cases:
-        result = runner.invoke(main.cli, ['bump', "-vv", "-n", "--dry", flag])
+        result = runner.invoke(cli.cli, ['bump', "-vv", "-n", "--dry", flag])
         assert result.exit_code == 0
         assert len(caplog.records) == 0
 
@@ -600,7 +600,7 @@ def test_v1_bump_semver_diff(runner, caplog, version_pattern):
 @pytest.mark.parametrize("version_pattern", DEFAULT_VERSION_PATTERNS)
 def test_get_diff(runner, version_pattern):
     _add_project_files("README.md", "setup.cfg")
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     _update_config_val("setup.cfg", version_pattern=version_pattern)
@@ -608,7 +608,7 @@ def test_get_diff(runner, version_pattern):
     _, cfg = config.init()
     new_version = "v202010.1003-beta"
 
-    diff_str   = main.get_diff(cfg, new_version)
+    diff_str   = cli.get_diff(cfg, new_version)
     diff_lines = set(diff_str.splitlines())
 
     assert "-        Hello World v201701.1002-alpha !" in diff_lines
@@ -667,14 +667,14 @@ WEEKNUM_TEST_CASES = [
 @pytest.mark.parametrize("date, pattern, expected", WEEKNUM_TEST_CASES)
 def test_weeknum(date, pattern, expected, runner):
     cmd    = shlex.split(f"test -vv --date {date} 2020.40 {pattern}")
-    result = runner.invoke(main.cli, cmd)
+    result = runner.invoke(cli.cli, cmd)
     assert result.exit_code == 0
     assert "New Version: " + expected in result.output
 
 
 def test_hg_commit_message(runner, caplog):
     _add_project_files("README.md", "setup.cfg")
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     commit_message = """
@@ -686,7 +686,7 @@ def test_hg_commit_message(runner, caplog):
     _vcs_init("hg", ["README.md", "setup.cfg"])
     assert len(caplog.records) > 0
 
-    result = runner.invoke(main.cli, ['bump', "-vv", "--pin-date", "--release", "beta"])
+    result = runner.invoke(cli.cli, ['bump', "-vv", "--pin-date", "--release", "beta"])
     assert result.exit_code == 0
 
     tags = shell("hg", "tags").decode("utf-8")
@@ -701,7 +701,7 @@ def test_hg_commit_message(runner, caplog):
 
 def test_git_commit_message(runner, caplog):
     _add_project_files("README.md", "setup.cfg")
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     commit_message = """
@@ -713,7 +713,7 @@ def test_git_commit_message(runner, caplog):
     _vcs_init("git", ["README.md", "setup.cfg"])
     assert len(caplog.records) > 0
 
-    result = runner.invoke(main.cli, ['bump', "-vv", "--pin-date", "--release", "beta"])
+    result = runner.invoke(cli.cli, ['bump', "-vv", "--pin-date", "--release", "beta"])
     assert result.exit_code == 0
 
     tags = shell("git", "tag", "--list").decode("utf-8")
@@ -732,13 +732,13 @@ def test_grep(runner):
     search_re = r"^\s+2:\s+Hello World v201701\.1002-alpha !"
 
     cmd1    = r'grep "vYYYY0M.BUILD[-RELEASE]" README.md'
-    result1 = runner.invoke(main.cli, shlex.split(cmd1))
+    result1 = runner.invoke(cli.cli, shlex.split(cmd1))
     assert result1.exit_code == 0
     assert "README.md" in result1.output
     assert re.search(search_re, result1.output, flags=re.MULTILINE)
 
     cmd2    = r'grep --version-pattern "vYYYY0M.BUILD[-RELEASE]" "{version}" README.md'
-    result2 = runner.invoke(main.cli, shlex.split(cmd2))
+    result2 = runner.invoke(cli.cli, shlex.split(cmd2))
     assert result2.exit_code == 0
     assert "README.md" in result2.output
     assert re.search(search_re, result2.output, flags=re.MULTILINE)
@@ -748,7 +748,7 @@ def test_grep(runner):
     search_re = r"^\s+3:\s+\[aka\. 201701\.1002a0 \!\]"
 
     cmd3    = r'grep "\[aka. YYYY0M.BLD[PYTAGNUM] \!\]"  README.md'
-    result3 = runner.invoke(main.cli, shlex.split(cmd3))
+    result3 = runner.invoke(cli.cli, shlex.split(cmd3))
     assert result3.exit_code == 0
     assert "README.md" in result3.output
     assert re.search(search_re, result3.output, flags=re.MULTILINE)
@@ -756,7 +756,7 @@ def test_grep(runner):
     cmd4 = (
         r'grep --version-pattern "vYYYY0M.BUILD[-RELEASE]" "\[aka. {pep440_version} \!\]" README.md'
     )
-    result4 = runner.invoke(main.cli, shlex.split(cmd4))
+    result4 = runner.invoke(cli.cli, shlex.split(cmd4))
     assert result4.exit_code == 0
     assert "README.md" in result4.output
     assert re.search(search_re, result4.output, flags=re.MULTILINE)
@@ -784,7 +784,7 @@ def test_multimatch_file_patterns(runner):
     with pl.Path("setup.cfg").open(mode="w", encoding="utf-8") as fobj:
         fobj.write(SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE)
 
-    result = runner.invoke(main.cli, ['bump', '--release', 'beta'])
+    result = runner.invoke(cli.cli, ['bump', '--release', 'beta'])
     assert result.exit_code == 0
 
     with pl.Path("README.md").open(mode="r", encoding="utf-8") as fobj:
@@ -824,7 +824,7 @@ ROLLOVER_TEST_CASES = [
 
 @pytest.mark.parametrize("version_pattern, old_version, expected, kwargs", ROLLOVER_TEST_CASES)
 def test_rollover(version_pattern, old_version, expected, kwargs):
-    new_version = main.incr_dispatch(old_version, raw_pattern=version_pattern, **kwargs)
+    new_version = cli.incr_dispatch(old_version, raw_pattern=version_pattern, **kwargs)
     if new_version is None:
         assert expected is None
     else:
@@ -832,7 +832,7 @@ def test_rollover(version_pattern, old_version, expected, kwargs):
 
 
 def test_get_latest_vcs_version_tag(runner):
-    result = runner.invoke(main.cli, ['init', "-vv"])
+    result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     _update_config_val("pycalver.toml", push="false")
@@ -841,16 +841,16 @@ def test_get_latest_vcs_version_tag(runner):
 
     _vcs_init("git", files=["pycalver.toml"])
 
-    result = runner.invoke(main.cli, ['bump', "--patch"])
+    result = runner.invoke(cli.cli, ['bump', "--patch"])
     assert result.exit_code == 0
 
     _, cfg = config.init()
-    latest_version = main.get_latest_vcs_version_tag(cfg, fetch=False)
+    latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
     assert latest_version == "0.1.9"
 
-    result = runner.invoke(main.cli, ['bump', "--patch"])
+    result = runner.invoke(cli.cli, ['bump', "--patch"])
     assert result.exit_code == 0
 
     _, cfg = config.init()
-    latest_version = main.get_latest_vcs_version_tag(cfg, fetch=False)
+    latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
     assert latest_version == "0.1.10"

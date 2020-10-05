@@ -4,11 +4,7 @@
 #
 # Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
-"""
-__main__ module for PyCalVer.
-
-Enables use as module: $ python -m pycalver --version
-"""
+"""cli module for PyCalVer."""
 import io
 import sys
 import typing as typ
@@ -43,7 +39,7 @@ except ImportError:
 
 click.disable_unicode_literals_warning = True
 
-logger = logging.getLogger("pycalver.__main__")
+logger = logging.getLogger("pycalver.cli")
 
 
 _VERBOSE = 0
@@ -659,7 +655,3 @@ def bump(
     commit_message = cfg.commit_message.format(**commit_message_kwargs)
 
     _try_bump(cfg, new_version, commit_message, allow_dirty)
-
-
-if __name__ == '__main__':
-    cli()
