@@ -499,7 +499,7 @@ def init(verbose: int = 0, dry: bool = False) -> None:
     config.write_content(ctx)
 
 
-def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
+def get_latest_vcs_version_tag(cfg: config.Config, fetch: bool) -> typ.Optional[str]:
     all_tags = vcs.get_tags(fetch=fetch)
 
     if cfg.is_new_pattern:
@@ -507,17 +507,24 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     else:
         version_tags = [tag for tag in all_tags if v1version.is_valid(tag, cfg.version_pattern)]
 
-    if not version_tags:
+    if version_tags:
+        version_tags.sort(key=pkg_resources.parse_version, reverse=True)
+        _debug_tags = ", ".join(version_tags[:3])
+        logger.debug(f"found tags: {_debug_tags} ... ({len(version_tags)} in total)")
+        return version_tags[0]
+    else:
+        return None
+
+
+def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
+    latest_version_tag = get_latest_vcs_version_tag(cfg, fetch)
+    if latest_version_tag is None:
         logger.debug("no vcs tags found")
         return cfg
     else:
-        version_tags.sort(key=pkg_resources.parse_version, reverse=True)
-
-        _debug_tags = ", ".join(version_tags[:3])
-        logger.debug(f"found tags: {_debug_tags} ... ({len(version_tags)} in total)")
-        latest_version_tag    = version_tags[0]
         latest_version_pep440 = version.to_pep440(latest_version_tag)
         if latest_version_tag <= cfg.current_version:
+            # current_version already newer/up-to-date
             return cfg
         else:
             logger.info(f"Working dir version        : {cfg.current_version}")

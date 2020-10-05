@@ -829,3 +829,28 @@ def test_rollover(version_pattern, old_version, expected, kwargs):
         assert expected is None
     else:
         assert new_version == expected
+
+
+def test_get_latest_vcs_version_tag(runner):
+    result = runner.invoke(main.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val("pycalver.toml", push="false")
+    _update_config_val("pycalver.toml", current_version='"0.1.8"')
+    _update_config_val("pycalver.toml", version_pattern='"MAJOR.MINOR.PATCH"')
+
+    _vcs_init("git", files=["pycalver.toml"])
+
+    result = runner.invoke(main.cli, ['bump', "--patch"])
+    assert result.exit_code == 0
+
+    _, cfg = config.init()
+    latest_version = main.get_latest_vcs_version_tag(cfg, fetch=False)
+    assert latest_version == "0.1.9"
+
+    result = runner.invoke(main.cli, ['bump', "--patch"])
+    assert result.exit_code == 0
+
+    _, cfg = config.init()
+    latest_version = main.get_latest_vcs_version_tag(cfg, fetch=False)
+    assert latest_version == "0.1.10"
