@@ -19,7 +19,7 @@ Project/Repo:
 
 [![MIT License][img_license]][url_license]
 [![Supported Python Versions][img_pyversions]][url_pyversions]
-[![PyCalVer v202010.1040-beta][img_version]][url_version]
+[![PyCalVer v202010.1041-beta][img_version]][url_version]
 [![PyPI Releases][img_pypi]][url_pypi]
 [![PyPI Downloads][img_downloads]][url_downloads]
 
@@ -59,7 +59,7 @@ Code Quality/CI:
 [img_downloads]: https://pepy.tech/badge/pycalver/month
 [url_downloads]: https://pepy.tech/project/pycalver
 
-[img_version]: https://img.shields.io/static/v1.svg?label=PyCalVer&message=v202010.1040-beta&color=blue
+[img_version]: https://img.shields.io/static/v1.svg?label=PyCalVer&message=v202010.1041-beta&color=blue
 [url_version]: https://pypi.org/project/pycalver/
 
 [img_pypi]: https://img.shields.io/badge/PyPI-wheels-green.svg
@@ -226,7 +226,7 @@ The fastest way to setup a project is to use `pycalver init`.
 $ pip install pycalver
 ...
 Installing collected packages: click pathlib2 typing toml pycalver
-Successfully installed pycalver-202010.1040b0
+Successfully installed pycalver-202010.1041b0
 
 $ cd myproject
 ~/myproject/
