@@ -109,6 +109,10 @@ def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
     >>> (vinfo.year_y, vinfo.month, vinfo.quarter, vinfo.bid, vinfo.tag)
     (2018, 11, 4, '0099', 'final')
 
+    >>> vinfo = _parse_version_info({'year_y': "18", 'month': "11"})
+    >>> (vinfo.year_y, vinfo.month, vinfo.quarter)
+    (2018, 11, 4)
+
     >>> vinfo = _parse_version_info({'year_y': "2018", 'doy': "11", 'bid': "099", 'tag': "beta"})
     >>> (vinfo.year_y, vinfo.month, vinfo.dom, vinfo.doy, vinfo.bid, vinfo.tag)
     (2018, 1, 11, 11, '099', 'beta')
@@ -161,6 +165,11 @@ def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
 
     year_y: MaybeInt = int(fvals['year_y']) if 'year_y' in fvals else None
     year_g: MaybeInt = int(fvals['year_g']) if 'year_g' in fvals else None
+
+    if year_y is not None and year_y < 1000:
+        year_y += 2000
+    if year_g is not None and year_g < 1000:
+        year_g += 2000
 
     month: MaybeInt = int(fvals['month']) if 'month' in fvals else None
     doy  : MaybeInt = int(fvals['doy'  ]) if 'doy' in fvals else None

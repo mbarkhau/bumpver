@@ -103,7 +103,10 @@ def _parse_field_values(field_values: FieldValues) -> version.V1VersionInfo:
     bid = fvals['bid'] if 'bid' in fvals else "0001"
 
     year = int(fvals['year']) if 'year' in fvals else None
-    doy  = int(fvals['doy' ]) if 'doy' in fvals else None
+    if year is not None and year < 100:
+        year += 2000
+
+    doy = int(fvals['doy']) if 'doy' in fvals else None
 
     month: typ.Optional[int]
     dom  : typ.Optional[int]
@@ -210,6 +213,10 @@ def _parse_version_info(pattern_groups: PatternGroups) -> version.V1VersionInfo:
     >>> vnfo = _parse_version_info({'year': "2018", 'month': "11", 'bid': "0099"})
     >>> (vnfo.year, vnfo.month, vnfo.quarter, vnfo.bid, vnfo.tag)
     (2018, 11, 4, '0099', 'final')
+
+    >>> vnfo = _parse_version_info({'year': "18", 'month': "11"})
+    >>> (vnfo.year, vnfo.month, vnfo.quarter)
+    (2018, 11, 4)
 
     >>> vnfo = _parse_version_info({'year': "2018", 'doy': "11", 'bid': "099", 'tag': "b"})
     >>> (vnfo.year, vnfo.month, vnfo.dom, vnfo.bid, vnfo.tag)
