@@ -102,65 +102,26 @@ FieldValues   = typ.Dict[FieldKey, MatchGroupStr]
 VersionInfoKW = typ.Dict[str, typ.Union[str, int, None]]
 
 
-def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
-    """Parse normalized V2VersionInfo from groups of a matched pattern.
+def _parse_calendar_info(field_values: FieldValues) -> version.V2CalendarInfo:
+    """Parse normalized V2CalendarInfo from groups of a matched pattern.
 
-    >>> vinfo = _parse_version_info({'year_y': "2018", 'month': "11", 'bid': "0099"})
-    >>> (vinfo.year_y, vinfo.month, vinfo.quarter, vinfo.bid, vinfo.tag)
-    (2018, 11, 4, '0099', 'final')
-
-    >>> vinfo = _parse_version_info({'year_y': "18", 'month': "11"})
-    >>> (vinfo.year_y, vinfo.month, vinfo.quarter)
-    (2018, 11, 4)
-
-    >>> vinfo = _parse_version_info({'year_y': "2018", 'doy': "11", 'bid': "099", 'tag': "beta"})
-    >>> (vinfo.year_y, vinfo.month, vinfo.dom, vinfo.doy, vinfo.bid, vinfo.tag)
-    (2018, 1, 11, 11, '099', 'beta')
-
-    >>> vinfo = _parse_version_info({'year_y': "2018", 'month': "6", 'dom': "15"})
-    >>> (vinfo.year_y, vinfo.month, vinfo.dom, vinfo.doy)
-    (2018, 6, 15, 166)
-
-    >>> vinfo = _parse_version_info({'major': "1", 'minor': "23", 'patch': "45"})
-    >>> (vinfo.major, vinfo.minor, vinfo.patch)
-    (1, 23, 45)
-
-    >>> vinfo = _parse_version_info({'major': "1", 'minor': "023", 'patch': "0045"})
-    >>> (vinfo.major, vinfo.minor, vinfo.patch)
-    (1, 23, 45)
-
-    >>> vinfo = _parse_version_info({'year_y': "2021", 'week_w': "02"})
-    >>> (vinfo.year_y, vinfo.week_w)
+    >>> cinfo = _parse_version_info({'year_y': "2021", 'week_w': "02"})
+    >>> (cinfo.year_y, cinfo.week_w)
     (2021, 2)
-    >>> vinfo = _parse_version_info({'year_y': "2021", 'week_u': "02"})
-    >>> (vinfo.year_y, vinfo.week_u)
+    >>> cinfo = _parse_version_info({'year_y': "2021", 'week_u': "02"})
+    >>> (cinfo.year_y, cinfo.week_u)
     (2021, 2)
-    >>> vinfo = _parse_version_info({'year_g': "2021", 'week_v': "02"})
-    >>> (vinfo.year_g, vinfo.week_v)
+    >>> cinfo = _parse_version_info({'year_g': "2021", 'week_v': "02"})
+    >>> (cinfo.year_g, cinfo.week_v)
     (2021, 2)
 
-    >>> vinfo = _parse_version_info({'year_y': "2021", 'month': "01", 'dom': "03"})
-    >>> (vinfo.year_y, vinfo.month, vinfo.dom, vinfo.tag)
-    (2021, 1, 3, 'final')
-    >>> (vinfo.year_y, vinfo.week_w, vinfo.year_y, vinfo.week_u,vinfo.year_g, vinfo.week_v)
+    >>> cinfo = _parse_version_info({'year_y': "2021", 'month': "01", 'dom': "03"})
+    >>> (cinfo.year_y, cinfo.month, cinfo.dom)
+    (2021, 1, 3)
+    >>> (cinfo.year_y, cinfo.week_w, cinfo.year_y, cinfo.week_u,cinfo.year_g, cinfo.week_v)
     (2021, 0, 2021, 1, 2020, 53)
     """
-    # pylint:disable=dangerous-default-value; We don't mutate args, mypy would fail if we did.
-    for key in field_values:
-        assert key in VALID_FIELD_KEYS, key
-
     fvals = field_values
-    tag   = fvals.get('tag'  ) or ""
-    pytag = fvals.get('pytag') or ""
-
-    if tag and not pytag:
-        pytag = version.PEP440_TAG_BY_RELEASE[tag]
-    elif pytag and not tag:
-        tag = version.RELEASE_BY_PEP440_TAG[pytag]
-
-    if not tag:
-        tag = "final"
-
     date: typ.Optional[dt.date] = None
 
     year_y: MaybeInt = int(fvals['year_y']) if 'year_y' in fvals else None
@@ -205,16 +166,7 @@ def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
     if quarter is None and month:
         quarter = version.quarter_from_month(month)
 
-    # NOTE (mb 2020-09-18): If a part is optional, fvals[<field>] may be None
-    major = int(fvals.get('major') or 0)
-    minor = int(fvals.get('minor') or 0)
-    patch = int(fvals.get('patch') or 0)
-    num   = int(fvals.get('num'  ) or 0)
-    bid   = fvals['bid'] if 'bid' in fvals else "1000"
-    inc0  = int(fvals.get('inc0') or 0)
-    inc1  = int(fvals.get('inc1') or 1)
-
-    vinfo = version.V2VersionInfo(
+    return version.V2CalendarInfo(
         year_y=year_y,
         year_g=year_g,
         quarter=quarter,
@@ -224,6 +176,74 @@ def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
         week_w=week_w,
         week_u=week_u,
         week_v=week_v,
+    )
+
+
+def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
+    """Parse normalized V2VersionInfo from groups of a matched pattern.
+
+    >>> vinfo = _parse_version_info({'year_y': "2018", 'month': "11", 'bid': "0099"})
+    >>> (vinfo.year_y, vinfo.month, vinfo.quarter, vinfo.bid, vinfo.tag)
+    (2018, 11, 4, '0099', 'final')
+
+    >>> vinfo = _parse_version_info({'year_y': "18", 'month': "11"})
+    >>> (vinfo.year_y, vinfo.month, vinfo.quarter)
+    (2018, 11, 4)
+
+    >>> vinfo = _parse_version_info({'year_y': "2018", 'doy': "11", 'bid': "099", 'tag': "beta"})
+    >>> (vinfo.year_y, vinfo.month, vinfo.dom, vinfo.doy, vinfo.bid, vinfo.tag)
+    (2018, 1, 11, 11, '099', 'beta')
+
+    >>> vinfo = _parse_version_info({'year_y': "2018", 'month': "6", 'dom': "15"})
+    >>> (vinfo.year_y, vinfo.month, vinfo.dom, vinfo.doy)
+    (2018, 6, 15, 166)
+
+    >>> vinfo = _parse_version_info({'major': "1", 'minor': "23", 'patch': "45"})
+    >>> (vinfo.major, vinfo.minor, vinfo.patch)
+    (1, 23, 45)
+
+    >>> vinfo = _parse_version_info({'major': "1", 'minor': "023", 'patch': "0045"})
+    >>> (vinfo.major, vinfo.minor, vinfo.patch, vinfo.tag)
+    (1, 23, 45, 'final')
+    """
+    # pylint:disable=dangerous-default-value; We don't mutate args, mypy would fail if we did.
+    for key in field_values:
+        assert key in VALID_FIELD_KEYS, key
+
+    cinfo = _parse_calendar_info(field_values)
+
+    fvals = field_values
+
+    tag   = fvals.get('tag'  ) or ""
+    pytag = fvals.get('pytag') or ""
+
+    if tag and not pytag:
+        pytag = version.PEP440_TAG_BY_RELEASE[tag]
+    elif pytag and not tag:
+        tag = version.RELEASE_BY_PEP440_TAG[pytag]
+
+    if not tag:
+        tag = "final"
+
+    # NOTE (mb 2020-09-18): If a part is optional, fvals[<field>] may be None
+    major = int(fvals.get('major') or 0)
+    minor = int(fvals.get('minor') or 0)
+    patch = int(fvals.get('patch') or 0)
+    num   = int(fvals.get('num'  ) or 0)
+    bid   = fvals['bid'] if 'bid' in fvals else "1000"
+    inc0  = int(fvals.get('inc0') or 0)
+    inc1  = int(fvals.get('inc1') or 1)
+
+    return version.V2VersionInfo(
+        year_y=cinfo.year_y,
+        year_g=cinfo.year_g,
+        quarter=cinfo.quarter,
+        month=cinfo.month,
+        dom=cinfo.dom,
+        doy=cinfo.doy,
+        week_w=cinfo.week_w,
+        week_u=cinfo.week_u,
+        week_v=cinfo.week_v,
         major=major,
         minor=minor,
         patch=patch,
@@ -234,7 +254,6 @@ def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
         inc0=inc0,
         inc1=inc1,
     )
-    return vinfo
 
 
 def parse_version_info(

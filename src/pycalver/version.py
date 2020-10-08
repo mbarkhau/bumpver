@@ -126,8 +126,6 @@ V2_FIELD_INITIAL_VALUES = {
     'major': "0",
     'minor': "0",
     'patch': "0",
-    'tag'  : "final",
-    'pytag': "",
     'num'  : "0",
     'inc0' : "0",
     'inc1' : "1",

@@ -100,6 +100,52 @@ def _validate_release_tag(tag: typ.Optional[str]) -> None:
     sys.exit(1)
 
 
+def _validate_flags(
+    raw_pattern: str,
+    major      : bool,
+    minor      : bool,
+    patch      : bool,
+) -> None:
+    if "{" in raw_pattern and "}" in raw_pattern:
+        # only validate for new style patterns
+        return
+
+    valid = True
+    if major and "MAJOR" not in raw_pattern:
+        logger.error(f"Flag --major is not applicable to pattern '{raw_pattern}'")
+        valid = False
+    if minor and "MINOR" not in raw_pattern:
+        logger.error(f"Flag --minor is not applicable to pattern '{raw_pattern}'")
+        valid = False
+    if patch and "PATCH" not in raw_pattern:
+        logger.error(f"Flag --patch is not applicable to pattern '{raw_pattern}'")
+        valid = False
+
+    if not valid:
+        sys.exit(1)
+
+
+def _log_no_change(subcmd: str, version_pattern: str, old_version: str) -> None:
+    msg = (
+        f"Version did not change: '{old_version}'. "
+        f"Invalid version and/or pattern '{version_pattern}'."
+    )
+    logger.error(msg)
+
+    is_semver = "{semver}" in version_pattern or (
+        "MAJOR" in version_pattern and "MAJOR" in version_pattern and "PATCH" in version_pattern
+    )
+    if is_semver:
+        logger.warning(f"pycalver {subcmd} [--major/--minor/--patch] required for use with SemVer.")
+    else:
+        available_flags = [
+            "--" + part.lower() for part in ['MAJOR', 'MINOR', 'PATCH'] if part in version_pattern
+        ]
+        if available_flags:
+            available_flags_str = "/".join(available_flags)
+            logger.info(f"Perhaps try: pycalver {subcmd} {available_flags_str} ")
+
+
 @click.group()
 @click.version_option(version="v202010.1041-beta")
 @click.help_option()
@@ -151,6 +197,7 @@ def test(
 
     tag = release  # use internal naming convention
     _validate_release_tag(tag)
+    _validate_flags(raw_pattern, major, minor, patch)
     _date = _validate_date(date, pin_date)
 
     new_version = incr_dispatch(
@@ -165,7 +212,7 @@ def test(
         date=_date,
     )
     if new_version is None:
-        logger.error(f"Invalid version '{old_version}' and/or pattern '{raw_pattern}'.")
+        _log_no_change('test', raw_pattern, old_version)
         sys.exit(1)
 
     pep440_version = version.to_pep440(new_version)
@@ -395,7 +442,7 @@ def incr_dispatch(
         logger.info("regex = " + regexfmt.pyexpr_regex(pattern.regexp.pattern))
 
     if has_v1_part:
-        return v1version.incr(
+        new_version = v1version.incr(
             old_version,
             raw_pattern=raw_pattern,
             tag=tag,
@@ -407,7 +454,7 @@ def incr_dispatch(
             date=date,
         )
     else:
-        return v2version.incr(
+        new_version = v2version.incr(
             old_version,
             raw_pattern=raw_pattern,
             tag=tag,
@@ -418,6 +465,15 @@ def incr_dispatch(
             pin_date=pin_date,
             date=date,
         )
+
+    if new_version is None:
+        return None
+    elif pkg_resources.parse_version(new_version) <= pkg_resources.parse_version(old_version):
+        logger.error("Invariant violated: New version must be greater than old version ")
+        logger.error(f"  Result: '{new_version}' > '{old_version}' -> False")
+        return None
+    else:
+        return new_version
 
 
 def _bump(
@@ -625,16 +681,7 @@ def bump(
     )
 
     if new_version is None:
-        is_semver = "{semver}" in cfg.version_pattern or (
-            "MAJOR" in cfg.version_pattern
-            and "MAJOR" in cfg.version_pattern
-            and "PATCH" in cfg.version_pattern
-        )
-        has_semver_inc = major or minor or patch
-        if is_semver and not has_semver_inc:
-            logger.warning("bump --major/--minor/--patch required when using semver.")
-        else:
-            logger.error(f"Invalid version '{old_version}' and/or pattern '{cfg.version_pattern}'.")
+        _log_no_change('bump', cfg.version_pattern, old_version)
         sys.exit(1)
 
     logger.info(f"Old Version: {old_version}")

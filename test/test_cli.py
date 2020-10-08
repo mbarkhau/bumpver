@@ -566,7 +566,7 @@ def test_v1_bump_semver_warning(runner, caplog, version_pattern):
     assert result.exit_code == 1
 
     assert any("version did not change" in r.message for r in caplog.records)
-    assert any("--major/--minor/--patch required" in r.message for r in caplog.records)
+    assert any("[--major/--minor/--patch] required" in r.message for r in caplog.records)
 
     result = runner.invoke(cli.cli, ['bump', "-vv", "-n", "--dry", "--patch"])
     assert result.exit_code == 0
