@@ -102,20 +102,20 @@ FieldValues   = typ.Dict[FieldKey, MatchGroupStr]
 VersionInfoKW = typ.Dict[str, typ.Union[str, int, None]]
 
 
-def _parse_calendar_info(field_values: FieldValues) -> version.V2CalendarInfo:
+def parse_field_values_to_cinfo(field_values: FieldValues) -> version.V2CalendarInfo:
     """Parse normalized V2CalendarInfo from groups of a matched pattern.
 
-    >>> cinfo = _parse_version_info({'year_y': "2021", 'week_w': "02"})
+    >>> cinfo = parse_field_values_to_cinfo({'year_y': "2021", 'week_w': "02"})
     >>> (cinfo.year_y, cinfo.week_w)
     (2021, 2)
-    >>> cinfo = _parse_version_info({'year_y': "2021", 'week_u': "02"})
+    >>> cinfo = parse_field_values_to_cinfo({'year_y': "2021", 'week_u': "02"})
     >>> (cinfo.year_y, cinfo.week_u)
     (2021, 2)
-    >>> cinfo = _parse_version_info({'year_g': "2021", 'week_v': "02"})
+    >>> cinfo = parse_field_values_to_cinfo({'year_g': "2021", 'week_v': "02"})
     >>> (cinfo.year_g, cinfo.week_v)
     (2021, 2)
 
-    >>> cinfo = _parse_version_info({'year_y': "2021", 'month': "01", 'dom': "03"})
+    >>> cinfo = parse_field_values_to_cinfo({'year_y': "2021", 'month': "01", 'dom': "03"})
     >>> (cinfo.year_y, cinfo.month, cinfo.dom)
     (2021, 1, 3)
     >>> (cinfo.year_y, cinfo.week_w, cinfo.year_y, cinfo.week_u,cinfo.year_g, cinfo.week_v)
@@ -179,30 +179,30 @@ def _parse_calendar_info(field_values: FieldValues) -> version.V2CalendarInfo:
     )
 
 
-def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
+def parse_field_values_to_vinfo(field_values: FieldValues) -> version.V2VersionInfo:
     """Parse normalized V2VersionInfo from groups of a matched pattern.
 
-    >>> vinfo = _parse_version_info({'year_y': "2018", 'month': "11", 'bid': "0099"})
+    >>> vinfo = parse_field_values_to_vinfo({'year_y': "2018", 'month': "11", 'bid': "0099"})
     >>> (vinfo.year_y, vinfo.month, vinfo.quarter, vinfo.bid, vinfo.tag)
     (2018, 11, 4, '0099', 'final')
 
-    >>> vinfo = _parse_version_info({'year_y': "18", 'month': "11"})
+    >>> vinfo = parse_field_values_to_vinfo({'year_y': "18", 'month': "11"})
     >>> (vinfo.year_y, vinfo.month, vinfo.quarter)
     (2018, 11, 4)
 
-    >>> vinfo = _parse_version_info({'year_y': "2018", 'doy': "11", 'bid': "099", 'tag': "beta"})
+    >>> vinfo = parse_field_values_to_vinfo({'year_y': "2018", 'doy': "11", 'bid': "099", 'tag': "beta"})
     >>> (vinfo.year_y, vinfo.month, vinfo.dom, vinfo.doy, vinfo.bid, vinfo.tag)
     (2018, 1, 11, 11, '099', 'beta')
 
-    >>> vinfo = _parse_version_info({'year_y': "2018", 'month': "6", 'dom': "15"})
+    >>> vinfo = parse_field_values_to_vinfo({'year_y': "2018", 'month': "6", 'dom': "15"})
     >>> (vinfo.year_y, vinfo.month, vinfo.dom, vinfo.doy)
     (2018, 6, 15, 166)
 
-    >>> vinfo = _parse_version_info({'major': "1", 'minor': "23", 'patch': "45"})
+    >>> vinfo = parse_field_values_to_vinfo({'major': "1", 'minor': "23", 'patch': "45"})
     >>> (vinfo.major, vinfo.minor, vinfo.patch)
     (1, 23, 45)
 
-    >>> vinfo = _parse_version_info({'major': "1", 'minor': "023", 'patch': "0045"})
+    >>> vinfo = parse_field_values_to_vinfo({'major': "1", 'minor': "023", 'patch': "0045"})
     >>> (vinfo.major, vinfo.minor, vinfo.patch, vinfo.tag)
     (1, 23, 45, 'final')
     """
@@ -210,7 +210,7 @@ def _parse_version_info(field_values: FieldValues) -> version.V2VersionInfo:
     for key in field_values:
         assert key in VALID_FIELD_KEYS, key
 
-    cinfo = _parse_calendar_info(field_values)
+    cinfo = parse_field_values_to_cinfo(field_values)
 
     fvals = field_values
 
@@ -263,19 +263,19 @@ def parse_version_info(
 
     >>> vinfo = parse_version_info("v201712.0033-beta", raw_pattern="vYYYY0M.BUILD[-RELEASE]")
     >>> fvals = {'year_y': 2017, 'month': 12, 'bid': "0033", 'tag': "beta"}
-    >>> assert vinfo == _parse_version_info(fvals)
+    >>> assert vinfo == parse_field_values_to_vinfo(fvals)
 
     >>> vinfo = parse_version_info("v201712.0033", raw_pattern="vYYYY0M.BUILD[-RELEASE]")
     >>> fvals = {'year_y': 2017, 'month': 12, 'bid': "0033"}
-    >>> assert vinfo == _parse_version_info(fvals)
+    >>> assert vinfo == parse_field_values_to_vinfo(fvals)
 
     >>> vinfo = parse_version_info("201712.33b0", raw_pattern="YYYY0M.BLD[PYTAGNUM]")
     >>> fvals = {'year_y': 2017, 'month': 12, 'bid': "33", 'tag': "beta", 'num': 0}
-    >>> assert vinfo == _parse_version_info(fvals)
+    >>> assert vinfo == parse_field_values_to_vinfo(fvals)
 
     >>> vinfo = parse_version_info("1.23.456", raw_pattern="MAJOR.MINOR.PATCH")
     >>> fvals = {'major': "1", 'minor': "23", 'patch': "456"}
-    >>> assert vinfo == _parse_version_info(fvals)
+    >>> assert vinfo == parse_field_values_to_vinfo(fvals)
     """
     pattern = v2patterns.compile_pattern(raw_pattern)
     match   = pattern.regexp.match(version_str)
@@ -293,7 +293,7 @@ def parse_version_info(
         raise version.PatternError(err_msg)
     else:
         field_values = match.groupdict()
-        return _parse_version_info(field_values)
+        return parse_field_values_to_vinfo(field_values)
 
 
 def is_valid(version_str: str, raw_pattern: str = "vYYYY0M.BUILD[-RELEASE]") -> bool:

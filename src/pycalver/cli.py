@@ -146,13 +146,34 @@ def _log_no_change(subcmd: str, version_pattern: str, old_version: str) -> None:
             logger.info(f"Perhaps try: pycalver {subcmd} {available_flags_str} ")
 
 
+def _get_normalized_pattern(raw_pattern: str, version_pattern: typ.Optional[str]) -> str:
+    is_version_pattern_required = "{version}" in raw_pattern or "{pep440_version}" in raw_pattern
+
+    if is_version_pattern_required and version_pattern is None:
+        logger.error(
+            "Argument --version-pattern=<PATTERN> is required"
+            " for placeholders: {version}/{pep440_version}."
+        )
+        sys.exit(1)
+    elif version_pattern is None:
+        _version_pattern = "INVALID"  # pacify mypy, it's not referenced in raw_pattern
+    else:
+        _version_pattern = version_pattern
+
+    if is_version_pattern_required:
+        return v2patterns.normalize_pattern(_version_pattern, raw_pattern)
+    else:
+        return raw_pattern
+
+
 @click.group()
 @click.version_option(version="v202010.1041-beta")
 @click.help_option()
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 def cli(verbose: int = 0) -> None:
     """Automatically update PyCalVer version strings in all project files."""
-    _configure_logging(verbose=max(_VERBOSE, verbose))
+    if verbose:
+        _configure_logging(verbose=max(_VERBOSE, verbose))
 
 
 @cli.command()
@@ -168,10 +189,16 @@ def cli(verbose: int = 0) -> None:
         f"{', '.join(VALID_RELEASE_TAG_VALUES)}."
     ),
 )
-@click.option("--major"   , is_flag=True, default=False, help="Increment major component.")
-@click.option("-m"        , "--minor", is_flag=True, default=False, help="Increment minor component.")
-@click.option("-p"        , "--patch", is_flag=True, default=False, help="Increment patch component.")
-@click.option("-r"        , "--release-num", is_flag=True, default=False, help="Increment release number.")
+@click.option("--major", is_flag=True, default=False, help="Increment major component.")
+@click.option("-m"     , "--minor", is_flag=True, default=False, help="Increment minor component.")
+@click.option("-p"     , "--patch", is_flag=True, default=False, help="Increment patch component.")
+@click.option(
+    "-r",
+    "--release-num",
+    is_flag=True,
+    default=False,
+    help="Increment release number (rc1, rc2, rc3..).",
+)
 @click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
 @click.option(
     "--date",
@@ -193,10 +220,11 @@ def test(
 ) -> None:
     """Increment a version number for demo purposes."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
-    raw_pattern = pattern  # use internal naming convention
-
     tag = release  # use internal naming convention
     _validate_release_tag(tag)
+
+    raw_pattern = pattern  # use internal naming convention
+
     _validate_flags(raw_pattern, major, minor, patch)
     _date = _validate_date(date, pin_date)
 
@@ -315,25 +343,8 @@ def grep(
     verbose = max(_VERBOSE, verbose)
     _configure_logging(verbose)
 
-    raw_pattern = pattern  # use internal naming convention
-
-    is_version_pattern_required = "{version}" in raw_pattern or "{pep440_version}" in raw_pattern
-
-    if is_version_pattern_required and version_pattern is None:
-        logger.error(
-            "Argument --version-pattern=<PATTERN> is required"
-            " for placeholders: {version}/{pep440_version}."
-        )
-        sys.exit(1)
-    elif version_pattern is None:
-        _version_pattern = "INVALID"  # pacify mypy, it's not referenced in raw_pattern
-    else:
-        _version_pattern = version_pattern
-
-    if is_version_pattern_required:
-        normalized_pattern = v2patterns.normalize_pattern(_version_pattern, raw_pattern)
-    else:
-        normalized_pattern = raw_pattern
+    raw_pattern        = pattern  # use internal naming convention
+    normalized_pattern = _get_normalized_pattern(raw_pattern, version_pattern)
 
     isatty = getattr(sys.stdout, 'isatty', lambda: False)
 
@@ -630,7 +641,13 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 @click.option("--major", is_flag=True, default=False, help="Increment major component.")
 @click.option("-m", "--minor", is_flag=True, default=False, help="Increment minor component.")
 @click.option("-p", "--patch", is_flag=True, default=False, help="Increment patch component.")
-@click.option("-r", "--release-num", is_flag=True, default=False, help="Increment release number.")
+@click.option(
+    "-r",
+    "--release-num",
+    is_flag=True,
+    default=False,
+    help="Increment release number (rc1, rc2, rc3..).",
+)
 @click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
 @click.option(
     "--date",

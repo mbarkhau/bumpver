@@ -164,7 +164,7 @@ def v1vnfo(**field_values):
 
 
 def v2vnfo(**field_values):
-    return v2version._parse_version_info(field_values)
+    return v2version.parse_field_values_to_vinfo(field_values)
 
 
 PARSE_V1_VERSION_TEST_CASES = [
@@ -214,7 +214,7 @@ def test_v1_parse_versions(pattern_str, line, expected_vinfo):
 def test_v2_parse_versions():
     _vnfo = v2version.parse_version_info("v201712.0033", raw_pattern="vYYYY0M.BUILD[-RELEASE[NUM]]")
     fvals = {'year_y': 2017, 'month': 12, 'bid': "0033"}
-    assert _vnfo == v2version._parse_version_info(fvals)
+    assert _vnfo == v2version.parse_field_values_to_vinfo(fvals)
 
 
 def test_v2_format_version():
