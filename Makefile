@@ -73,20 +73,7 @@ pycalver_deps.svg:
 		-o pycalver_deps.svg
 
 
-README.md: src/pycalver/__main__.py makefile
+## Update cli reference in README.md
+README.md: src/pycalver/__main__.py scripts/update_readme_examples.py Makefile
 	@git add README.md
-	@printf '\n```\n$$ pycalver --help\n' > /tmp/pycalver_help.txt
-	@$(DEV_ENV)/bin/pycalver --help >> /tmp/pycalver_help.txt
-	@printf '```\n\n' >> /tmp/pycalver_help.txt
-
-	sed -i -ne '/<!-- BEGIN pycalver --help -->/ {p; r /tmp/pycalver_help.txt' \
-		-e ':a; n; /<!-- END pycalver --help -->/ {p; b}; ba}; p' \
-		README.md
-
-	@printf '\n```\n$$ pycalver bump --help\n' > /tmp/pycalver_help.txt
-	@$(DEV_ENV)/bin/pycalver bump --help >> /tmp/pycalver_help.txt
-	@printf '```\n\n' >> /tmp/pycalver_help.txt
-
-	sed -i -ne '/<!-- BEGIN pycalver bump --help -->/ {p; r /tmp/pycalver_help.txt' \
-		-e ':a; n; /<!-- END pycalver bump --help -->/ {p; b}; ba}; p' \
-		README.md
+	@$(DEV_ENV)/bin/python scripts/update_readme_examples.py
