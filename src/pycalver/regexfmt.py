@@ -27,6 +27,7 @@ def format_regex(regex: str) -> str:
     re.compile(regex)
 
     tmp_regex = regex.replace(" ", r"[ ]")
+    tmp_regex = tmp_regex.replace('"', r'\"')
     tmp_regex, _ = re.subn(r"([^\\])?\)(\?)?", "\\1)\\2\n", tmp_regex)
     tmp_regex, _ = re.subn(r"([^\\])\("      , "\\1\n("   , tmp_regex)
     tmp_regex, _ = re.subn(r"^\)\)"          , ")\n)"     , tmp_regex, flags=re.MULTILINE)
