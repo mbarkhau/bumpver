@@ -1,5 +1,6 @@
 [pycalver]
-current_version = "v201710.0123-alpha"
+current_version = "v2017.0123-alpha"
+version_pattern = "vYYYY.BUILD[-TAG]"
 commit = true
 tag = true
 push = true

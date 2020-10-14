@@ -1,3 +1,3 @@
 # PyCalVer README Fixture
 
-Current Version: v201612.0123-alpha
+Current Version: v2016.0123-alpha

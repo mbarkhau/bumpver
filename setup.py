@@ -58,12 +58,12 @@ if any(arg.startswith("bdist") for arg in sys.argv):
 
 
 setuptools.setup(
-    name="pycalver",
+    name="pycalver2",
     license="MIT",
     author="Manuel Barkhau",
     author_email="mbarkhau@gmail.com",
     url="https://github.com/mbarkhau/pycalver",
-    version="202010.1041b0",
+    version="2020.1041b0",
     keywords="version versioning calver semver bumpversion pep440",
     description="CalVer for python libraries.",
     long_description=long_description,
@@ -73,7 +73,7 @@ setuptools.setup(
     install_requires=install_requires,
     entry_points="""
         [console_scripts]
-        pycalver=pycalver.cli:cli
+        calver=pycalver2.cli:cli
     """,
     python_requires=">=2.7",
     zip_safe=True,

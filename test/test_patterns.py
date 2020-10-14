@@ -8,8 +8,8 @@ import re
 
 import pytest
 
-from pycalver import v1patterns
-from pycalver import v2patterns
+from pycalver2 import v1patterns
+from pycalver2 import v2patterns
 
 V2_PART_PATTERN_CASES = [
     (['YYYY', 'GGGG'], "2020" , "2020"),
@@ -127,23 +127,23 @@ V2_PART_PATTERN_CASES = [
     (['0V'], "53", "53"),
     (['0V'], "54", None),
     (['MAJOR', 'MINOR', 'PATCH'], "0", "0"),
-    (['RELEASE'], "alpha" , "alpha"),
-    (['RELEASE'], "alfa"  , None),
-    (['RELEASE'], "beta"  , "beta"),
-    (['RELEASE'], "rc"    , "rc"),
-    (['RELEASE'], "post"  , "post"),
-    (['RELEASE'], "final" , "final"),
-    (['RELEASE'], "latest", None),
-    (['PYTAG'  ], "a"     , "a"),
-    (['PYTAG'  ], "b"     , "b"),
-    (['PYTAG'  ], "rc"    , "rc"),
-    (['PYTAG'  ], "post"  , "post"),
-    (['PYTAG'  ], "post"  , "post"),
-    (['PYTAG'  ], "x"     , None),
-    (['NUM'    ], "a"     , None),
-    (['NUM'    ], "0"     , "0"),
-    (['NUM'    ], "1"     , "1"),
-    (['NUM'    ], "10"    , "10"),
+    (['TAG'  ], "alpha" , "alpha"),
+    (['TAG'  ], "alfa"  , None),
+    (['TAG'  ], "beta"  , "beta"),
+    (['TAG'  ], "rc"    , "rc"),
+    (['TAG'  ], "post"  , "post"),
+    (['TAG'  ], "final" , "final"),
+    (['TAG'  ], "latest", None),
+    (['PYTAG'], "a"     , "a"),
+    (['PYTAG'], "b"     , "b"),
+    (['PYTAG'], "rc"    , "rc"),
+    (['PYTAG'], "post"  , "post"),
+    (['PYTAG'], "post"  , "post"),
+    (['PYTAG'], "x"     , None),
+    (['NUM'  ], "a"     , None),
+    (['NUM'  ], "0"     , "0"),
+    (['NUM'  ], "1"     , "1"),
+    (['NUM'  ], "10"    , "10"),
 ]
 
 

@@ -39,7 +39,7 @@ except ImportError:
 
 click.disable_unicode_literals_warning = True
 
-logger = logging.getLogger("pycalver.cli")
+logger = logging.getLogger("pycalver2.cli")
 
 
 _VERBOSE = 0
@@ -95,7 +95,7 @@ def _validate_release_tag(tag: typ.Optional[str]) -> None:
     if tag in VALID_RELEASE_TAG_VALUES:
         return
 
-    logger.error(f"Invalid argument --release={tag}")
+    logger.error(f"Invalid argument --tag={tag}")
     logger.error(f"Valid arguments are: {', '.join(VALID_RELEASE_TAG_VALUES)}")
     sys.exit(1)
 
@@ -126,24 +126,21 @@ def _validate_flags(
 
 
 def _log_no_change(subcmd: str, version_pattern: str, old_version: str) -> None:
-    msg = (
-        f"Version did not change: '{old_version}'. "
-        f"Invalid version and/or pattern '{version_pattern}'."
-    )
+    msg = f"Invalid version '{old_version}' and/or pattern '{version_pattern}'."
     logger.error(msg)
 
     is_semver = "{semver}" in version_pattern or (
         "MAJOR" in version_pattern and "MAJOR" in version_pattern and "PATCH" in version_pattern
     )
     if is_semver:
-        logger.warning(f"pycalver {subcmd} [--major/--minor/--patch] required for use with SemVer.")
+        logger.warning(f"calver {subcmd} [--major/--minor/--patch] required for use with SemVer.")
     else:
         available_flags = [
             "--" + part.lower() for part in ['MAJOR', 'MINOR', 'PATCH'] if part in version_pattern
         ]
         if available_flags:
             available_flags_str = "/".join(available_flags)
-            logger.info(f"Perhaps try: pycalver {subcmd} {available_flags_str} ")
+            logger.info(f"Perhaps try: calver {subcmd} {available_flags_str} ")
 
 
 def _get_normalized_pattern(raw_pattern: str, version_pattern: typ.Optional[str]) -> str:
@@ -167,37 +164,36 @@ def _get_normalized_pattern(raw_pattern: str, version_pattern: typ.Optional[str]
 
 
 @click.group()
-@click.version_option(version="v202010.1041-beta")
+@click.version_option(version="v2020.1041-beta")
 @click.help_option()
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 def cli(verbose: int = 0) -> None:
-    """Automatically update PyCalVer version strings in all project files."""
+    """Automatically update CalVer version strings in plaintext files."""
     if verbose:
         _configure_logging(verbose=max(_VERBOSE, verbose))
 
 
 @cli.command()
 @click.argument("old_version")
-@click.argument("pattern", default="{pycalver}")
-@click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
-@click.option(
-    "--release",
-    default=None,
-    metavar="<NAME>",
-    help=(
-        f"Override release name of current_version. Valid options are: "
-        f"{', '.join(VALID_RELEASE_TAG_VALUES)}."
-    ),
-)
+@click.argument("pattern", default="vYYYY.BUILD[-TAG]")
+@click.option('-v'     , '--verbose', count=True, help="Control log level. -vv for debug level.")
 @click.option("--major", is_flag=True, default=False, help="Increment major component.")
 @click.option("-m"     , "--minor", is_flag=True, default=False, help="Increment minor component.")
 @click.option("-p"     , "--patch", is_flag=True, default=False, help="Increment patch component.")
 @click.option(
-    "-r",
-    "--release-num",
+    "--tag",
+    default=None,
+    metavar="<NAME>",
+    help=(
+        f"Override release tag of current_version. Valid options are: "
+        f"{', '.join(VALID_RELEASE_TAG_VALUES)}."
+    ),
+)
+@click.option(
+    "--tag-num",
     is_flag=True,
     default=False,
-    help="Increment release number (rc1, rc2, rc3..).",
+    help="Increment release tag number (rc1, rc2, rc3..).",
 )
 @click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
 @click.option(
@@ -208,19 +204,18 @@ def cli(verbose: int = 0) -> None:
 )
 def test(
     old_version: str,
-    pattern    : str = "{pycalver}",
+    pattern    : str = "vYYYY.BUILD[-TAG]",
     verbose    : int = 0,
-    release    : str = None,
+    tag        : str = None,
     major      : bool = False,
     minor      : bool = False,
     patch      : bool = False,
-    release_num: bool = False,
+    tag_num    : bool = False,
     pin_date   : bool = False,
     date       : typ.Optional[str] = None,
 ) -> None:
     """Increment a version number for demo purposes."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
-    tag = release  # use internal naming convention
     _validate_release_tag(tag)
 
     raw_pattern = pattern  # use internal naming convention
@@ -231,11 +226,11 @@ def test(
     new_version = incr_dispatch(
         old_version,
         raw_pattern=raw_pattern,
-        tag=tag,
         major=major,
         minor=minor,
         patch=patch,
-        release_num=release_num,
+        tag=tag,
+        tag_num=tag_num,
         pin_date=pin_date,
         date=_date,
     )
@@ -370,7 +365,7 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
     _, cfg = config.init(project_path=".")
 
     if cfg is None:
-        logger.error("Could not parse configuration. Perhaps try 'pycalver init'.")
+        logger.error("Could not parse configuration. Perhaps try 'calver init'.")
         sys.exit(1)
 
     cfg = _update_cfg_from_vcs(cfg, fetch)
@@ -432,13 +427,13 @@ def incr_dispatch(
     old_version: str,
     raw_pattern: str,
     *,
-    tag        : str = None,
-    major      : bool = False,
-    minor      : bool = False,
-    patch      : bool = False,
-    release_num: bool = False,
-    pin_date   : bool = False,
-    date       : typ.Optional[dt.date] = None,
+    major   : bool = False,
+    minor   : bool = False,
+    patch   : bool = False,
+    tag     : str = None,
+    tag_num : bool = False,
+    pin_date: bool = False,
+    date    : typ.Optional[dt.date] = None,
 ) -> typ.Optional[str]:
     v1_parts    = list(v1patterns.PART_PATTERNS) + list(v1patterns.FULL_PART_FORMATS)
     has_v1_part = any("{" + part + "}" in raw_pattern for part in v1_parts)
@@ -456,11 +451,11 @@ def incr_dispatch(
         new_version = v1version.incr(
             old_version,
             raw_pattern=raw_pattern,
-            tag=tag,
             major=major,
             minor=minor,
             patch=patch,
-            release_num=release_num,
+            tag=tag,
+            tag_num=tag_num,
             pin_date=pin_date,
             date=date,
         )
@@ -468,11 +463,11 @@ def incr_dispatch(
         new_version = v2version.incr(
             old_version,
             raw_pattern=raw_pattern,
-            tag=tag,
             major=major,
             minor=minor,
             patch=patch,
-            release_num=release_num,
+            tag=tag,
+            tag_num=tag_num,
             pin_date=pin_date,
             date=date,
         )
@@ -481,7 +476,7 @@ def incr_dispatch(
         return None
     elif pkg_resources.parse_version(new_version) <= pkg_resources.parse_version(old_version):
         logger.error("Invariant violated: New version must be greater than old version ")
-        logger.error(f"  Result: '{new_version}' > '{old_version}' -> False")
+        logger.error(f"  Failed Invariant: '{new_version}' > '{old_version}'")
         return None
     else:
         return new_version
@@ -620,15 +615,6 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     help="Display diff of changes, don't rewrite files.",
 )
 @click.option(
-    "--release",
-    default=None,
-    metavar="<NAME>",
-    help=(
-        f"Override release name of current_version. Valid options are: "
-        f"{', '.join(VALID_RELEASE_TAG_VALUES)}."
-    ),
-)
-@click.option(
     "--allow-dirty",
     default=False,
     is_flag=True,
@@ -642,11 +628,20 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 @click.option("-m", "--minor", is_flag=True, default=False, help="Increment minor component.")
 @click.option("-p", "--patch", is_flag=True, default=False, help="Increment patch component.")
 @click.option(
-    "-r",
-    "--release-num",
+    "-t",
+    "--tag",
+    default=None,
+    metavar="<NAME>",
+    help=(
+        f"Override release tag of current_version. Valid options are: "
+        f"{', '.join(VALID_RELEASE_TAG_VALUES)}."
+    ),
+)
+@click.option(
+    "--tag-num",
     is_flag=True,
     default=False,
-    help="Increment release number (rc1, rc2, rc3..).",
+    help="Increment release tag number (rc1, rc2, rc3..).",
 )
 @click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
 @click.option(
@@ -656,7 +651,6 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     help=f"Set explicit date in format YYYY-0M-0D (e.g. {_current_date}).",
 )
 def bump(
-    release    : typ.Optional[str] = None,
     verbose    : int = 0,
     dry        : bool = False,
     allow_dirty: bool = False,
@@ -664,15 +658,14 @@ def bump(
     major      : bool = False,
     minor      : bool = False,
     patch      : bool = False,
-    release_num: bool = False,
+    tag        : typ.Optional[str] = None,
+    tag_num    : bool = False,
     pin_date   : bool = False,
     date       : typ.Optional[str] = None,
 ) -> None:
     """Increment the current version string and update project files."""
     verbose = max(_VERBOSE, verbose)
     _configure_logging(verbose)
-
-    tag = release  # use internal naming convention
     _validate_release_tag(tag)
     _date = _validate_date(date, pin_date)
 
@@ -688,11 +681,11 @@ def bump(
     new_version = incr_dispatch(
         old_version,
         raw_pattern=cfg.version_pattern,
-        tag=tag,
         major=major,
         minor=minor,
         patch=patch,
-        release_num=release_num,
+        tag=tag,
+        tag_num=tag_num,
         pin_date=pin_date,
         date=_date,
     )

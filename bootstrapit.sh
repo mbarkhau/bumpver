@@ -13,7 +13,7 @@ PACKAGE_NAME="pycalver"
 GIT_REPO_NAMESPACE="mbarkhau"
 GIT_REPO_DOMAIN="github.com"
 
-PACKAGE_VERSION="v202010.1041-beta"
+PACKAGE_VERSION="v2020.1041-beta"
 
 DEFAULT_PYTHON_VERSION="python=3.8"
 SUPPORTED_PYTHON_VERSIONS="python=2.7 python=3.6 python=3.8 pypy2.7 pypy3.5"

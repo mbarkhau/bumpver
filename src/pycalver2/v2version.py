@@ -14,7 +14,7 @@ import lexid
 from . import version
 from . import v2patterns
 
-logger = logging.getLogger("pycalver.v2version")
+logger = logging.getLogger("pycalver2.v2version")
 
 
 CalInfo = typ.Union[version.V2CalendarInfo, version.V2VersionInfo]
@@ -218,9 +218,9 @@ def parse_field_values_to_vinfo(field_values: FieldValues) -> version.V2VersionI
     pytag = fvals.get('pytag') or ""
 
     if tag and not pytag:
-        pytag = version.PEP440_TAG_BY_RELEASE[tag]
+        pytag = version.PEP440_TAG_BY_TAG[tag]
     elif pytag and not tag:
-        tag = version.RELEASE_BY_PEP440_TAG[pytag]
+        tag = version.TAG_BY_PEP440_TAG[pytag]
 
     if not tag:
         tag = "final"
@@ -257,15 +257,15 @@ def parse_field_values_to_vinfo(field_values: FieldValues) -> version.V2VersionI
 
 
 def parse_version_info(
-    version_str: str, raw_pattern: str = "vYYYY0M.BUILD[-RELEASE]"
+    version_str: str, raw_pattern: str = "vYYYY0M.BUILD[-TAG]"
 ) -> version.V2VersionInfo:
     """Parse normalized V2VersionInfo.
 
-    >>> vinfo = parse_version_info("v201712.0033-beta", raw_pattern="vYYYY0M.BUILD[-RELEASE]")
+    >>> vinfo = parse_version_info("v201712.0033-beta", raw_pattern="vYYYY0M.BUILD[-TAG]")
     >>> fvals = {'year_y': 2017, 'month': 12, 'bid': "0033", 'tag': "beta"}
     >>> assert vinfo == parse_field_values_to_vinfo(fvals)
 
-    >>> vinfo = parse_version_info("v201712.0033", raw_pattern="vYYYY0M.BUILD[-RELEASE]")
+    >>> vinfo = parse_version_info("v201712.0033", raw_pattern="vYYYY0M.BUILD[-TAG]")
     >>> fvals = {'year_y': 2017, 'month': 12, 'bid': "0033"}
     >>> assert vinfo == parse_field_values_to_vinfo(fvals)
 
@@ -296,10 +296,10 @@ def parse_version_info(
         return parse_field_values_to_vinfo(field_values)
 
 
-def is_valid(version_str: str, raw_pattern: str = "vYYYY0M.BUILD[-RELEASE]") -> bool:
+def is_valid(version_str: str, raw_pattern: str = "vYYYY.BUILD[-TAG]") -> bool:
     """Check if a version matches a pattern.
 
-    >>> is_valid("v201712.0033-beta", raw_pattern="vYYYY0M.BUILD[-RELEASE]")
+    >>> is_valid("v201712.0033-beta", raw_pattern="vYYYY0M.BUILD[-TAG]")
     True
     >>> is_valid("v201712.0033-beta", raw_pattern="MAJOR.MINOR.PATCH")
     False
@@ -327,9 +327,9 @@ def _format_part_values(vinfo: version.V2VersionInfo) -> PartValues:
     It may for example have month=9, but not the formatted
     representation '09' for '0M'.
 
-    >>> vinfo = parse_version_info("v200709.1033-beta", raw_pattern="vYYYY0M.BUILD[-RELEASE]")
+    >>> vinfo = parse_version_info("v200709.1033-beta", raw_pattern="vYYYY0M.BUILD[-TAG]")
     >>> kwargs = dict(_format_part_values(vinfo))
-    >>> (kwargs['YYYY'], kwargs['0M'], kwargs['BUILD'], kwargs['RELEASE'])
+    >>> (kwargs['YYYY'], kwargs['0M'], kwargs['BUILD'], kwargs['TAG'])
     ('2007', '09', '1033', 'beta')
     >>> (kwargs['YY'], kwargs['0Y'], kwargs['MM'], kwargs['PYTAG'])
     ('7', '07', '9', 'b')
@@ -472,7 +472,7 @@ def format_version(vinfo: version.V2VersionInfo, raw_pattern: str) -> str:
     """Generate version string.
 
     >>> import datetime as dt
-    >>> vinfo = parse_version_info("v200712.0033-beta", raw_pattern="vYYYY0M.BUILD[-RELEASE]")
+    >>> vinfo = parse_version_info("v200712.0033-beta", raw_pattern="vYYYY0M.BUILD[-TAG]")
     >>> vinfo_a = vinfo._replace(**cal_info(date=dt.date(2007, 1, 1))._asdict())
     >>> vinfo_b = vinfo._replace(**cal_info(date=dt.date(2007, 12, 31))._asdict())
 
@@ -483,63 +483,63 @@ def format_version(vinfo: version.V2VersionInfo, raw_pattern: str) -> str:
     'v7.33-b0'
     >>> format_version(vinfo_a, raw_pattern="YYYY0M.BUILD[PYTAG[NUM]]")
     '200701.0033b'
-    >>> format_version(vinfo_a, raw_pattern="v0Y.BLD[-RELEASE]")
+    >>> format_version(vinfo_a, raw_pattern="v0Y.BLD[-TAG]")
     'v07.33-beta'
 
-    >>> format_version(vinfo_a, raw_pattern="vYYYY0M.BUILD[-RELEASE]")
+    >>> format_version(vinfo_a, raw_pattern="vYYYY0M.BUILD[-TAG]")
     'v200701.0033-beta'
-    >>> format_version(vinfo_b, raw_pattern="vYYYY0M.BUILD[-RELEASE]")
+    >>> format_version(vinfo_b, raw_pattern="vYYYY0M.BUILD[-TAG]")
     'v200712.0033-beta'
 
-    >>> format_version(vinfo_a, raw_pattern="vYYYYw0W.BUILD[-RELEASE]")
+    >>> format_version(vinfo_a, raw_pattern="vYYYYw0W.BUILD[-TAG]")
     'v2007w01.0033-beta'
-    >>> format_version(vinfo_a, raw_pattern="vYYYYwWW.BLD[-RELEASE]")
+    >>> format_version(vinfo_a, raw_pattern="vYYYYwWW.BLD[-TAG]")
     'v2007w1.33-beta'
-    >>> format_version(vinfo_b, raw_pattern="vYYYYw0W.BUILD[-RELEASE]")
+    >>> format_version(vinfo_b, raw_pattern="vYYYYw0W.BUILD[-TAG]")
     'v2007w53.0033-beta'
 
-    >>> format_version(vinfo_a, raw_pattern="vYYYYd00J.BUILD[-RELEASE]")
+    >>> format_version(vinfo_a, raw_pattern="vYYYYd00J.BUILD[-TAG]")
     'v2007d001.0033-beta'
-    >>> format_version(vinfo_a, raw_pattern="vYYYYdJJJ.BUILD[-RELEASE]")
+    >>> format_version(vinfo_a, raw_pattern="vYYYYdJJJ.BUILD[-TAG]")
     'v2007d1.0033-beta'
-    >>> format_version(vinfo_b, raw_pattern="vYYYYd00J.BUILD[-RELEASE]")
+    >>> format_version(vinfo_b, raw_pattern="vYYYYd00J.BUILD[-TAG]")
     'v2007d365.0033-beta'
 
     >>> format_version(vinfo_a, raw_pattern="vGGGGwVV.BLD[PYTAGNUM]")
     'v2007w1.33b0'
-    >>> format_version(vinfo_a, raw_pattern="vGGGGw0V.BUILD[-RELEASE]")
+    >>> format_version(vinfo_a, raw_pattern="vGGGGw0V.BUILD[-TAG]")
     'v2007w01.0033-beta'
-    >>> format_version(vinfo_b, raw_pattern="vGGGGw0V.BUILD[-RELEASE]")
+    >>> format_version(vinfo_b, raw_pattern="vGGGGw0V.BUILD[-TAG]")
     'v2008w01.0033-beta'
 
     >>> vinfo_c = vinfo_b._replace(major=1, minor=2, patch=34, tag='final')
 
-    >>> format_version(vinfo_c, raw_pattern="vYYYYwWW.BUILD-RELEASE")
+    >>> format_version(vinfo_c, raw_pattern="vYYYYwWW.BUILD-TAG")
     'v2007w53.0033-final'
-    >>> format_version(vinfo_c, raw_pattern="vYYYYwWW.BUILD[-RELEASE]")
+    >>> format_version(vinfo_c, raw_pattern="vYYYYwWW.BUILD[-TAG]")
     'v2007w53.0033'
 
     >>> format_version(vinfo_c, raw_pattern="vMAJOR.MINOR.PATCH")
     'v1.2.34'
 
     >>> vinfo_d = vinfo_b._replace(major=1, minor=0, patch=0, tag='final')
-    >>> format_version(vinfo_d, raw_pattern="vMAJOR.MINOR.PATCH-RELEASENUM")
+    >>> format_version(vinfo_d, raw_pattern="vMAJOR.MINOR.PATCH-TAGNUM")
     'v1.0.0-final0'
-    >>> format_version(vinfo_d, raw_pattern="vMAJOR.MINOR.PATCH-RELEASE")
+    >>> format_version(vinfo_d, raw_pattern="vMAJOR.MINOR.PATCH-TAG")
     'v1.0.0-final'
-    >>> format_version(vinfo_d, raw_pattern="vMAJOR.MINOR.PATCH-RELEASE")
+    >>> format_version(vinfo_d, raw_pattern="vMAJOR.MINOR.PATCH-TAG")
     'v1.0.0-final'
-    >>> format_version(vinfo_d, raw_pattern="vMAJOR.MINOR.PATCH[-RELEASE]")
+    >>> format_version(vinfo_d, raw_pattern="vMAJOR.MINOR.PATCH[-TAG]")
     'v1.0.0'
-    >>> format_version(vinfo_d, raw_pattern="vMAJOR.MINOR[.PATCH[-RELEASE]]")
+    >>> format_version(vinfo_d, raw_pattern="vMAJOR.MINOR[.PATCH[-TAG]]")
     'v1.0'
-    >>> format_version(vinfo_d, raw_pattern="vMAJOR[.MINOR[.PATCH[-RELEASE]]]")
+    >>> format_version(vinfo_d, raw_pattern="vMAJOR[.MINOR[.PATCH[-TAG]]]")
     'v1'
 
     >>> vinfo_d = vinfo_b._replace(major=1, minor=0, patch=2, tag='rc', pytag='rc', num=0)
     >>> format_version(vinfo_d, raw_pattern="vMAJOR[.MINOR[.PATCH]]")
     'v1.0.2'
-    >>> format_version(vinfo_d, raw_pattern="vMAJOR[.MINOR[.PATCH[-RELEASE]]]")
+    >>> format_version(vinfo_d, raw_pattern="vMAJOR[.MINOR[.PATCH[-TAG]]]")
     'v1.0.2-rc'
     >>> format_version(vinfo_d, raw_pattern="vMAJOR[.MINOR[.PATCH[PYTAGNUM]]]")
     'v1.0.2rc0'
@@ -547,11 +547,11 @@ def format_version(vinfo: version.V2VersionInfo, raw_pattern: str) -> str:
     'v1.0.2'
 
     >>> vinfo_d = vinfo_b._replace(major=1, minor=0, patch=0, tag='rc', num=2)
-    >>> format_version(vinfo_d, raw_pattern="vMAJOR[.MINOR[.PATCH[-RELEASENUM]]]")
+    >>> format_version(vinfo_d, raw_pattern="vMAJOR[.MINOR[.PATCH[-TAGNUM]]]")
     'v1.0.0-rc2'
 
     >>> vinfo_d = vinfo_b._replace(major=1, minor=0, patch=0, tag='rc', num=2)
-    >>> format_version(vinfo_d, raw_pattern='__version__ = "vMAJOR[.MINOR[.PATCH[-RELEASENUM]]]"')
+    >>> format_version(vinfo_d, raw_pattern='__version__ = "vMAJOR[.MINOR[.PATCH[-TAGNUM]]]"')
     '__version__ = "v1.0.0-rc2"'
     """
     part_values   = _format_part_values(vinfo)
@@ -615,7 +615,7 @@ def _incr_numeric(
     minor      : bool,
     patch      : bool,
     tag        : typ.Optional[str],
-    release_num: bool,
+    tag_num    : bool,
 ) -> version.V2VersionInfo:
     # Reset major/minor/patch/num/inc to zero if any part to the left of it is incremented
     fields       = _parse_pattern_fields(raw_pattern)
@@ -647,7 +647,7 @@ def _incr_numeric(
         cur_vinfo = cur_vinfo._replace(minor=cur_vinfo.minor + 1, patch=0)
     if patch and 'patch' not in reset_fields:
         cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
-    if release_num and 'release_num' not in reset_fields:
+    if tag_num and 'tag_num' not in reset_fields:
         cur_vinfo = cur_vinfo._replace(num=cur_vinfo.num + 1)
     if tag and 'tag' not in reset_fields:
         if tag != cur_vinfo.tag:
@@ -677,15 +677,15 @@ def is_valid_week_pattern(raw_pattern: str) -> bool:
 
 def incr(
     old_version: str,
-    raw_pattern: str = "vYYYY0M.BUILD[-RELEASE]",
+    raw_pattern: str = "vYYYY0M.BUILD[-TAG]",
     *,
-    tag        : typ.Optional[str] = None,
-    major      : bool = False,
-    minor      : bool = False,
-    patch      : bool = False,
-    release_num: bool = False,
-    pin_date   : bool = False,
-    date       : typ.Optional[dt.date] = None,
+    major   : bool = False,
+    minor   : bool = False,
+    patch   : bool = False,
+    tag     : typ.Optional[str] = None,
+    tag_num : bool = False,
+    pin_date: bool = False,
+    date    : typ.Optional[dt.date] = None,
 ) -> typ.Optional[str]:
     """Increment version string.
 
@@ -716,7 +716,7 @@ def incr(
         minor=minor,
         patch=patch,
         tag=tag,
-        release_num=release_num,
+        tag_num=tag_num,
     )
 
     new_version = format_version(cur_vinfo, raw_pattern)

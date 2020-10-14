@@ -22,7 +22,7 @@ from . import v1patterns
 from . import v2patterns
 from .patterns import Pattern
 
-logger = logging.getLogger("pycalver.config")
+logger = logging.getLogger("pycalver2.config")
 
 RawPatterns         = typ.List[str]
 RawPatternsByFile   = typ.Dict[str, RawPatterns]
@@ -428,7 +428,7 @@ def init(
 DEFAULT_CONFIGPARSER_BASE_TMPL = """
 [pycalver]
 current_version = "{initial_version}"
-version_pattern = "vYYYY0M.BUILD[-RELEASE]"
+version_pattern = "vYYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
 commit = True
 tag = True
@@ -468,7 +468,7 @@ README.md =
 DEFAULT_TOML_BASE_TMPL = """
 [pycalver]
 current_version = "{initial_version}"
-version_pattern = "vYYYY0M.BUILD[-RELEASE]"
+version_pattern = "vYYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
 commit = true
 tag = true
@@ -517,11 +517,11 @@ DEFAULT_TOML_README_MD_STR = """
 
 
 def _initial_version() -> str:
-    return dt.datetime.now().strftime("v%Y%m.1001-alpha")
+    return dt.datetime.utcnow().strftime("v%Y.1001-alpha")
 
 
 def _initial_version_pep440() -> str:
-    return dt.datetime.now().strftime("%Y%m.1001a0")
+    return dt.datetime.utcnow().strftime("%Y.1001a0")
 
 
 def default_config(ctx: ProjectContext) -> str:

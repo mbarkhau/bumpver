@@ -38,7 +38,7 @@ from . import utils
 from .patterns import RE_PATTERN_ESCAPES
 from .patterns import Pattern
 
-logger = logging.getLogger("pycalver.v1patterns")
+logger = logging.getLogger("pycalver2.v1patterns")
 
 # https://regex101.com/r/fnj60p/10
 PYCALVER_PATTERN = r"""
@@ -207,18 +207,31 @@ def _compile_pattern_re(normalized_pattern: str) -> typ.Pattern[str]:
     return re.compile(pattern_str)
 
 
+def _normalized_pattern(version_pattern: str, raw_pattern: str) -> str:
+    res = raw_pattern.replace(r"{version}", version_pattern)
+    if version_pattern == r"{pycalver}":
+        res = res.replace(r"{pep440_version}", r"{pep440_pycalver}")
+    elif version_pattern == r"{semver}":
+        res = res.replace(r"{pep440_version}", r"{semver}")
+    elif version_pattern == r"v{year}{month}{build}{release}":
+        res = res.replace(r"{pep440_version}", r"{year}{month}.{BID}{pep440_tag}")
+    elif version_pattern == r"{year}{month}{build}{release}":
+        res = res.replace(r"{pep440_version}", r"{year}{month}.{BID}{pep440_tag}")
+    elif version_pattern == r"v{year}{build}{release}":
+        res = res.replace(r"{pep440_version}", r"{year}.{BID}{pep440_tag}")
+    elif version_pattern == r"{year}{build}{release}":
+        res = res.replace(r"{pep440_version}", r"{year}.{BID}{pep440_tag}")
+    elif r"{pep440_version}" in raw_pattern:
+        logger.warning(f"No mapping of '{version_pattern}' to '{{pep440_version}}'")
+
+    return res
+
+
 @utils.memo
 def compile_pattern(version_pattern: str, raw_pattern: typ.Optional[str] = None) -> Pattern:
     _raw_pattern       = version_pattern if raw_pattern is None else raw_pattern
-    normalized_pattern = _raw_pattern.replace(r"{version}", version_pattern)
-    if version_pattern == r"{pycalver}":
-        normalized_pattern = normalized_pattern.replace(r"{pep440_version}", r"{pep440_pycalver}")
-    elif version_pattern == r"{semver}":
-        normalized_pattern = normalized_pattern.replace(r"{pep440_version}", r"{semver}")
-    elif r"{pep440_version}" in _raw_pattern:
-        logger.warning(f"No mapping of '{version_pattern}' to '{{pep440_version}}'")
-
-    regexp = _compile_pattern_re(normalized_pattern)
+    normalized_pattern = _normalized_pattern(version_pattern, _raw_pattern)
+    regexp             = _compile_pattern_re(normalized_pattern)
     return Pattern(version_pattern, normalized_pattern, regexp)
 
 

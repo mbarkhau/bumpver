@@ -14,7 +14,7 @@ import lexid
 from . import version
 from . import v1patterns
 
-logger = logging.getLogger("pycalver.v1version")
+logger = logging.getLogger("pycalver2.v1version")
 
 
 CalInfo = typ.Union[version.V1CalendarInfo, version.V1VersionInfo]
@@ -97,7 +97,7 @@ def _parse_field_values(field_values: FieldValues) -> version.V1VersionInfo:
     tag   = fvals.get('tag')
     if tag is None:
         tag = "final"
-    tag = version.RELEASE_BY_PEP440_TAG.get(tag, tag)
+    tag = version.TAG_BY_PEP440_TAG.get(tag, tag)
     assert tag is not None
 
     bid = fvals['bid'] if 'bid' in fvals else "0001"
@@ -351,7 +351,7 @@ def format_version(vinfo: version.V1VersionInfo, raw_pattern: str) -> str:
         kwargs['pep440_tag'] = ""
     else:
         kwargs['release'   ] = "-" + release_tag
-        kwargs['pep440_tag'] = version.PEP440_TAG_BY_RELEASE[release_tag] + "0"
+        kwargs['pep440_tag'] = version.PEP440_TAG_BY_TAG[release_tag] + "0"
 
     kwargs['release_tag'] = release_tag
 
@@ -381,13 +381,13 @@ def incr(
     old_version: str,
     raw_pattern: str = "{pycalver}",
     *,
-    tag        : typ.Optional[str] = None,
-    major      : bool = False,
-    minor      : bool = False,
-    patch      : bool = False,
-    release_num: bool = False,
-    pin_date   : bool = False,
-    date       : typ.Optional[dt.date] = None,
+    major   : bool = False,
+    minor   : bool = False,
+    patch   : bool = False,
+    tag     : typ.Optional[str] = None,
+    tag_num : bool = False,
+    pin_date: bool = False,
+    date    : typ.Optional[dt.date] = None,
 ) -> typ.Optional[str]:
     """Increment version string.
 
@@ -415,8 +415,8 @@ def incr(
         cur_vinfo = cur_vinfo._replace(minor=cur_vinfo.minor + 1, patch=0)
     if patch:
         cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
-    if release_num:
-        raise NotImplementedError("--release-num not supported for old style patterns")
+    if tag_num:
+        raise NotImplementedError("--tag-num not supported for old style patterns")
     if tag:
         cur_vinfo = cur_vinfo._replace(tag=tag)
 

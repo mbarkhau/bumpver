@@ -24,7 +24,7 @@ import subprocess as sp
 
 from pycalver import config
 
-logger = logging.getLogger("pycalver.vcs")
+logger = logging.getLogger("pycalver2.vcs")
 
 
 VCS_SUBCOMMANDS_BY_NAME = {

@@ -8,14 +8,14 @@ import re
 import copy
 from test import util
 
-from pycalver import config
-from pycalver import rewrite
-from pycalver import v1rewrite
-from pycalver import v1version
-from pycalver import v2rewrite
-from pycalver import v2version
-from pycalver import v1patterns
-from pycalver import v2patterns
+from pycalver2 import config
+from pycalver2 import rewrite
+from pycalver2 import v1rewrite
+from pycalver2 import v1version
+from pycalver2 import v2rewrite
+from pycalver2 import v2version
+from pycalver2 import v1patterns
+from pycalver2 import v2patterns
 
 # pylint:disable=protected-access ; allowed for test code
 
@@ -56,7 +56,7 @@ def test_v1_rewrite_lines():
 
 
 def test_v2_rewrite_lines():
-    version_pattern = "vYYYY0M.BUILD[-RELEASE]"
+    version_pattern = "vYYYY0M.BUILD[-TAG]"
     new_vinfo       = v2version.parse_version_info("v201811.0123-beta", version_pattern)
     patterns        = [v2patterns.compile_pattern(version_pattern, '__version__ = "{version}"')]
     lines           = v2rewrite.rewrite_lines(patterns, new_vinfo, ['__version__ = "v201809.0002-alpha"   '])
@@ -191,10 +191,10 @@ def test_v1_optional_release():
 
 
 def test_v2_optional_release():
-    version_pattern = "YYYY.BUILD[-RELEASE]"
+    version_pattern = "YYYY.BUILD[-TAG]"
     new_vinfo       = v2version.parse_version_info("2019.0003", version_pattern)
 
-    raw_pattern = '__version__ = "YYYY.BUILD[-RELEASE]"'
+    raw_pattern = '__version__ = "YYYY.BUILD[-TAG]"'
     pattern     = v2patterns.compile_pattern(version_pattern, raw_pattern)
 
     old_lines = OPTIONAL_RELEASE_FIXTURE.splitlines()
@@ -216,14 +216,13 @@ def test_v2_optional_release():
 
 
 def test_v1_iter_rewritten():
-    version_pattern = "{pycalver}"
-    new_vinfo       = v1version.parse_version_info("v201809.0123")
+    version_pattern = "v{year}{build}{release}"
+    new_vinfo       = v1version.parse_version_info("v2018.0123", version_pattern)
 
-    file_patterns = {
-        "src/pycalver/__init__.py": [
-            v1patterns.compile_pattern(version_pattern, '__version__ = "{pycalver}"'),
-        ]
-    }
+    init_pattern = v1patterns.compile_pattern(
+        version_pattern, '__version__ = "v{year}{build}{release}"'
+    )
+    file_patterns   = {"src/pycalver2/__init__.py": [init_pattern]}
     rewritten_datas = v1rewrite.iter_rewritten(file_patterns, new_vinfo)
     rfd             = list(rewritten_datas)[0]
     expected        = [
@@ -234,19 +233,19 @@ def test_v1_iter_rewritten():
         "# SPDX-License-Identifier: MIT",
         '"""PyCalVer: CalVer for Python Packages."""',
         '',
-        '__version__ = "v201809.0123"',
+        '__version__ = "v2018.0123"',
         '',
     ]
     assert rfd.new_lines == expected
 
 
 def test_v2_iter_rewritten():
-    version_pattern = "vYYYY0M.BUILD[-RELEASE]"
-    new_vinfo       = v2version.parse_version_info("v201809.0123", version_pattern)
+    version_pattern = "vYYYY.BUILD[-TAG]"
+    new_vinfo       = v2version.parse_version_info("v2018.0123", version_pattern)
 
     file_patterns = {
-        "src/pycalver/__init__.py": [
-            v2patterns.compile_pattern(version_pattern, '__version__ = "vYYYY0M.BUILD[-RELEASE]"'),
+        "src/pycalver2/__init__.py": [
+            v2patterns.compile_pattern(version_pattern, '__version__ = "vYYYY.BUILD[-TAG]"'),
         ]
     }
 
@@ -260,32 +259,36 @@ def test_v2_iter_rewritten():
         "# SPDX-License-Identifier: MIT",
         '"""PyCalVer: CalVer for Python Packages."""',
         '',
-        '__version__ = "v201809.0123"',
+        '__version__ = "v2018.0123"',
         '',
     ]
     assert rfd.new_lines == expected
 
 
 def test_v1_diff():
-    version_pattern = "{pycalver}"
-    raw_pattern     = '__version__ = "{pycalver}"'
+    version_pattern = "v{year}{build}{release}"
+    raw_pattern     = '__version__ = "v{year}{build}{release}"'
     pattern         = v1patterns.compile_pattern(version_pattern, raw_pattern)
-    file_patterns   = {"src/pycalver/__init__.py": [pattern]}
+    file_patterns   = {"src/pycalver2/__init__.py": [pattern]}
 
     old_vinfo = v1version.parse_version_info("v201809.0123")
-    new_vinfo = v1version.parse_version_info("v201910.1124")
+    new_vinfo = v1version.parse_version_info("v201911.1124")
+    assert new_vinfo > old_vinfo
+
+    old_vinfo = v1version.parse_version_info("v2018.0123", version_pattern)
+    new_vinfo = v1version.parse_version_info("v2019.1124", version_pattern)
 
     diff_str = v1rewrite.diff(old_vinfo, new_vinfo, file_patterns)
     lines    = diff_str.split("\n")
 
-    assert lines[:2] == ["--- src/pycalver/__init__.py", "+++ src/pycalver/__init__.py"]
+    assert lines[:2] == ["--- src/pycalver2/__init__.py", "+++ src/pycalver2/__init__.py"]
 
     assert lines[6].startswith('-__version__ = "v20')
     assert lines[7].startswith('+__version__ = "v20')
 
-    assert not lines[6].startswith('-__version__ = "v201809.0123"')
+    assert not lines[6].startswith('-__version__ = "v2018.0123"')
 
-    assert lines[7] == '+__version__ = "v201910.1124"'
+    assert lines[7] == '+__version__ = "v2019.1124"'
 
     raw_pattern   = "Copyright (c) 2018-{year}"
     pattern       = v1patterns.compile_pattern(version_pattern, raw_pattern)
@@ -298,25 +301,25 @@ def test_v1_diff():
 
 
 def test_v2_diff():
-    version_pattern = "vYYYY0M.BUILD[-RELEASE]"
-    raw_pattern     = '__version__ = "vYYYY0M.BUILD[-RELEASE]"'
+    version_pattern = "vYYYY.BUILD[-TAG]"
+    raw_pattern     = '__version__ = "vYYYY.BUILD[-TAG]"'
     pattern         = v2patterns.compile_pattern(version_pattern, raw_pattern)
-    file_patterns   = {"src/pycalver/__init__.py": [pattern]}
+    file_patterns   = {"src/pycalver2/__init__.py": [pattern]}
 
-    old_vinfo = v2version.parse_version_info("v201809.0123", version_pattern)
-    new_vinfo = v2version.parse_version_info("v201910.1124", version_pattern)
+    old_vinfo = v2version.parse_version_info("v2018.0123", version_pattern)
+    new_vinfo = v2version.parse_version_info("v2019.1124", version_pattern)
 
     diff_str = v2rewrite.diff(old_vinfo, new_vinfo, file_patterns)
     lines    = diff_str.split("\n")
 
-    assert lines[:2] == ["--- src/pycalver/__init__.py", "+++ src/pycalver/__init__.py"]
+    assert lines[:2] == ["--- src/pycalver2/__init__.py", "+++ src/pycalver2/__init__.py"]
 
     assert lines[6].startswith('-__version__ = "v20')
     assert lines[7].startswith('+__version__ = "v20')
 
-    assert not lines[6].startswith('-__version__ = "v201809.0123"')
+    assert not lines[6].startswith('-__version__ = "v2018.0123"')
 
-    assert lines[7] == '+__version__ = "v201910.1124"'
+    assert lines[7] == '+__version__ = "v2019.1124"'
 
     raw_pattern   = "Copyright (c) 2018-YYYY"
     pattern       = v2patterns.compile_pattern(version_pattern, raw_pattern)

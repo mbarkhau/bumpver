@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 import io
 from test import util
 
-from pycalver import config
+from pycalver2 import config
 
 # pylint:disable=redefined-outer-name ; pytest fixtures
 # pylint:disable=protected-access ; allowed for test code
@@ -66,7 +66,7 @@ setup.cfg =
 NEW_PATTERN_CFG_FIXTURE = """
 [pycalver]
 current_version = "v201808.1456-beta"
-version_pattern = "vYYYY0M.BUILD[-RELEASE]"
+version_pattern = "vYYYY0M.BUILD[-TAG]"
 commit_message = "bump version to {new_version}"
 commit = True
 tag = True
@@ -169,10 +169,10 @@ def test_parse_v2_cfg():
 
     raw_patterns_by_filepath = _parse_raw_patterns_by_filepath(cfg)
     assert raw_patterns_by_filepath["setup.py"] == [
-        "vYYYY0M.BUILD[-RELEASE]",
+        "vYYYY0M.BUILD[-TAG]",
         "YYYY0M.BLD[PYTAGNUM]",
     ]
-    assert raw_patterns_by_filepath["setup.cfg"] == ['current_version = "vYYYY0M.BUILD[-RELEASE]"']
+    assert raw_patterns_by_filepath["setup.cfg"] == ['current_version = "vYYYY0M.BUILD[-TAG]"']
     assert raw_patterns_by_filepath["src/project/*.py"] == ["Copyright (c) 2018-YYYY"]
 
 
@@ -210,7 +210,7 @@ def test_parse_project_toml():
     with config_path.open() as fobj:
         config_data = fobj.read()
 
-    assert "v201710.0123-alpha" in config_data
+    assert "v2017.0123-alpha" in config_data
 
     ctx = config.init_project_ctx(project_path)
     assert ctx == config.ProjectContext(project_path, config_path, config_rel_path, "toml", None)
@@ -219,7 +219,7 @@ def test_parse_project_toml():
 
     assert cfg
 
-    assert cfg.current_version == "v201710.0123-alpha"
+    assert cfg.current_version == "v2017.0123-alpha"
     assert cfg.commit is True
     assert cfg.tag    is True
     assert cfg.push   is True
