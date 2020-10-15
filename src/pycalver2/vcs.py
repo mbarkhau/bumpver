@@ -22,7 +22,7 @@ import logging
 import tempfile
 import subprocess as sp
 
-from pycalver import config
+from . import config
 
 logger = logging.getLogger("pycalver2.vcs")
 
