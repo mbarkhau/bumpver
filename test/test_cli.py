@@ -139,7 +139,8 @@ def test_incr_default(runner):
 
 def test_incr_pin_date(runner):
     old_version = "v2017.1999-alpha"
-    result      = runner.invoke(cli.cli, ['test', "-vv", "--pin-date", old_version])
+    pattern     = "vYYYY.BUILD[-TAG]"
+    result      = runner.invoke(cli.cli, ['test', "-vv", "--pin-date", old_version, pattern])
     assert result.exit_code == 0
     assert "Version: v2017.22000-alpha\n" in result.output
 
@@ -175,7 +176,8 @@ def test_incr_semver(runner):
 
 
 def test_incr_semver_invalid(runner, caplog):
-    result = runner.invoke(cli.cli, ['test', "-vv", "--patch", "0.1.1"])
+    pattern = "vYYYY.BUILD[-TAG]"
+    result  = runner.invoke(cli.cli, ['test', "-vv", "0.1.1", pattern, "--patch"])
     assert result.exit_code == 1
     assert len(caplog.records) > 0
     log_record = caplog.records[0]
@@ -184,41 +186,56 @@ def test_incr_semver_invalid(runner, caplog):
 
 
 def test_incr_to_beta(runner):
+    pattern         = "vYYYY.BUILD[-TAG]"
     old_version     = "v2017.1999-alpha"
     initial_version = config._initial_version()
 
-    result = runner.invoke(cli.cli, ['test', old_version, "-vv", "--tag", "beta"])
+    result = runner.invoke(cli.cli, ['test', "-vv", old_version, pattern, "--tag", "beta"])
     assert result.exit_code == 0
     new_version = initial_version.replace(".1001-alpha", ".22000-beta")
     assert f"Version: {new_version}\n" in result.output
 
 
 def test_incr_to_final(runner, caplog):
+    pattern         = "vYYYY.BUILD[-TAG]"
     old_version     = "v2017.1999-alpha"
     initial_version = config._initial_version()
 
-    result = runner.invoke(cli.cli, ['test', old_version, "-vv", "--tag", "final"])
+    result = runner.invoke(cli.cli, ['test', "-vv", old_version, pattern, "--tag", "final"])
     _debug_records(caplog)
     assert result.exit_code == 0
     new_version = initial_version.replace(".1001-alpha", ".22000")
     assert f"Version: {new_version}\n" in result.output
 
 
-def test_incr_release_num(runner):
-    semver = "MAJOR.MINOR.PATCH[PYTAGNUM]"
+SEMVER = "MAJOR.MINOR.PATCH[PYTAGNUM]"
 
+
+def test_incr_tag(runner):
+    old_version = "0.1.0"
+    new_version = "0.1.1b0"
+
+    result = runner.invoke(
+        cli.cli, ['test', "-vv", old_version, SEMVER, "--patch", "--tag", "beta"]
+    )
+    assert result.exit_code == 0
+    assert f"Version: {new_version}\n" in result.output
+
+
+def test_incr_tag_num(runner):
     old_version = "0.1.0b0"
     new_version = "0.1.0b1"
 
-    result = runner.invoke(cli.cli, ['test', "-vv", "--tag-num", old_version, semver])
+    result = runner.invoke(cli.cli, ['test', "-vv", old_version, SEMVER, "--tag-num"])
     assert result.exit_code == 0
     assert f"Version: {new_version}\n" in result.output
 
 
 def test_incr_invalid(runner):
+    pattern     = "vYYYY.BUILD[-TAG]"
     old_version = "v2017.1999-alpha"
 
-    result = runner.invoke(cli.cli, ['test', old_version, "-vv", "--tag", "alfa"])
+    result = runner.invoke(cli.cli, ['test', "-vv", old_version, pattern, "--tag", "alfa"])
     assert result.exit_code == 1
 
 

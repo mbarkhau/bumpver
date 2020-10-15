@@ -617,6 +617,24 @@ def _incr_numeric(
     tag        : typ.Optional[str],
     tag_num    : bool,
 ) -> version.V2VersionInfo:
+    """Increment (and reset to zero) non CalVer parts.
+
+    >>> raw_pattern = 'MAJOR.MINOR.PATCH[PYTAGNUM]'
+    >>> old_vinfo = parse_field_values_to_vinfo({'major': "1", 'minor': "2", 'patch': "3"})
+    >>> cur_vinfo = old_vinfo
+    >>> new_vinfo = _incr_numeric(
+    ...     raw_pattern,
+    ...     cur_vinfo,
+    ...     old_vinfo,
+    ...     major=False,
+    ...     minor=False,
+    ...     patch=True,
+    ...     tag='beta',
+    ...     tag_num=False,
+    ... )
+    >>> (new_vinfo.major, new_vinfo.minor, new_vinfo.patch, new_vinfo.tag, new_vinfo.pytag, new_vinfo.num)
+    (1, 2, 4, 'beta', 'b', 0)
+    """
     # Reset major/minor/patch/num/inc to zero if any part to the left of it is incremented
     fields       = _parse_pattern_fields(raw_pattern)
     reset_fields = dict(_iter_reset_field_items(fields, old_vinfo, cur_vinfo))
@@ -653,6 +671,14 @@ def _incr_numeric(
         if tag != cur_vinfo.tag:
             cur_vinfo = cur_vinfo._replace(num=0)
         cur_vinfo = cur_vinfo._replace(tag=tag)
+
+    if cur_vinfo.tag and not cur_vinfo.pytag:
+        pytag     = version.PEP440_TAG_BY_TAG[cur_vinfo.tag]
+        cur_vinfo = cur_vinfo._replace(pytag=pytag)
+    elif cur_vinfo.pytag and not cur_vinfo.tag:
+        tag       = version.TAG_BY_PEP440_TAG[cur_vinfo.pytag]
+        cur_vinfo = cur_vinfo._replace(tag=tag)
+
     return cur_vinfo
 
 

@@ -175,7 +175,7 @@ def cli(verbose: int = 0) -> None:
 
 @cli.command()
 @click.argument("old_version")
-@click.argument("pattern", default="vYYYY.BUILD[-TAG]")
+@click.argument("pattern")
 @click.option('-v'     , '--verbose', count=True, help="Control log level. -vv for debug level.")
 @click.option("--major", is_flag=True, default=False, help="Increment major component.")
 @click.option("-m"     , "--minor", is_flag=True, default=False, help="Increment minor component.")
@@ -204,7 +204,7 @@ def cli(verbose: int = 0) -> None:
 )
 def test(
     old_version: str,
-    pattern    : str = "vYYYY.BUILD[-TAG]",
+    pattern    : str,
     verbose    : int = 0,
     tag        : str = None,
     major      : bool = False,
