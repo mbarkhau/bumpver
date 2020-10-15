@@ -95,13 +95,14 @@ def test_v1_rewrite_final():
 def test_iter_file_paths():
     with util.Project(project="a") as project:
         ctx = config.init_project_ctx(project.dir)
+        assert ctx
         cfg = config.parse(ctx)
         assert cfg
 
         _paths_and_patterns = rewrite.iter_path_patterns_items(cfg.file_patterns)
         file_paths          = {str(file_path) for file_path, patterns in _paths_and_patterns}
 
-    assert file_paths == {"pycalver.toml", "README.md"}
+    assert file_paths == {"calver.toml", "README.md"}
 
 
 def test_iter_file_globs():

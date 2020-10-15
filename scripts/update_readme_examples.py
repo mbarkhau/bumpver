@@ -184,8 +184,8 @@ def pattern_examples():
 old_content = io.open("README.md").read()
 
 new_content = old_content
-new_content = update_md_code_output(new_content, "pycalver --help")
-new_content = update_md_code_output(new_content, "pycalver bump --help")
+new_content = update_md_code_output(new_content, "calver --help")
+new_content = update_md_code_output(new_content, "calver bump --help")
 new_content = update(new_content, "pattern_examples", pattern_examples())
 new_content = update(new_content, "weeknum_example" , weeknum_example())
 
@@ -199,8 +199,8 @@ else:
         fobj.write(new_content)
 
 
-# @printf '\n```\n$$ pycalver --help\n' > /tmp/pycalver_help.txt
-# @$(DEV_ENV)/bin/pycalver --help >> /tmp/pycalver_help.txt
+# @printf '\n```\n$$ calver --help\n' > /tmp/pycalver_help.txt
+# @$(DEV_ENV)/bin/calver --help >> /tmp/pycalver_help.txt
 # @printf '```\n\n' >> /tmp/pycalver_help.txt
 
 # sed -i -ne '/<!-- BEGIN pycalver --help -->/ {p; r /tmp/pycalver_help.txt' \

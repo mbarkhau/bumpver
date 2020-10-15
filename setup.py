@@ -58,7 +58,7 @@ if any(arg.startswith("bdist") for arg in sys.argv):
 
 
 setuptools.setup(
-    name="pycalver2",
+    name="python-calver",
     license="MIT",
     author="Manuel Barkhau",
     author_email="mbarkhau@gmail.com",

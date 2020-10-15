@@ -539,7 +539,7 @@ def _try_bump(
     '-d', "--dry", default=False, is_flag=True, help="Display diff of changes, don't rewrite files."
 )
 def init(verbose: int = 0, dry: bool = False) -> None:
-    """Initialize [pycalver] configuration."""
+    """Initialize [calver] configuration."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
 
     ctx, cfg = config.init(project_path=".", cfg_missing_ok=True)

@@ -29,6 +29,7 @@ FIXTURE_PATH_PARTS = [
     ["setup.cfg"],
     ["setup.py"],
     ["pycalver.toml"],
+    ["calver.toml"],
     ["src", "module_v1", "__init__.py"],
     ["src", "module_v2", "__init__.py"],
 ]

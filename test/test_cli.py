@@ -42,7 +42,7 @@ license_file = LICENSE
 universal = 1
 """
 
-PYCALVER_TOML_FIXTURE = """
+CALVER_TOML_FIXTURE = """
 """
 
 PYPROJECT_TOML_FIXTURE = """
@@ -51,11 +51,11 @@ requires = ["setuptools", "wheel"]
 """
 
 ENV = {
-    'GIT_AUTHOR_NAME'    : "pycalver_tester",
-    'GIT_COMMITTER_NAME' : "pycalver_tester",
-    'GIT_AUTHOR_EMAIL'   : "pycalver_tester@nowhere.com",
-    'GIT_COMMITTER_EMAIL': "pycalver_tester@nowhere.com",
-    'HGUSER'             : "pycalver_tester",
+    'GIT_AUTHOR_NAME'    : "calver_tester",
+    'GIT_COMMITTER_NAME' : "calver_tester",
+    'GIT_AUTHOR_EMAIL'   : "calver_tester@nowhere.com",
+    'GIT_COMMITTER_EMAIL': "calver_tester@nowhere.com",
+    'HGUSER'             : "calver_tester",
     'PATH'               : os.environ['PATH'],
 }
 
@@ -64,11 +64,11 @@ def shell(*cmd):
     return sp.check_output(cmd, env=ENV)
 
 
-DEBUG_LOG = 0
+ECHO_CAPLOG = os.getenv('ECHO_CAPLOG') == "1"
 
 
 def _debug_records(caplog):
-    if DEBUG_LOG:
+    if ECHO_CAPLOG:
         print()
         for record in caplog.records:
             print(record)
@@ -233,7 +233,11 @@ def _add_project_files(*files):
 
     if "pycalver.toml" in files:
         with pl.Path("pycalver.toml").open(mode="wt", encoding="utf-8") as fobj:
-            fobj.write(PYCALVER_TOML_FIXTURE)
+            fobj.write(CALVER_TOML_FIXTURE)
+
+    if "calver.toml" in files:
+        with pl.Path("calver.toml").open(mode="wt", encoding="utf-8") as fobj:
+            fobj.write(CALVER_TOML_FIXTURE)
 
     if "pyproject.toml" in files:
         with pl.Path("pyproject.toml").open(mode="wt", encoding="utf-8") as fobj:
@@ -269,14 +273,14 @@ def test_novcs_nocfg_init(runner, caplog):
     # dry mode test
     result = runner.invoke(cli.cli, ['init', "-vv", "--dry"])
     assert result.exit_code == 0
-    assert not os.path.exists("pycalver.toml")
+    assert not os.path.exists("calver.toml")
 
     # non dry mode
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
-    assert os.path.exists("pycalver.toml")
-    with pl.Path("pycalver.toml").open(mode="r", encoding="utf-8") as fobj:
+    assert os.path.exists("calver.toml")
+    with pl.Path("calver.toml").open(mode="r", encoding="utf-8") as fobj:
         cfg_content = fobj.read()
 
     base_str = config.DEFAULT_TOML_BASE_TMPL.format(initial_version=config._initial_version())
@@ -318,9 +322,10 @@ def test_novcs_setupcfg_init(runner):
     assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
 
 
-def test_novcs_pyproject_init(runner):
+def test_novcs_pyproject_init(runner, caplog):
     _add_project_files("README.md", "pyproject.toml")
     result = runner.invoke(cli.cli, ['init', "-vv"])
+    _debug_records(caplog)
     assert result.exit_code == 0
 
     with pl.Path("pyproject.toml").open(mode="r", encoding="utf-8") as fobj:
@@ -368,7 +373,7 @@ def test_git_init(runner, version_pattern, cur_version, cur_pep440):
     assert result.exit_code == 0
 
     _update_config_val(
-        "pycalver.toml",
+        "calver.toml",
         version_pattern=version_pattern,
         current_version='"' + cur_version + '"',
     )
@@ -387,7 +392,7 @@ def test_hg_init(runner, version_pattern, cur_version, cur_pep440):
     assert result.exit_code == 0
 
     _update_config_val(
-        "pycalver.toml",
+        "calver.toml",
         version_pattern=version_pattern,
         current_version='"' + cur_version + '"',
     )
@@ -408,7 +413,7 @@ def test_v1_git_tag_eval(runner, version_pattern, cur_version, cur_pep440):
     assert result.exit_code == 0
 
     _update_config_val(
-        "pycalver.toml",
+        "calver.toml",
         version_pattern=version_pattern,
         current_version='"' + cur_version + '"',
     )
@@ -434,7 +439,7 @@ def test_hg_tag_eval(runner, version_pattern, cur_version, cur_pep440):
     assert result.exit_code == 0
 
     _update_config_val(
-        "pycalver.toml",
+        "calver.toml",
         version_pattern=version_pattern,
         current_version='"' + cur_version + '"',
     )
@@ -458,7 +463,7 @@ def test_novcs_bump(runner, version_pattern, cur_version, cur_pep440):
     assert result.exit_code == 0
 
     _update_config_val(
-        "pycalver.toml",
+        "calver.toml",
         version_pattern=version_pattern,
         current_version='"' + cur_version + '"',
     )
@@ -494,12 +499,12 @@ def test_git_bump(runner, caplog, version_pattern, cur_version, cur_pep440):
     assert result.exit_code == 0
 
     _update_config_val(
-        "pycalver.toml",
+        "calver.toml",
         version_pattern=version_pattern,
         current_version='"' + cur_version + '"',
     )
 
-    shell("git", "add", "pycalver.toml")
+    shell("git", "add", "calver.toml")
     shell("git", "commit", "-m", "initial commit")
 
     result = runner.invoke(cli.cli, ['bump', "-vv"])
@@ -522,12 +527,12 @@ def test_hg_bump(runner, version_pattern, cur_version, cur_pep440):
     assert result.exit_code == 0
 
     _update_config_val(
-        "pycalver.toml",
+        "calver.toml",
         version_pattern=version_pattern,
         current_version='"' + cur_version + '"',
     )
 
-    shell("hg", "add", "pycalver.toml")
+    shell("hg", "add", "calver.toml")
     shell("hg", "commit", "-m", "initial commit")
 
     result = runner.invoke(cli.cli, ['bump', "-vv"])
@@ -551,9 +556,9 @@ def test_empty_git_bump(runner, caplog):
     with pl.Path("setup.cfg").open(mode="r") as fobj:
         default_cfg_data = fobj.read()
 
-    assert "[pycalver]\n" in default_cfg_data
+    assert "[calver]\n" in default_cfg_data
     assert "\ncurrent_version = " in default_cfg_data
-    assert "\n[pycalver:file_patterns]\n" in default_cfg_data
+    assert "\n[calver:file_patterns]\n" in default_cfg_data
     assert "\nsetup.cfg =\n" in default_cfg_data
 
     result = runner.invoke(cli.cli, ['bump'])
@@ -573,9 +578,9 @@ def test_empty_hg_bump(runner, caplog):
     with pl.Path("setup.cfg").open(mode="r") as fobj:
         default_cfg_text = fobj.read()
 
-    assert "[pycalver]\n" in default_cfg_text
+    assert "[calver]\n" in default_cfg_text
     assert "\ncurrent_version = " in default_cfg_text
-    assert "\n[pycalver:file_patterns]\n" in default_cfg_text
+    assert "\n[calver:file_patterns]\n" in default_cfg_text
     assert "\nsetup.cfg =\n" in default_cfg_text
 
     result = runner.invoke(cli.cli, ['bump'])
@@ -899,11 +904,11 @@ def test_get_latest_vcs_version_tag(runner):
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
-    _update_config_val("pycalver.toml", push="false")
-    _update_config_val("pycalver.toml", current_version='"0.1.8"')
-    _update_config_val("pycalver.toml", version_pattern='"MAJOR.MINOR.PATCH"')
+    _update_config_val("calver.toml", push="false")
+    _update_config_val("calver.toml", current_version='"0.1.8"')
+    _update_config_val("calver.toml", version_pattern='"MAJOR.MINOR.PATCH"')
 
-    _vcs_init("git", files=["pycalver.toml"])
+    _vcs_init("git", files=["calver.toml"])
 
     result = runner.invoke(cli.cli, ['bump', "--patch"])
     assert result.exit_code == 0

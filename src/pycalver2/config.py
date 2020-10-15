@@ -32,7 +32,7 @@ PatternsByFile   = typ.Dict[str, typ.List[Pattern]]
 FilePatternsItem = typ.Tuple[str, typ.List[Pattern]]
 
 
-SUPPORTED_CONFIGS = ["setup.cfg", "pyproject.toml", "pycalver.toml"]
+SUPPORTED_CONFIGS = ["setup.cfg", "pyproject.toml", "pycalver.toml", "calver.toml"]
 
 DEFAULT_COMMIT_MESSAGE = "bump version to {new_version}"
 
@@ -47,6 +47,33 @@ class ProjectContext(typ.NamedTuple):
     vcs_type       : typ.Optional[str]
 
 
+def _parse_config_and_format(path: pl.Path) -> typ.Tuple[pl.Path, str, str]:
+    if (path / "pycalver.toml").exists():
+        config_filepath = path / "pycalver.toml"
+        config_format   = 'toml'
+    elif (path / "calver.toml").exists():
+        config_filepath = path / "calver.toml"
+        config_format   = 'toml'
+    elif (path / "pyproject.toml").exists():
+        config_filepath = path / "pyproject.toml"
+        config_format   = 'toml'
+    elif (path / "setup.cfg").exists():
+        config_filepath = path / "setup.cfg"
+        config_format   = 'cfg'
+    else:
+        # fallback to creating a new calver.toml
+        config_filepath = path / "calver.toml"
+        config_format   = 'toml'
+
+    if config_filepath.is_absolute():
+        config_rel_path = str(config_filepath.relative_to(path.absolute()))
+    else:
+        config_rel_path = str(config_filepath)
+        config_filepath = pl.Path.cwd() / config_filepath
+
+    return (config_filepath, config_rel_path, config_format)
+
+
 def init_project_ctx(project_path: typ.Union[str, pl.Path, None] = ".") -> ProjectContext:
     """Initialize ProjectContext from a path."""
     if isinstance(project_path, pl.Path):
@@ -57,25 +84,7 @@ def init_project_ctx(project_path: typ.Union[str, pl.Path, None] = ".") -> Proje
         # assume it's a str/unicode
         path = pl.Path(project_path)
 
-    if (path / "pycalver.toml").exists():
-        config_filepath = path / "pycalver.toml"
-        config_format   = 'toml'
-    elif (path / "pyproject.toml").exists():
-        config_filepath = path / "pyproject.toml"
-        config_format   = 'toml'
-    elif (path / "setup.cfg").exists():
-        config_filepath = path / "setup.cfg"
-        config_format   = 'cfg'
-    else:
-        # fallback to creating a new pycalver.toml
-        config_filepath = path / "pycalver.toml"
-        config_format   = 'toml'
-
-    if config_filepath.is_absolute():
-        config_rel_path = str(config_filepath.relative_to(path.absolute()))
-    else:
-        config_rel_path = str(config_filepath)
-        config_filepath = pl.Path.cwd() / config_filepath
+    config_filepath, config_rel_path, config_format = _parse_config_and_format(path)
 
     vcs_type: typ.Optional[str]
 
@@ -137,10 +146,14 @@ def _debug_str(cfg: Config) -> str:
 def _parse_cfg_file_patterns(
     cfg_parser: configparser.RawConfigParser,
 ) -> typ.Iterable[FileRawPatternsItem]:
-    if not cfg_parser.has_section("pycalver:file_patterns"):
-        return
+    file_pattern_items: typ.List[typ.Tuple[str, str]]
 
-    file_pattern_items: typ.List[typ.Tuple[str, str]] = cfg_parser.items("pycalver:file_patterns")
+    if cfg_parser.has_section("pycalver:file_patterns"):
+        file_pattern_items = cfg_parser.items("pycalver:file_patterns")
+    elif cfg_parser.has_section("calver:file_patterns"):
+        file_pattern_items = cfg_parser.items("calver:file_patterns")
+    else:
+        return
 
     for filepath, patterns_str in file_pattern_items:
         maybe_patterns = (line.strip() for line in patterns_str.splitlines())
@@ -175,10 +188,13 @@ def _parse_cfg(cfg_buffer: typ.IO[str]) -> RawConfig:
     else:
         cfg_parser.readfp(cfg_buffer)  # python2 compat
 
-    if not cfg_parser.has_section("pycalver"):
-        raise ValueError("Missing [pycalver] section.")
-
-    raw_cfg: RawConfig = dict(cfg_parser.items("pycalver"))
+    raw_cfg: RawConfig
+    if cfg_parser.has_section("pycalver"):
+        raw_cfg = dict(cfg_parser.items("pycalver"))
+    elif cfg_parser.has_section("calver"):
+        raw_cfg = dict(cfg_parser.items("calver"))
+    else:
+        raise ValueError("Missing [calver] section.")
 
     for option, default_val in BOOL_OPTIONS.items():
         val: OptionVal = raw_cfg.get(option, default_val)
@@ -194,8 +210,15 @@ def _parse_cfg(cfg_buffer: typ.IO[str]) -> RawConfig:
 
 
 def _parse_toml(cfg_buffer: typ.IO[str]) -> RawConfig:
-    raw_full_cfg: typ.Any   = toml.load(cfg_buffer)
-    raw_cfg     : RawConfig = raw_full_cfg.get('pycalver', {})
+    raw_full_cfg: typ.Any = toml.load(cfg_buffer)
+    raw_cfg     : RawConfig
+
+    if 'pycalver' in raw_full_cfg:
+        raw_cfg = raw_full_cfg['pycalver']
+    elif 'calver' in raw_full_cfg:
+        raw_cfg = raw_full_cfg['calver']
+    else:
+        raw_cfg = {}
 
     for option, default_val in BOOL_OPTIONS.items():
         raw_cfg[option] = raw_cfg.get(option, default_val)
@@ -284,7 +307,7 @@ def _validate_version_with_pattern(
         if invalid_chars:
             errmsg = (
                 f"Invalid character(s) '{invalid_chars.group(1)}'"
-                f' in pycalver.version_pattern = "{version_pattern}"'
+                f' in version_pattern = "{version_pattern}"'
             )
             raise ValueError(errmsg)
         if not v2version.is_valid_week_pattern(version_pattern):
@@ -321,10 +344,10 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
         push = raw_cfg['push'] = False
 
     if tag and not commit:
-        raise ValueError("pycalver.commit = true required if pycalver.tag = true")
+        raise ValueError("commit=True required if tag=True")
 
     if push and not commit:
-        raise ValueError("pycalver.commit = true required if pycalver.push = true")
+        raise ValueError("commit=True required if push=True")
 
     cfg = Config(
         current_version=current_version,
@@ -351,26 +374,26 @@ def _parse_current_version_default_pattern(raw_cfg: RawConfig, raw_cfg_text: str
 
         if line.strip() == "[pycalver]":
             is_pycalver_section = True
+        elif line.strip() == "[calver]":
+            is_pycalver_section = True
         elif line and line[0] == "[" and line[-1] == "]":
             is_pycalver_section = False
 
-    raise ValueError("Could not parse pycalver.current_version")
+    raise ValueError("Could not parse 'current_version'")
 
 
 def _set_raw_config_defaults(raw_cfg: RawConfig) -> None:
-    if 'current_version' in raw_cfg:
-        if not isinstance(raw_cfg['current_version'], str):
-            err = f"Invalid type for pycalver.current_version = {raw_cfg['current_version']}"
-            raise TypeError(err)
-    else:
-        raise ValueError("Missing 'pycalver.current_version'")
+    if 'version_pattern' not in raw_cfg:
+        raise TypeError("Missing version_pattern")
+    elif not isinstance(raw_cfg['version_pattern'], str):
+        err = f"Invalid type for version_pattern = {raw_cfg['version_pattern']}"
+        raise TypeError(err)
 
-    if 'version_pattern' in raw_cfg:
-        if not isinstance(raw_cfg['version_pattern'], str):
-            err = f"Invalid type for pycalver.version_pattern = {raw_cfg['version_pattern']}"
-            raise TypeError(err)
-    else:
-        raw_cfg['version_pattern'] = "{pycalver}"
+    if 'current_version' not in raw_cfg:
+        raise ValueError("Missing 'current_version' configuration")
+    elif not isinstance(raw_cfg['current_version'], str):
+        err = f"Invalid type for current_version = {raw_cfg['current_version']}"
+        raise TypeError(err)
 
     if 'file_patterns' not in raw_cfg:
         raw_cfg['file_patterns'] = {}
@@ -426,7 +449,7 @@ def init(
 
 
 DEFAULT_CONFIGPARSER_BASE_TMPL = """
-[pycalver]
+[calver]
 current_version = "{initial_version}"
 version_pattern = "vYYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
@@ -434,7 +457,7 @@ commit = True
 tag = True
 push = True
 
-[pycalver:file_patterns]
+[calver:file_patterns]
 """.lstrip()
 
 
@@ -466,7 +489,7 @@ README.md =
 
 
 DEFAULT_TOML_BASE_TMPL = """
-[pycalver]
+[calver]
 current_version = "{initial_version}"
 version_pattern = "vYYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
@@ -474,12 +497,19 @@ commit = true
 tag = true
 push = true
 
-[pycalver.file_patterns]
+[calver.file_patterns]
 """.lstrip()
 
 
 DEFAULT_TOML_PYCALVER_STR = """
 "pycalver.toml" = [
+    'current_version = "{version}"',
+]
+""".lstrip()
+
+
+DEFAULT_TOML_CALVER_STR = """
+"calver.toml" = [
     'current_version = "{version}"',
 ]
 """.lstrip()
@@ -542,6 +572,7 @@ def default_config(ctx: ProjectContext) -> str:
         default_pattern_strs_by_filename = {
             "pyproject.toml": DEFAULT_TOML_PYPROJECT_STR,
             "pycalver.toml" : DEFAULT_TOML_PYCALVER_STR,
+            "calver.toml"   : DEFAULT_TOML_CALVER_STR,
             "setup.py"      : DEFAULT_TOML_SETUP_PY_STR,
             "README.rst"    : DEFAULT_TOML_README_RST_STR,
             "README.md"     : DEFAULT_TOML_README_MD_STR,
@@ -561,7 +592,7 @@ def default_config(ctx: ProjectContext) -> str:
         if ctx.config_format == 'cfg':
             cfg_str += DEFAULT_CONFIGPARSER_SETUP_CFG_STR
         if ctx.config_format == 'toml':
-            cfg_str += DEFAULT_TOML_PYCALVER_STR
+            cfg_str += DEFAULT_TOML_CALVER_STR
 
     cfg_str += "\n"
 

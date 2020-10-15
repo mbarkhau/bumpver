@@ -5,9 +5,9 @@
 </div>
 
 
-# [PyCalVer: Automatic Calendar Versioning][url_repo]
+# [Python CalVer: Automatic Calendar Versioning][url_repo]
 
-PyCalVer is a CLI-tool to search and replace all version strings in your project files ([calver][url_calver_org], [semver][url_semver_org] or otherwise). PyCalVer has support for
+Python CalVer provides the CLI command `calver`. You can use it to search and update version strings in your project files. It has a flexible pattern syntax to support many version string schemes ([calver][url_calver_org], [semver][url_semver_org] or otherwise). PyCalVer features:
 
 - Configurable version patterns
 - Git, Mercurial or no VCS
@@ -22,7 +22,7 @@ Project/Repo:
 
 [![MIT License][img_license]][url_license]
 [![Supported Python Versions][img_pyversions]][url_pyversions]
-[![PyCalVer v202010.1041-beta][img_version]][url_version]
+[![CalVer v2020.1041-beta][img_version]][url_version]
 [![PyPI Releases][img_pypi]][url_pypi]
 [![PyPI Downloads][img_downloads]][url_downloads]
 
@@ -62,7 +62,7 @@ Code Quality/CI:
 [img_downloads]: https://pepy.tech/badge/pycalver/month
 [url_downloads]: https://pepy.tech/project/pycalver
 
-[img_version]: https://img.shields.io/static/v1.svg?label=PyCalVer&message=v202010.1041-beta&color=blue
+[img_version]: https://img.shields.io/static/v1.svg?label=CalVer&message=v2020.1041-beta&color=blue
 [url_version]: https://pypi.org/project/pycalver/
 
 [img_pypi]: https://img.shields.io/badge/PyPI-wheels-green.svg
@@ -70,8 +70,6 @@ Code Quality/CI:
 
 [img_pyversions]: https://img.shields.io/pypi/pyversions/pycalver.svg
 [url_pyversions]: https://pypi.python.org/pypi/pycalver
-
-
 
 
 [](TOC)
@@ -109,7 +107,7 @@ Code Quality/CI:
 
 ### Search and Replace
 
-With PyCalVer,  you only configure a single `version_pattern` which is then used
+With `calver`, you configure a single `version_pattern` which is then used to
 
 1. Search for version strings in your project files
 2. Replace these occurrences with an updated/bumped version number.
@@ -117,11 +115,11 @@ With PyCalVer,  you only configure a single `version_pattern` which is then used
 Your configuration might look something like this:
 
 ```
-[pycalver]
-current_version = "2020.9"
-version_pattern = "YYYY.MM"
+[calver]
+current_version = "2020.9.0"
+version_pattern = "YYYY.MM.PATCH"
 
-[pycalver:file_patterns]
+[calver:file_patterns]
 src/mymodule/__init__.py
 	__version__ = "{version}"
 src/mymodule/__main__.py
@@ -130,22 +128,22 @@ setup.py
 	version="{version}",
 ```
 
-> Throughout the examples, we use the `--date` argument. Without this argument PyCalVer will just use the current date. We use it here so that you can easily reproduce the examples.
+> Throughout the examples, we use the `--date` argument. Without this argument `calver` will just use the current UTC date. We use it here so that you can easily reproduce the examples.
 
-Using this configuration, the output of `pycalver bump --dry` might look something like this:
+Using this configuration, the output of `calver bump --dry` might look something like this:
 
 ```diff
-$ pycalver bump --date 2020-10-01 --dry
+$ calver bump --date 2020-10-21 --dry
 INFO    - fetching tags from remote (to turn off use: -n / --no-fetch)
-INFO    - Old Version: 2020.9
-INFO    - New Version: 2020.10
+INFO    - Old Version: 2020.9.0
+INFO    - New Version: 2020.10.0
 --- setup.py
 +++ setup.py
 @@ -63,7 +63,7 @@
  setuptools.setup(
      name="mymodule",
--    version="2020.9",
-+    version="2020.10",
+-    version="2020.9.0",
++    version="2020.10.0",
      description=description,
      long_description=long_description,
 
@@ -153,8 +151,8 @@ INFO    - New Version: 2020.10
 +++ src/mymodule/__init__.py
 @@ -3,3 +3,3 @@
 
--__version__ = "2020.9"
-+__version__ = "2020.10"
+-__version__ = "2020.9.0"
++__version__ = "2020.10.0"
 
 
 --- src/mymodule/__main__.py
@@ -162,8 +160,8 @@ INFO    - New Version: 2020.10
 @@ -101,7 +101,7 @@
 
  @click.group()
--@click.version_option(version="2020.9")
-+@click.version_option(version="2020.10")
+-@click.version_option(version="2020.9.0")
++@click.version_option(version="2020.10.0")
  @click.help_option()
  @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 ```
@@ -182,22 +180,22 @@ If PyCalVer does not serve your purposes, you may wish to look at the [bump2vers
 
 ### Testing a version pattern
 
-You can validate a pattern and how it is incremented using `pycalver test`.
+You can validate a pattern and how it is incremented using `calver test`.
 
 ```shell
-$ pycalver test --date 2018-09-22 '2018.37' 'YYYY.WW'
-New Version: 2018.38
-PEP440     : 2018.38
+$ calver test --date 2020-09-22 '2020.37' 'YYYY.WW'
+New Version: 2020.38
+PEP440     : 2020.38
 
-$ pycalver test --date 2018-09-22 '2018.37' 'YYYY.MM'     # expected to fail
-ERROR   - Incomplete match '2018.3' for version string '2018.37' with pattern 'YYYY.MM'/'(?P<year_y>[1-9][0-9]{3})\.(?P<month>1[0-2]|[1-9])'
-ERROR   - Version did not change: '2018.37'. Invalid version and/or pattern 'YYYY.MM'.
+$ calver test --date 2020-09-22 '2020.37' 'YYYY.MM'     # expected to fail because 37 is not valid for part MM
+ERROR   - Incomplete match '2020.3' for version string '2020.37' with pattern 'YYYY.MM'/'(?P<year_y>[1-9][0-9]{3})\.(?P<month>1[0-2]|[1-9])'
+ERROR   - Invalid version '2020.37' and/or pattern 'YYYY.MM'.
 ```
 
 This illustrates that each pattern is internally translated to a regular expression which must match your version string. The `--verbose` flag shows a slightly more readable form.
 
 ```shell
-$ pycalver test --date 2018-09-22 'v2018.37' 'YYYY.WW' --verbose
+$ calver test --date 2018-09-22 'v2018.37' 'YYYY.WW' --verbose
 INFO    - Using pattern YYYY.WW
 INFO    - regex = re.compile(r"""
     (?P<year_y>[1-9][0-9]{3})
@@ -215,30 +213,30 @@ In other words, you don't specify regular expressions manually, they are generat
 You can do tradition SemVer without any kind of calendar component if you like.
 
 ```shell
-$ pycalver test '1.2.3' 'MAJOR.MINOR.PATCH' --patch
+$ calver test '1.2.3' 'MAJOR.MINOR.PATCH' --patch
 New Version: 1.2.4
 PEP440     : 1.2.4
 
-$ pycalver test '1.2.3' 'MAJOR.MINOR.PATCH' --minor
+$ calver test '1.2.3' 'MAJOR.MINOR.PATCH' --minor
 New Version: 1.3.0
 PEP440     : 1.3.0
 
-$ pycalver test '1.2.3' 'MAJOR.MINOR.PATCH' --major
+$ calver test '1.2.3' 'MAJOR.MINOR.PATCH' --major
 New Version: 2.0.0
 PEP440     : 2.0.0
 ```
 
-These are the same CLI flags as are accepted by the `pycalver bump` command.
+These are the same CLI flags as are accepted by the `calver bump` command.
 
 In the context of a CalVer version, a typical use would be to include a `PATCH` part in your version pattern, so that you can create multiple releases in the same month.
 
 ```shell
-$ pycalver test --date 2018-09-22 '2018.9.0' 'YYYY.MM.PATCH'
+$ calver test --date 2018-09-22 '2018.9.0' 'YYYY.MM.PATCH'
 ERROR   - Invalid arguments or pattern, version did not change.
 ERROR   - Version did not change: '2018.9.0'. Invalid version and/or pattern 'YYYY.MM.PATCH'.
-INFO    - Perhaps try: pycalver test --patch
+INFO    - Perhaps try: calver test --patch
 
-$ pycalver test --date 2018-09-22 '2018.9.0' 'YYYY.MM.PATCH' --patch
+$ calver test --date 2018-09-22 '2018.9.0' 'YYYY.MM.PATCH' --patch
 New Version: 2018.9.1
 PEP440     : 2018.9.1
 ```
@@ -246,7 +244,7 @@ PEP440     : 2018.9.1
 The `PATCH` part will roll over back to zero when leading parts change (in this case the year and month).
 
 ```shell
-$ pycalver test --date 2018-10-22 '2018.9.1' 'YYYY.MM.PATCH'
+$ calver test --date 2018-10-22 '2018.9.1' 'YYYY.MM.PATCH'
 New Version: 2018.10.0
 PEP440     : 2018.10.0
 ```
@@ -254,54 +252,55 @@ PEP440     : 2018.10.0
 This will happen even if you use the `--patch` argument, so that your first release of the month has a `PATCH` of 0 instead of 1.
 
 ```shell
-$ pycalver test --date 2018-10-22 '2018.9.1' 'YYYY.MM.PATCH' --patch
+$ calver test --date 2018-10-22 '2018.9.1' 'YYYY.MM.PATCH' --patch
 New Version: 2018.10.0
 PEP440     : 2018.10.0
 ```
 
 
-### Auto Incrementing Parts: `BUILD`/`INC0`/`INC1`
+### Auto Increment Parts: `BUILD`/`INC0`/`INC1`
 
-The following parts are incremented automatically, and do not use/require a CLI flag: `BUILD`/`INC0`/`INC1`. This means you can just do `pycalver bump` without any further CLI flags and special cases, which can simplify your build scripts.
+The following parts are incremented automatically, and do not use/require a CLI flag: `BUILD`/`INC0`/`INC1`. This means you can just do `calver bump` without any further CLI flags and special cases, which can simplify your build scripts.
 
 ```shell
-$ pycalver test --date 2018-09-22 '2018.9.1' 'YYYY.MM.INC0'
+$ calver test --date 2018-09-22 '2018.9.1' 'YYYY.MM.INC0'
 New Version: 2018.9.2
 PEP440     : 2018.9.2
 
-$ pycalver test --date 2018-10-22 '2018.9.2' 'YYYY.MM.INC0'
+$ calver test --date 2018-10-22 '2018.9.2' 'YYYY.MM.INC0'
 New Version: 2018.10.0
 PEP440     : 2018.10.0
 
-$ pycalver test --date 2018-10-22 '2018.9.2' 'YYYY.MM.INC1'
+$ calver test --date 2018-10-22 '2018.9.2' 'YYYY.MM.INC1'
 New Version: 2018.10.1
 PEP440     : 2018.10.1
 ```
 
-If it is rare for you to make multiple releases within a given period, you can make such a part optional using the `[PART]` syntax with square braces:
+If it is rare for you to make multiple releases within a given period, you can make such a part optional using the `[PART]` syntax with square brackets:
 
 ```shell
-$ pycalver test --date 2018-09-22 '2018.9' 'YYYY.MM[.INC0]'
+$ calver test --date 2018-09-22 '2018.9' 'YYYY.MM[.INC0]'
 New Version: 2018.9.1
 PEP440     : 2018.9.1
 
-$ pycalver test --date 2018-10-22 '2018.9.1' 'YYYY.MM[.INC0]'
+$ calver test --date 2018-10-22 '2018.9.1' 'YYYY.MM[.INC0]'
 New Version: 2018.10
 PEP440     : 2018.10
 ```
 
-If the extra `INC0` part is needed, it is added. If the date rolls over and it's no longer needed, it is omitted. Any literal text enclosed in the braces (such as a separator) will also be added or omitted as needed.
+If the extra `INC0` part is needed, it is added. If the date rolls over and it's no longer needed, it is omitted. Any literal text enclosed in the brackets (such as a separator) will also be added or omitted as needed.
+
 
 ### Persistent Parts: `BUILD`/`RELEASE`/`PYTAG`
 
 The `BUILD` and `RELEASE` parts are not reset. Instead they are carried forward.
 
 ```shell
-$ pycalver test --date 2018-09-22 '201809.1051-beta' 'YYYY0M.BUILD[-RELEASE]'
+$ calver test --date 2018-09-22 '201809.1051-beta' 'YYYY0M.BUILD[-RELEASE]'
 New Version: 201809.1052-beta
 PEP440     : 201809.1052b0
 
-$ pycalver test --date 2018-09-22 '201809.1051-beta' 'YYYY0M.BUILD[-RELEASE]' --release rc
+$ calver test --date 2018-09-22 '201809.1051-beta' 'YYYY0M.BUILD[-RELEASE]' --release rc
 New Version: 201809.1052-rc
 PEP440     : 201809.1052rc0
 ```
@@ -309,17 +308,24 @@ PEP440     : 201809.1052rc0
 To remove a release tag, mark it as final with `--release final`.
 
 ```shell
-$ pycalver test --date 2018-09-22 '201809.1051-beta' 'YYYY0M.BUILD[-RELEASE]' --release final
+$ calver test --date 2018-09-22 '201809.1051-beta' 'YYYY0M.BUILD[-RELEASE]' --release final
 New Version: 201809.1052
 PEP440     : 201809.1052
 ```
 
+
 ### Searching for Patterns with `grep`
 
-Using `pycalver grep`, you can search for occurrences of a version pattern in your project files.
+When searching for a pattern, There are some limitations to keep in mind:
+
+  1. A version string cannot span multiple lines.
+  2. There is no mechanism for escaping parts.
+  3. Brackets `[]` can be escaped with backslash.
+
+Using `calver grep`, you can search for occurrences of a version pattern in your project files.
 
 ```shell
-$ pycalver grep '__version__ = "YYYY.MM[-RELEASENUM]"' src/module/__init__.py
+$ calver grep '__version__ = "YYYY.MM[-RELEASENUM]"' src/module/__init__.py
 src/module/__init__.py
  3:
  4: __version__ = "2020.9-beta1"
@@ -336,7 +342,7 @@ When you write your configuration, you can avoid repeating your version pattern 
 Applied to the above example, you can instead use this:
 
 ```shell
-$ pycalver grep --version-pattern "YYYY.MM[-RELEASENUM]"  '__version__ = "{version}"' src/module/__init__.py
+$ calver grep --version-pattern "YYYY.MM[-RELEASENUM]"  '__version__ = "{version}"' src/module/__init__.py
 src/module/__init__.py
  3:
  4: __version__ = "2020.9-beta1"
@@ -346,12 +352,12 @@ src/module/__init__.py
 The corresponding configuration would look like this.
 
 ```ini
-[pycalver]
+[calver]
 current_version = "2020.9-beta1"
 version_pattern = "YYYY.MM[-RELEASENUM]"
 ...
 
-[pycalver:file_patterns]
+[calver:file_patterns]
 src/module/__init__.py
   __version__ = "{version}"
 ...
@@ -360,7 +366,7 @@ src/module/__init__.py
 If your pattern produces non PEP440 version numbers, you may wish to use the placeholder `{pep440_version}` in your search pattern and specify your `--version-pattern` separately.
 
 ```shell
-$ pycalver grep --version-pattern "YYYY.MM[-RELEASENUM]" 'version="{pep440_version}"' setup.py
+$ calver grep --version-pattern "YYYY.MM[-RELEASENUM]" 'version="{pep440_version}"' setup.py
 setup.py
   65:     url="https://github.com/org/project",
   66:     version="2020.9b1",
@@ -374,7 +380,7 @@ The placeholder `{version}` matches `2020.9-beta1`, while the placeholder `{pep4
 As a further illustration of how the search and replace works, you might want use a file pattern entry to keep the year of your copyright header up to date.
 
 ```
-$ python -m pycalver grep 'Copyright (c) 2018-YYYY' src/mymodule/*.py | head
+$ calver grep 'Copyright (c) 2018-YYYY' src/mymodule/*.py | head
 src/mymodule/__init__.py
    3:
    4: # Copyright (c) 2018-2020 Vandelay Industries - All rights reserved.
@@ -389,7 +395,7 @@ src/mymodule/config.py
 The corresponding configuration for this pattern would look like this.
 
 ```ini
-[pycalver:file_patterns]
+[calver:file_patterns]
 ...
 src/mymodule/*.py
   Copyright (c) 2018-YYYY Vandelay Industries - All rights reserved.
@@ -400,11 +406,11 @@ src/mymodule/*.py
 
 ### Command Line
 
-<!-- BEGIN pycalver --help -->
+<!-- BEGIN calver --help -->
 
 ```
-$ pycalver --help
-Usage: pycalver [OPTIONS] COMMAND [ARGS]...
+$ calver --help
+Usage: calver [OPTIONS] COMMAND [ARGS]...
 
   Automatically update PyCalVer version strings in all project files.
 
@@ -416,18 +422,18 @@ Options:
 Commands:
   bump  Increment the current version string and update project files.
   grep  Search file(s) for a version pattern.
-  init  Initialize [pycalver] configuration.
+  init  Initialize [calver] configuration.
   show  Show current version of your project.
   test  Increment a version number for demo purposes.
 ```
 
-<!-- END pycalver --help -->
+<!-- END calver --help -->
 
-<!-- BEGIN pycalver bump --help -->
+<!-- BEGIN calver bump --help -->
 
 ```
-$ pycalver bump --help
-Usage: pycalver bump [OPTIONS]
+$ calver bump --help
+Usage: calver bump [OPTIONS]
 
   Increment the current version string and update project files.
 
@@ -455,7 +461,7 @@ Options:
   --help                        Show this message and exit.
 ```
 
-<!-- END pycalver bump --help -->
+<!-- END calver bump --help -->
 
 
 ### Part Overview
@@ -464,21 +470,21 @@ Options:
 
 [url_calver_org_scheme]: https://calver.org/#scheme
 
-|    part   |     range / example(s)    |                  comment                   |
-|-----------|---------------------------|--------------------------------------------|
-| `YYYY`    | 2019, 2020...             | Full year, based on `strftime('%Y')`       |
-| `YY`      | 18, 19..99, 0, 1          | Short year, based on `int(strftime('%y'))` |
-| `MM`      | 9, 10, 11, 12             | Month, based on `int(strftime('%m'))`      |
-| `DD`      | 1, 2, 3..31               | Day, based on `int(strftime('%d'))`        |
-| `MAJOR`   | 0..9, 10..99, 100..       | `pycalver bump --major`                    |
-| `MINOR`   | 0..9, 10..99, 100..       | `pycalver bump --minor`                    |
-| `PATCH`   | 0..9, 10..99, 100..       | `pycalver bump --patch`                    |
-| `RELEASE` | alpha, beta, rc, post     | `--release=<tag>`                          |
-| `PYTAG`   | a, b, rc, post            | `--release=<tag>`                          |
-| `NUM`     | 0, 1, 2...                | `-r/--release-num`                         |
-| `BUILD`   | 1001, 1002 .. 1999, 22000 | build number (maintains lexical order)     |
-| `INC0`    | 0, 1, 2...                | 0-based auto incrementing number           |
-| `INC1`    | 1, 2...                   | 1-based auto incrementing number           |
+|   part  |     range / example(s)    |                  comment                   |
+|---------|---------------------------|--------------------------------------------|
+| `YYYY`  | 2019, 2020...             | Full year, based on `strftime('%Y')`       |
+| `YY`    | 18, 19..99, 0, 1          | Short year, based on `int(strftime('%y'))` |
+| `MM`    | 9, 10, 11, 12             | Month, based on `int(strftime('%m'))`      |
+| `DD`    | 1, 2, 3..31               | Day, based on `int(strftime('%d'))`        |
+| `MAJOR` | 0..9, 10..99, 100..       | `calver bump --major`                    |
+| `MINOR` | 0..9, 10..99, 100..       | `calver bump --minor`                    |
+| `PATCH` | 0..9, 10..99, 100..       | `calver bump --patch`                    |
+| `TAG`   | alpha, beta, rc, post     | `--tag=<tag>`                          |
+| `PYTAG` | a, b, rc, post            | `--tag=<tag>`                          |
+| `NUM`   | 0, 1, 2...                | `-r/--release-num`                         |
+| `BUILD` | 1001, 1002 .. 1999, 22000 | build number (maintains lexical order)     |
+| `INC0`  | 0, 1, 2...                | 0-based auto incrementing number           |
+| `INC1`  | 1, 2...                   | 1-based auto incrementing number           |
 
 
 The following are also available, but you should review the [Normalization Caveats](#normalization-caveats) before you decide to use them.
@@ -565,7 +571,7 @@ If you wish to avoid this, you should use a pattern which maintains lexicographi
 <!-- END pattern_examples -->
 
 - ¹ If `PATCH > 9`
-- ² For `2100` YY produces `00`...
+- ² For the year 2100, the part `YY` will produce 0
 
 
 ### Week Numbering
@@ -603,20 +609,22 @@ number would run backwards if it was created around New Year.
 
 ## Configuration
 
-The fastest way to setup the configuration for project is to use `pycalver init`.
+### Configuration Setup
+
+The fastest way to setup the configuration for project is to use `calver init`.
 
 ```shell
-$ pip install pycalver
+$ pip install python-calver
 ...
-Installing collected packages: click pathlib2 typing toml pycalver
-Successfully installed pycalver-202010.1041b0
+Installing collected packages: click lexid pathlib2 typing toml python-calver
+Successfully installed python-calver-2020.1041b0
 
 $ cd myproject
 ~/myproject/
-$ pycalver init --dry
-Exiting because of '-d/--dry'. Would have written to pycalver.toml:
+$ calver init --dry
+Exiting because of '-d/--dry'. Would have written to calver.toml:
 
-    [pycalver]
+    [calver]
     current_version = "v202010.1001-alpha"
     version_pattern = "vYYYY0M.BUILD[-RELEASE]"
     commit_message = "bump version to {new_version}"
@@ -624,41 +632,39 @@ Exiting because of '-d/--dry'. Would have written to pycalver.toml:
     tag = true
     push = true
 
-    [pycalver.file_patterns]
+    [calver.file_patterns]
     "README.md" = [
         "{version}",
         "{pep440_version}",
     ]
-    "pycalver.toml" = [
+    "calver.toml" = [
         'current_version = "{version}"',
     ]
 ```
 
-If you already have configuration file in your project (such as a `setup.cfg` file), then `pycalver init` will update that file instead.
+If you already have configuration file in your project (such as a `setup.cfg` file), then `calver init` will update that file instead.
 
 ```
 ~/myproject
-$ pycalver init
+$ calver init
 Updated setup.cfg
 ```
 
 Your `setup.cfg` may now look something like this:
 
 ```ini
-# setup.cfg
-[pycalver]
-current_version = "v201902.1001-alpha"
-version_pattern = "vYYYY0M.BUILD[-RELEASE]"
+[calver]
+current_version = "2019.1001-alpha"
+version_pattern = "YYYY.BUILD[-RELEASE]"
 commit_message = "bump version to {new_version}"
 commit = True
 tag = True
 push = True
 
-[pycalver:file_patterns]
+[calver:file_patterns]
 setup.cfg =
     current_version = "{version}"
 setup.py =
-    "{version}",
     "{pep440_version}",
 README.md =
     {version}
@@ -749,28 +755,28 @@ INFO    - New Version: v201902.1002-beta
 @@ -11,7 +11,7 @@
 
  [![Supported Python Versions][pyversions_img]][pyversions_ref]
--[![Version v201901.1001-beta][version_img]][version_ref]
-+[![Version v201902.1002-beta][version_img]][version_ref]
+-[![Version 2019.1001-beta][version_img]][version_ref]
++[![Version 2019.1002-beta][version_img]][version_ref]
  [![PyPI Releases][pypi_img]][pypi_ref]
 
 --- src/mymodule_v1/__init__.py
 +++ src/mymodule_v1/__init__.py
 @@ -1,1 +1,1 @@
--__version__ = "v201901.1001-beta"
-+__version__ = "v201902.1002-beta"
+-__version__ = "2019.1001-beta"
++__version__ = "2019.1002-beta"
 
 --- src/mymodule_v2/__init__.py
 +++ src/mymodule_v2/__init__.py
 @@ -1,1 +1,1 @@
--__version__ = "v201901.1001-beta"
-+__version__ = "v201902.1002-beta"
+-__version__ = "2019.1001-beta"
++__version__ = "2019.1002-beta"
 
 --- setup.py
 +++ setup.py
 @@ -44,7 +44,7 @@
      name="myproject",
--    version="201901.1001b0",
-+    version="201902.1002b0",
+-    version="2019.1001b0",
++    version="2019.1002b0",
      license="MIT",
 ```
 
@@ -1022,26 +1028,25 @@ The PyCalVer format for version strings has three parts:
 
 ```
 
-    o Year and Month of Release
-    |       o Sequential Build Number
-    |       |      o Release Tag (optional)
-    |       |      |
- ---+---  --+--  --+--
- v202010  .1001  -beta
-
+   o Year of Release
+   |      o Sequential Build Number
+   |      |      o Release Tag (optional)
+   |      |      |
+ --+--  --+--  --+--
+ v2020  .1001  -beta
 
 ```
 
 Some examples:
 
 ```
-v201711.0001-alpha
-v201712.0027-beta
-v201801.0031
-v201801.0032-post
+2017.1001-alpha
+2017.1027-beta
+2018.1031
+2018.1032-post
 ...
-v202207.18133
-v202207.18134
+2022.28133
+2022.28134
 ```
 
 This format was chosen in part to be distinctive from
@@ -1071,14 +1076,13 @@ These version strings can be parsed with the following regular expression:
 ```python
 import re
 
-# https://regex101.com/r/fnj60p/10
+# https://regex101.com/r/fnj60p/14
 PYCALVER_PATTERN = r"""
 \b
 (?P<pycalver>
-    (?P<vYYYY0M>
+    (?P<vYYYY>
        v                    # "v" version prefix
        (?P<year>\d{4})
-       (?P<month>\d{2})
     )
     (?P<build>
         \.                  # "." build nr prefix
@@ -1092,30 +1096,28 @@ PYCALVER_PATTERN = r"""
 """
 PYCALVER_REGEX = re.compile(PYCALVER_PATTERN, flags=re.VERBOSE)
 
-version_str = "v201712.0001-alpha"
+version_str = "v2017.1001-alpha"
 version_match = PYCALVER_REGEX.match(version_str)
 
 assert version_match.groupdict() == {
-    "pycalver"   : "v201712.0001-alpha",
-    "vYYYY0M"    : "v201712",
+    "pycalver"   : "v2017.1001-alpha",
+    "vYYYY0M"    : "v2017",
     "year"       : "2017",
-    "month"      : "12",
-    "build"      : ".0001",
-    "build_no"   : "0001",
+    "build"      : ".1001",
+    "build_no"   : "1001",
     "release"    : "-alpha",
     "release_tag": "alpha",
 }
 
-version_str = "v201712.0033"
+version_str = "v201712.1033"
 version_match = PYCALVER_REGEX.match(version_str)
 
 assert version_match.groupdict() == {
-    "pycalver"   : "v201712.0033",
-    "vYYYY0M"    : "v201712",
+    "pycalver"   : "v2017.1033",
+    "vYYYY"      : "v2017",
     "year"       : "2017",
-    "month"      : "12",
-    "build"      : ".0033",
-    "build_no"   : "0033",
+    "build"      : ".1033",
+    "build_no"   : "1033",
     "release"    : None,
     "release_tag": None,
 }
@@ -1124,12 +1126,12 @@ assert version_match.groupdict() == {
 ### Incrementing Behaviour
 
 To see how version strings are incremented, we can use
-`pycalver test`:
+`calver test`:
 
 ```shell
-$ pycalver test v201801.1033-beta
-New Version: v201902.1034-beta
-PEP440     : 201902.1034b0
+$ calver test v2018.1033-beta
+New Version: v2019.1034-beta
+PEP440     : 2019.1034b0
 ```
 
 This is the simple case:
@@ -1141,13 +1143,13 @@ This is the simple case:
 You can explicitly update the release tag by using the `--release=<tag>` argument:
 
 ```shell
-$ pycalver test v201801.1033-alpha --release=beta
-New Version: v201902.1034-beta
-PEP440     : 201902.1034b0
+$ calver test v2018.1033-alpha --release=beta
+New Version: v2019.1034-beta
+PEP440     : 2019.1034b0
 
-$ pycalver test v201902.1034-beta --release=final
-New Version: v201902.1035
-PEP440     : 201902.1035
+$ calver test v2019.1034-beta --release=final
+New Version: v2019.1035
+PEP440     : 2019.1035
 ```
 
 To maintain lexical ordering of version numbers, the version number is padded with extra zeros using [Lexical Ids][url_pypi_lexid].
@@ -1326,20 +1328,20 @@ package which included the bug, they only have to do `pip install --upgrade
 Perhaps a timeline will illustrate more clearly:
 
 ```
-v202008.1665       # last stable release
-v202008.1666-beta  # pre release for testers
-v201901.1667       # final release after testing
+v2020.1665       # last stable release
+v2020.1666-beta  # pre release for testers
+v2019.1667       # final release after testing
 
-# bug is discovered which effects v202008.1666-beta and v201901.1667
+# bug is discovered which effects v2020.1666-beta and v2019.1667
 
-v201901.1668-beta  # fix is issued for testers
-v201901.1669       # fix is issued everybody
+v2019.1668-beta  # fix is issued for testers
+v2019.1669       # fix is issued everybody
 
 # Alternatively, revert before fixing
 
-v201901.1668       # same as v202008.1665
-v201901.1669-beta  # reintroduce change from v202008.1666-beta + fix
-v201901.1670       # final release after testing
+v2019.1668       # same as v2020.1665
+v2019.1669-beta  # reintroduce change from v2020.1666-beta + fix
+v2019.1670       # final release after testing
 ```
 
 In the absolute worst case, a change is discovered to break backward
@@ -1362,18 +1364,18 @@ package will perhaps have 99% overlap to the previous one and the old one
 may eventually be abandoned.
 
 ```
-mypkg  v202008.1665    # last stable release
-mypkg  v202008.1666-rc # pre release for testers
-mypkg  v201901.1667    # final release after testing period
+mypkg  v2020.1665    # last stable release
+mypkg  v2020.1666-rc # pre release for testers
+mypkg  v2019.1667    # final release after testing period
 
-# bug is discovered in v202008.1666-beta and v201901.1667
+# bug is discovered in v2020.1666-beta and v2019.1667
 
-mypkg  v201901.1668    # same as v202008.1665
+mypkg  v2019.1668    # same as v2020.1665
 
 # new package is created with compatibility breaking code
 
-mypkg2 v201901.1669    # same as v201901.1667
-mypkg  v201901.1669    # updated readme, declaring support
+mypkg2 v2019.1669    # same as v2019.1667
+mypkg  v2019.1669    # updated readme, declaring support
                        # level for mypkg, pointing to mypgk2
                        # and documenting how to upgrade.
 ```

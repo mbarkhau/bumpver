@@ -1,12 +1,12 @@
-[pycalver]
+[calver]
 current_version = "v2017.0123-alpha"
 version_pattern = "vYYYY.BUILD[-TAG]"
 commit = true
 tag = true
 push = true
 
-[pycalver.file_patterns]
-"pycalver.toml" = [
+[calver.file_patterns]
+"calver.toml" = [
     'current_version = "{version}"',
 ]
 

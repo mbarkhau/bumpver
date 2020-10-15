@@ -1,4 +1,4 @@
-[pycalver]
+[calver]
 current_version = "v2017q1.54321"
 version_pattern = "vYYYYqQ.BUILD"
 commit = true

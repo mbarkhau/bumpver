@@ -4,9 +4,10 @@
 # Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 #
-# pycalver/vcs.py (this file) is based on code from the
+# pycalver2/vcs.py (this file) is based on code from the
 # bumpversion project: https://github.com/peritus/bumpversion
 # Copyright (c) 2013-2014 Filip Noetzel - MIT License
+
 """Minimal Git and Mercirial API.
 
 If terminology for similar concepts differs between git and
