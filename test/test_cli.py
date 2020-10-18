@@ -830,13 +830,11 @@ def test_grep(runner):
     cmd1    = r'grep "vYYYY.BUILD[-TAG]" README.md'
     result1 = runner.invoke(cli.cli, shlex.split(cmd1))
     assert result1.exit_code == 0
-    assert "README.md" in result1.output
     assert re.search(search_re, result1.output, flags=re.MULTILINE)
 
     cmd2    = r'grep --version-pattern "vYYYY.BUILD[-TAG]" "{version}" README.md'
     result2 = runner.invoke(cli.cli, shlex.split(cmd2))
     assert result2.exit_code == 0
-    assert "README.md" in result2.output
     assert re.search(search_re, result2.output, flags=re.MULTILINE)
 
     assert result1.output == result2.output
@@ -846,13 +844,11 @@ def test_grep(runner):
     cmd3    = r'grep "\[aka. YYYY.BLD[PYTAGNUM] \!\]"  README.md'
     result3 = runner.invoke(cli.cli, shlex.split(cmd3))
     assert result3.exit_code == 0
-    assert "README.md" in result3.output
     assert re.search(search_re, result3.output, flags=re.MULTILINE)
 
     cmd4    = r'grep --version-pattern "vYYYY.BUILD[-TAG]" "\[aka. {pep440_version} \!\]" README.md'
     result4 = runner.invoke(cli.cli, shlex.split(cmd4))
     assert result4.exit_code == 0
-    assert "README.md" in result4.output
     assert re.search(search_re, result4.output, flags=re.MULTILINE)
 
     assert result3.output == result4.output
