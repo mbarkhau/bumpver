@@ -21,7 +21,7 @@ DEVELOPMENT_PYTHON_VERSION := python=3.8
 SUPPORTED_PYTHON_VERSIONS := python=2.7 python=3.5 python=3.6 python=3.8 pypy2.7 pypy3.5
 
 
-include makefile.bootstrapit.make
+include Makefile.bootstrapit.make
 
 ## -- Extra/Custom/Project Specific Tasks --
 
@@ -61,3 +61,19 @@ test_compat: $(COMPAT_TEST_FILES)
 		ENABLE_BACKTRACE=0 PYTHONPATH="" ENV=$${ENV-dev} \
 			$${env_py} -m pytest --verbose compat_test/; \
 	done;
+
+	rm -rf compat_test/
+
+
+pycalver_deps.svg:
+	pydeps src/pycalver \
+		--no-show --noise-level 3 \
+		--reverse  --include-missing \
+		-x 'click.*' 'toml.*' 'pretty_traceback.*' \
+		-o pycalver_deps.svg
+
+
+## Update cli reference in README.md
+README.md: src/pycalver2/cli.py scripts/update_readme_examples.py Makefile
+	@git add README.md
+	@$(DEV_ENV)/bin/python scripts/update_readme_examples.py

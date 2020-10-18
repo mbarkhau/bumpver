@@ -46,3 +46,6 @@ graphviz
 
 # run failed tests first
 pytest-cache
+
+# to update the readme examples
+rich

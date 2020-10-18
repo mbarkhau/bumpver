@@ -1,11 +1,12 @@
-[pycalver]
-current_version = "v201710.0123-alpha"
+[bumpver]
+current_version = "v2017.0123-alpha"
+version_pattern = "vYYYY.BUILD[-TAG]"
 commit = true
 tag = true
 push = true
 
-[pycalver.file_patterns]
-"pycalver.toml" = [
+[bumpver.file_patterns]
+"bumpver.toml" = [
     'current_version = "{version}"',
 ]
 

@@ -11,4 +11,9 @@ pathlib2
 typing; python_version < "3.5"
 click
 toml
-six
+lexid
+colorama>=0.4
+
+# needed pkg_resources.parse_version
+setuptools<46.0.0; python_version < "3.5"
+setuptools>=46.0.0; python_version >= "3.5"

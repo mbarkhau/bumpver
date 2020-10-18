@@ -1,9 +1,9 @@
 Individual files contain the following tag instead of the full license text.
 
     This file is part of the pycalver project
-    https://gitlab.com/mbarkhau/pycalver
+    https://github.com/mbarkhau/pycalver
 
-    Copyright (c) 2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+    Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
     SPDX-License-Identifier: MIT
 
 This enables machine processing of license information based on the SPDX

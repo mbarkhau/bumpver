@@ -29,6 +29,7 @@ FIXTURE_PATH_PARTS = [
     ["setup.cfg"],
     ["setup.py"],
     ["pycalver.toml"],
+    ["bumpver.toml"],
     ["src", "module_v1", "__init__.py"],
     ["src", "module_v2", "__init__.py"],
 ]
@@ -40,7 +41,7 @@ class Project:
         self.tmpdir   = tmpdir
         self.prev_cwd = os.getcwd()
 
-        self.dir = tmpdir / "pycalver_project"
+        self.dir = tmpdir / "bumpver_project"
         self.dir.mkdir()
 
         if project is None:
@@ -76,7 +77,7 @@ class Project:
         for path_parts in FIXTURE_PATH_PARTS:
             maybe_file_path = self.dir.joinpath(*path_parts)
             if maybe_file_path.exists():
-                self.shell(f"{cmd} add {str(maybe_file_path)}")
+                self.shell(cmd + " add " + str(maybe_file_path))
                 added_file_paths.append(maybe_file_path)
 
         assert len(added_file_paths) >= 2

@@ -1,6 +1,6 @@
-[bumpver]
+[calver]
 current_version = "v2017q1.54321"
-version_pattern = "v{year}q{quarter}.{build_no}"
+version_pattern = "vYYYYqQ.BUILD"
 commit = true
 tag = true
 push = true

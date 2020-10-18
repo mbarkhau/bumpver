@@ -1,7 +1,7 @@
 # This file is part of the pycalver project
-# https://gitlab.com/mbarkhau/pycalver
+# https://github.com/mbarkhau/pycalver
 #
-# Copyright (c) 2019 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 
 import os
@@ -26,63 +26,56 @@ install_requires = [
 ]
 
 
+long_description = "\n\n".join((read("README.md"), read("CHANGELOG.md")))
+
+
+# See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: Other Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Unix",
+    "Operating System :: POSIX",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
 package_dir = {"": "src"}
 
 
 if any(arg.startswith("bdist") for arg in sys.argv):
-    try:
-        import lib3to6
-        package_dir = lib3to6.fix(package_dir)
-    except ImportError:
-        if sys.version_info < (3, 6):
-            raise
-        else:
-            sys.stderr.write((
-                "WARNING: Creating non-universal bdist of pycalver, "
-                "this should only be used for development.\n"
-            ))
-
-
-long_description = "\n\n".join((read("README.md"), read("CHANGELOG.md")))
+    import lib3to6
+    package_dir = lib3to6.fix(package_dir)
 
 
 setuptools.setup(
-    name="pycalver",
+    name="bumpver",
     license="MIT",
     author="Manuel Barkhau",
     author_email="mbarkhau@gmail.com",
-    url="https://gitlab.com/mbarkhau/pycalver",
-    version="202007.36",
-    keywords="version versioning bumpversion calver",
-    description="CalVer for python libraries.",
+    url="https://github.com/mbarkhau/bumpver",
+    version="2020.1041b0",
+    keywords="version bumpver calver semver versioning bumpversion pep440",
+    description="Bump version numbers in project files.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=['pycalver'],
+    packages=setuptools.find_packages("src/"),
     package_dir=package_dir,
     install_requires=install_requires,
     entry_points="""
         [console_scripts]
-        pycalver=pycalver.cli:cli
+        bumpver=bumpver.cli:cli
     """,
+    python_requires=">=2.7",
     zip_safe=True,
-
-    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "Environment :: Console",
-        "Environment :: Other Environment",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: Unix",
-        "Operating System :: POSIX",
-        "Operating System :: Microsoft :: Windows",
-        "Operating System :: MacOS :: MacOS X",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "Programming Language :: Python :: Implementation :: PyPy",
-        "Topic :: Software Development :: Libraries",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-    ],
+    classifiers=classifiers,
 )

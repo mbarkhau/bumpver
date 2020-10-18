@@ -1,7 +1,7 @@
 # This file is part of the pycalver project
-# https://gitlab.com/mbarkhau/pycalver
+# https://github.com/mbarkhau/pycalver
 #
-# Copyright (c) 2019 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 """Compose Regular Expressions from Patterns.
 
@@ -32,6 +32,13 @@
 
 import re
 import typing as typ
+import logging
+
+from . import utils
+from .patterns import RE_PATTERN_ESCAPES
+from .patterns import Pattern
+
+logger = logging.getLogger("bumpver.v1patterns")
 
 # https://regex101.com/r/fnj60p/10
 PYCALVER_PATTERN = r"""
@@ -55,21 +62,6 @@ PYCALVER_PATTERN = r"""
 
 PYCALVER_RE: typ.Pattern[str] = re.compile(PYCALVER_PATTERN, flags=re.VERBOSE)
 
-
-PATTERN_ESCAPES = [
-    ("\u005c", "\u005c\u005c"),
-    ("-"     , "\u005c-"),
-    ("."     , "\u005c."),
-    ("+"     , "\u005c+"),
-    ("*"     , "\u005c*"),
-    ("?"     , "\u005c?"),
-    ("{"     , "\u005c{"),
-    ("}"     , "\u005c}"),
-    ("["     , "\u005c["),
-    ("]"     , "\u005c]"),
-    ("("     , "\u005c("),
-    (")"     , "\u005c)"),
-]
 
 COMPOSITE_PART_PATTERNS = {
     'pep440_pycalver': r"{year}{month}\.{BID}(?:{pep440_tag})?",
@@ -122,6 +114,44 @@ PART_PATTERNS = {
 }
 
 
+PATTERN_PART_FIELDS = {
+    'year'       : 'year',
+    'month'      : 'month',
+    'month_short': 'month',
+    'pep440_tag' : 'tag',
+    'tag'        : 'tag',
+    'yy'         : 'year',
+    'yyyy'       : 'year',
+    'quarter'    : 'quarter',
+    'iso_week'   : 'iso_week',
+    'us_week'    : 'us_week',
+    'dom'        : 'dom',
+    'doy'        : 'doy',
+    'dom_short'  : 'dom',
+    'doy_short'  : 'doy',
+    'MAJOR'      : 'major',
+    'MINOR'      : 'minor',
+    'MM'         : 'minor',
+    'MMM'        : 'minor',
+    'MMMM'       : 'minor',
+    'MMMMM'      : 'minor',
+    'PP'         : 'patch',
+    'PPP'        : 'patch',
+    'PPPP'       : 'patch',
+    'PPPPP'      : 'patch',
+    'PATCH'      : 'patch',
+    'build_no'   : 'bid',
+    'bid'        : 'bid',
+    'BID'        : 'bid',
+    'BB'         : 'bid',
+    'BBB'        : 'bid',
+    'BBBB'       : 'bid',
+    'BBBBB'      : 'bid',
+    'BBBBBB'     : 'bid',
+    'BBBBBBB'    : 'bid',
+}
+
+
 FULL_PART_FORMATS = {
     'pep440_pycalver': "{year}{month:02}.{BID}{pep440_tag}",
     'pycalver'       : "v{year}{month:02}.{bid}{release}",
@@ -130,7 +160,7 @@ FULL_PART_FORMATS = {
     'release_tag'    : "{tag}",
     'build'          : ".{bid}",
     # NOTE (mb 2019-01-04): since release is optional, it
-    # is treates specially in version.format
+    # is treated specially in v1version.format_version
     # 'release'       : "-{tag}",
     'month'      : "{month:02}",
     'month_short': "{month}",
@@ -147,54 +177,15 @@ FULL_PART_FORMATS = {
 }
 
 
-PART_FORMATS = {
-    'major'  : "[0-9]+",
-    'minor'  : "[0-9]{3,}",
-    'patch'  : "[0-9]{3,}",
-    'bid'    : "[0-9]{4,}",
-    'MAJOR'  : "[0-9]+",
-    'MINOR'  : "[0-9]+",
-    'MM'     : "[0-9]{2,}",
-    'MMM'    : "[0-9]{3,}",
-    'MMMM'   : "[0-9]{4,}",
-    'MMMMM'  : "[0-9]{5,}",
-    'MMMMMM' : "[0-9]{6,}",
-    'MMMMMMM': "[0-9]{7,}",
-    'PATCH'  : "[0-9]+",
-    'PP'     : "[0-9]{2,}",
-    'PPP'    : "[0-9]{3,}",
-    'PPPP'   : "[0-9]{4,}",
-    'PPPPP'  : "[0-9]{5,}",
-    'PPPPPP' : "[0-9]{6,}",
-    'PPPPPPP': "[0-9]{7,}",
-    'BID'    : "[1-9][0-9]*",
-    'BB'     : "[1-9][0-9]{1,}",
-    'BBB'    : "[1-9][0-9]{2,}",
-    'BBBB'   : "[1-9][0-9]{3,}",
-    'BBBBB'  : "[1-9][0-9]{4,}",
-    'BBBBBB' : "[1-9][0-9]{5,}",
-    'BBBBBBB': "[1-9][0-9]{6,}",
-}
-
-
 def _replace_pattern_parts(pattern: str) -> str:
+    # The pattern is escaped, so that everything besides the format
+    # string variables is treated literally.
     for part_name, part_pattern in PART_PATTERNS.items():
         named_part_pattern = f"(?P<{part_name}>{part_pattern})"
         placeholder        = "\u005c{" + part_name + "\u005c}"
         pattern            = pattern.replace(placeholder, named_part_pattern)
+
     return pattern
-
-
-def compile_pattern_str(pattern: str) -> str:
-    for char, escaped in PATTERN_ESCAPES:
-        pattern = pattern.replace(char, escaped)
-
-    return _replace_pattern_parts(pattern)
-
-
-def compile_pattern(pattern: str) -> typ.Pattern[str]:
-    pattern_str = compile_pattern_str(pattern)
-    return re.compile(pattern_str)
 
 
 def _init_composite_patterns() -> None:
@@ -205,3 +196,44 @@ def _init_composite_patterns() -> None:
 
 
 _init_composite_patterns()
+
+
+def _compile_pattern_re(normalized_pattern: str) -> typ.Pattern[str]:
+    escaped_pattern = normalized_pattern
+    for char, escaped in RE_PATTERN_ESCAPES:
+        escaped_pattern = escaped_pattern.replace(char, escaped)
+
+    pattern_str = _replace_pattern_parts(escaped_pattern)
+    return re.compile(pattern_str)
+
+
+def _normalized_pattern(version_pattern: str, raw_pattern: str) -> str:
+    res = raw_pattern.replace(r"{version}", version_pattern)
+    if version_pattern == r"{pycalver}":
+        res = res.replace(r"{pep440_version}", r"{pep440_pycalver}")
+    elif version_pattern == r"{semver}":
+        res = res.replace(r"{pep440_version}", r"{semver}")
+    elif version_pattern == r"v{year}{month}{build}{release}":
+        res = res.replace(r"{pep440_version}", r"{year}{month}.{BID}{pep440_tag}")
+    elif version_pattern == r"{year}{month}{build}{release}":
+        res = res.replace(r"{pep440_version}", r"{year}{month}.{BID}{pep440_tag}")
+    elif version_pattern == r"v{year}{build}{release}":
+        res = res.replace(r"{pep440_version}", r"{year}.{BID}{pep440_tag}")
+    elif version_pattern == r"{year}{build}{release}":
+        res = res.replace(r"{pep440_version}", r"{year}.{BID}{pep440_tag}")
+    elif r"{pep440_version}" in raw_pattern:
+        logger.warning(f"No mapping of '{version_pattern}' to '{{pep440_version}}'")
+
+    return res
+
+
+@utils.memo
+def compile_pattern(version_pattern: str, raw_pattern: typ.Optional[str] = None) -> Pattern:
+    _raw_pattern       = version_pattern if raw_pattern is None else raw_pattern
+    normalized_pattern = _normalized_pattern(version_pattern, _raw_pattern)
+    regexp             = _compile_pattern_re(normalized_pattern)
+    return Pattern(version_pattern, normalized_pattern, regexp)
+
+
+def compile_patterns(version_pattern: str, raw_patterns: typ.List[str]) -> typ.List[Pattern]:
+    return [compile_pattern(version_pattern, raw_pattern) for raw_pattern in raw_patterns]
