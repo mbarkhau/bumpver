@@ -79,10 +79,11 @@ Code Quality/CI:
 
 - [Overview](#overview)
   - [Search and Replace](#search-and-replace)
+  - [Name Change PyCalVer -> BumpVer](#name-change-pycalver---bumpver)
   - [Related Projects/Alternatives](#related-projectsalternatives)
 - [Example Usage](#example-usage)
-  - [Testing a version pattern](#testing-a-version-pattern)
-  - [SemVer: `MAJOR`/`MINOR`/`PATCH`](#semver-majorminorpatch)
+  - [Testing a `version_pattern`](#testing-a-version_pattern)
+  - [Using `MAJOR`/`MINOR`/`PATCH` (SemVer Parts)](#using-majorminorpatch-semver-parts)
   - [Auto Increment Parts: `BUILD`/`INC0`/`INC1`](#auto-increment-parts-buildinc0inc1)
   - [Persistent Parts: `BUILD`/`TAG`/`PYTAG`](#persistent-parts-buildtagpytag)
   - [Searching for Patterns with `grep`](#searching-for-patterns-with-grep)
@@ -100,7 +101,6 @@ Code Quality/CI:
   - [The Current Version](#the-current-version)
   - [Dry Mode](#dry-mode)
   - [VCS Parameters (git/mercurial)](#vcs-parameters-gitmercurial)
-- [Depricated Pattern Syntax](#depricated-pattern-syntax)
 
 <!--TOC-->
 
@@ -160,11 +160,10 @@ This name change is due to confusion that this project is either Python specific
 
 ### Related Projects/Alternatives
 
-If you are looking for an alternative, BumpVer was heavily influenced by [bumpversion / bump2version][url_bump2version]. You may also wish to take a look at their list of related projects: [bump2version/RELATED.md][url_bump2version_related]
+If you are looking for an alternative, BumpVer was heavily influenced by [bumpversion/bump2version][url_bump2version]. You may also wish to take a look at their list of related projects: [bump2version/RELATED.md][url_bump2version_related]
 
-[url_bump2version] https://github.com/c4urself/bump2version/
-
-[url_bump2version_related] https://github.com/c4urself/bump2version/blob/master/RELATED.md
+[url_bump2version]: https://github.com/c4urself/bump2version/
+[url_bump2version_related]: https://github.com/c4urself/bump2version/blob/master/RELATED.md
 
 
 ## Example Usage
