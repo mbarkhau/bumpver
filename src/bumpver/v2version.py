@@ -14,7 +14,7 @@ import lexid
 from . import version
 from . import v2patterns
 
-logger = logging.getLogger("pycalver2.v2version")
+logger = logging.getLogger("bumpver.v2version")
 
 
 CalInfo = typ.Union[version.V2CalendarInfo, version.V2VersionInfo]

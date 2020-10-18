@@ -8,8 +8,8 @@ import re
 
 import pytest
 
-from pycalver2 import v1patterns
-from pycalver2 import v2patterns
+from bumpver import v1patterns
+from bumpver import v2patterns
 
 V2_PART_PATTERN_CASES = [
     (['YYYY', 'GGGG'], "2020" , "2020"),

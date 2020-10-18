@@ -18,7 +18,7 @@ from . import v2version
 from . import v2patterns
 from .patterns import Pattern
 
-logger = logging.getLogger("pycalver2.v2rewrite")
+logger = logging.getLogger("bumpver.v2rewrite")
 
 
 def rewrite_lines(

@@ -9,11 +9,11 @@ import datetime as dt
 
 import pytest
 
-from pycalver2 import version
-from pycalver2 import v1version
-from pycalver2 import v2version
-from pycalver2 import v1patterns
-from pycalver2 import v2patterns
+from bumpver import version
+from bumpver import v1version
+from bumpver import v2version
+from bumpver import v1patterns
+from bumpver import v2patterns
 
 # pylint:disable=protected-access ; allowed for test code
 

@@ -37,7 +37,7 @@ from . import utils
 from .patterns import RE_PATTERN_ESCAPES
 from .patterns import Pattern
 
-logger = logging.getLogger("pycalver2.v2patterns")
+logger = logging.getLogger("bumpver.v2patterns")
 
 # NOTE (mb 2020-09-17): For patterns with different options '(AAA|BB|C)', the
 #   patterns with more digits should be first/left of those with fewer digits:
@@ -248,6 +248,8 @@ def _convert_to_pep440(version_pattern: str) -> str:
             continue
 
         substitution = PEP440_PART_SUBSTITUTIONS[part_name]
+        if substitution in pep440_pattern:
+            continue
 
         is_numerical_part = part_name not in ('TAG', 'PYTAG')
         if is_numerical_part:

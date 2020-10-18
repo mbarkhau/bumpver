@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
-"""cli module for PyCalVer."""
+"""cli module for BumpVer."""
 import io
 import sys
 import typing as typ
@@ -39,7 +39,7 @@ except ImportError:
 
 click.disable_unicode_literals_warning = True
 
-logger = logging.getLogger("pycalver2.cli")
+logger = logging.getLogger("bumpver.cli")
 
 
 _VERBOSE = 0
@@ -140,7 +140,7 @@ def _log_no_change(subcmd: str, version_pattern: str, old_version: str) -> None:
         ]
         if available_flags:
             available_flags_str = "/".join(available_flags)
-            logger.info(f"Perhaps try: calver {subcmd} {available_flags_str} ")
+            logger.info(f"Perhaps try: bumpver {subcmd} {available_flags_str} ")
 
 
 def _get_normalized_pattern(raw_pattern: str, version_pattern: typ.Optional[str]) -> str:
@@ -164,7 +164,7 @@ def _get_normalized_pattern(raw_pattern: str, version_pattern: typ.Optional[str]
 
 
 @click.group()
-@click.version_option(version="v2020.1041-beta")
+@click.version_option(version="2020.1041-beta")
 @click.help_option()
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 def cli(verbose: int = 0) -> None:
@@ -241,7 +241,8 @@ def test(
     pep440_version = version.to_pep440(new_version)
 
     click.echo(f"New Version: {new_version}")
-    click.echo(f"PEP440     : {pep440_version}")
+    if new_version != pep440_version:
+        click.echo(f"PEP440     : {pep440_version}")
 
 
 def _grep_text(pattern: patterns.Pattern, text: str, color: bool) -> typ.Iterable[str]:
@@ -292,7 +293,8 @@ def _grep(
 
         match_strs = list(_grep_text(pattern, text, color))
         if len(match_strs) > 0:
-            print(file_io.name)
+            if len(file_ios) > 1:
+                print(file_io.name)
             for match_str in match_strs:
                 print(match_str)
             print()
@@ -365,7 +367,7 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
     _, cfg = config.init(project_path=".")
 
     if cfg is None:
-        logger.error("Could not parse configuration. Perhaps try 'calver init'.")
+        logger.error("Could not parse configuration. Perhaps try 'bumpver init'.")
         sys.exit(1)
 
     cfg = _update_cfg_from_vcs(cfg, fetch)
@@ -418,6 +420,9 @@ def _print_diff(cfg: config.Config, new_version: str) -> None:
     try:
         diff = get_diff(cfg, new_version)
         _print_diff_str(diff)
+    except OSError as err:
+        logger.error(str(err))
+        sys.exit(1)
     except rewrite.NoPatternMatch as ex:
         logger.error(str(ex))
         sys.exit(1)
@@ -482,7 +487,7 @@ def incr_dispatch(
         return new_version
 
 
-def _bump(
+def _update(
     cfg           : config.Config,
     new_version   : str,
     commit_message: str,
@@ -516,14 +521,14 @@ def _bump(
         vcs.commit(cfg, vcs_api, filepaths, new_version, commit_message)
 
 
-def _try_bump(
+def _try_update(
     cfg           : config.Config,
     new_version   : str,
     commit_message: str,
     allow_dirty   : bool = False,
 ) -> None:
     try:
-        _bump(cfg, new_version, commit_message, allow_dirty)
+        _update(cfg, new_version, commit_message, allow_dirty)
     except sp.CalledProcessError as ex:
         logger.error(f"Error running subcommand: {ex.cmd}")
         if ex.stdout:
@@ -650,7 +655,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     metavar="<ISODATE>",
     help=f"Set explicit date in format YYYY-0M-0D (e.g. {_current_date}).",
 )
-def bump(
+def update(
     verbose    : int = 0,
     dry        : bool = False,
     allow_dirty: bool = False,
@@ -663,7 +668,7 @@ def bump(
     pin_date   : bool = False,
     date       : typ.Optional[str] = None,
 ) -> None:
-    """Increment the current version string and update project files."""
+    """Update project files with the incremented version string."""
     verbose = max(_VERBOSE, verbose)
     _configure_logging(verbose)
     _validate_release_tag(tag)
@@ -672,7 +677,7 @@ def bump(
     _, cfg = config.init(project_path=".")
 
     if cfg is None:
-        logger.error("Could not parse configuration. Perhaps try 'pycalver init'.")
+        logger.error("Could not parse configuration. Perhaps try 'bumpver init'.")
         sys.exit(1)
 
     cfg = _update_cfg_from_vcs(cfg, fetch)
@@ -691,7 +696,7 @@ def bump(
     )
 
     if new_version is None:
-        _log_no_change('bump', cfg.version_pattern, old_version)
+        _log_no_change('update', cfg.version_pattern, old_version)
         sys.exit(1)
 
     logger.info(f"Old Version: {old_version}")
@@ -711,7 +716,7 @@ def bump(
     }
     commit_message = cfg.commit_message.format(**commit_message_kwargs)
 
-    _try_bump(cfg, new_version, commit_message, allow_dirty)
+    _try_update(cfg, new_version, commit_message, allow_dirty)
 
 
 if __name__ == '__main__':

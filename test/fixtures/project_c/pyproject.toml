@@ -1,4 +1,4 @@
-[calver]
+[bumpver]
 current_version = "v2017q1.54321"
 version_pattern = "v{year}q{quarter}.{build_no}"
 commit = true

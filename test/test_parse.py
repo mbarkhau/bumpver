@@ -4,8 +4,8 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from pycalver2 import parse
-from pycalver2 import v1patterns
+from bumpver import parse
+from bumpver import v1patterns
 
 SETUP_PY_FIXTURE = """
 # setup.py

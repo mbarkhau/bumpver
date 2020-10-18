@@ -4,7 +4,7 @@
 # Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 #
-# pycalver2/vcs.py (this file) is based on code from the
+# bumpver/vcs.py (this file) is based on code from the
 # bumpversion project: https://github.com/peritus/bumpversion
 # Copyright (c) 2013-2014 Filip Noetzel - MIT License
 
@@ -25,7 +25,7 @@ import subprocess as sp
 
 from . import config
 
-logger = logging.getLogger("pycalver2.vcs")
+logger = logging.getLogger("bumpver.vcs")
 
 
 VCS_SUBCOMMANDS_BY_NAME = {

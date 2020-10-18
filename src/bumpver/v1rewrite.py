@@ -17,7 +17,7 @@ from . import regexfmt
 from . import v1version
 from .patterns import Pattern
 
-logger = logging.getLogger("pycalver2.v1rewrite")
+logger = logging.getLogger("bumpver.v1rewrite")
 
 
 def rewrite_lines(

@@ -1,7 +1,9 @@
 # Changelog for https://github.com/mbarkhau/pycalver
 
 
-## NEXT
+## BumpVer 2020.1042-beta
+
+Rename package and module from PyCalVer to BumpVer. This name change is due to confusion that this project is either Python specific, or only suitible for CalVer versioning schemes, neither of which is the case.
 
 This release includes a new syntax for patterns.
 
@@ -34,7 +36,7 @@ The previous syntax will continue to be supported, but all documentation has bee
 - New [gitlab#9][gitlab_i9]: Make commit message configurable.
 - Fix [gitlab#12][gitlab_i12]: Error with sorting non-lexical version tags (e.g. SemVer).
 - Fix [gitlab#11][gitlab_i11]: Show regexp when `--verbose` is used.
-- Fix [gitlab#8][gitlab_i8]: `pycalver push ` will now also push HEAD (previously only the tag itself was pushed).
+- Fix [gitlab#8][gitlab_i8]: `bumpver update` will now also push HEAD (previously only the tag itself was pushed).
 - Fix: Disallow `--release=dev`. The semantics of a `dev` releases are different than for other release tags and further development would be required to support them correctly.
 - Fix: Entries in `file_patterns` were ignored if there were multiple entries for the same file.
 
@@ -51,12 +53,12 @@ Many thanks to contributors of this release: @LucidOne, @khanguslee, @chaudum
 [gitlab_i8]: https://gitlab.com/mbarkhau/pycalver/-/issues/8
 
 
-## v201907.0036
+## PyCalVer v201907.0036
 
 - Fix: Don't use git/hg command if `commit=False` is configured (thanks @valentin87)
 
 
-## v201907.0035
+## PyCalVer v201907.0035
 
 - Fix [gitlab#6][gitlab_i6]: Add parts `{month_short}`, `{dom_short}`, `{doy_short}`.
 - Fix [gitlab#5][gitlab_i5]: Better warning when using bump with SemVer (one of --major/--minor/--patch is required)
@@ -67,43 +69,43 @@ Many thanks to contributors of this release: @LucidOne, @khanguslee, @chaudum
 [gitlab_i4]: https://gitlab.com/mbarkhau/pycalver/-/issues/4
 
 
-## v201903.0030
+## PyCalVer v201903.0030
 
 - Fix: Use pattern from config instead of hard-coded {pycalver} pattern.
 - Fix: Better error messages for git/hg issues.
 - Add: Implicit default pattern for config file.
 
 
-## v201903.0028
+## PyCalVer v201903.0028
 
 - Fix: Add warnings when configured files are not under version control.
 - Add: Colored output for bump --dry
 
 
-## v201902.0027
+## PyCalVer v201902.0027
 
 - Fix: Allow --release=post
 - Fix: Better error reporting for bad patterns
 - Fix: Regex escaping issue with "?"
 
 
-## v201902.0024
+## PyCalVer v201902.0024
 
 - Added: Support for globs in file patterns.
 - Fixed: Better error reporting for invalid config.
 
 
-## v201902.0020
+## PyCalVer v201902.0020
 
 - Added: Support for many more custom version patterns.
 
 
-## v201812.0018
+## PyCalVer v201812.0018
 
 - Fixed: Better handling of pattern replacements with "-final" releases.
 
 
-## v201812.0017
+## PyCalVer v201812.0017
 
 - Fixed [github#2]. `pycalver init` was broken.
 - Fixed pattern escaping issues.
@@ -113,7 +115,7 @@ Many thanks to contributors of this release: @LucidOne, @khanguslee, @chaudum
 [gihlab_i2]: https://github.com/mbarkhau/pycalver/-/issues/2
 
 
-## v201812.0011-beta
+## PyCalVer v201812.0011-beta
 
 - Add version tags using git/hg.
 - Use git/hg tags as SSOT for most recent version.
@@ -121,6 +123,6 @@ Many thanks to contributors of this release: @LucidOne, @khanguslee, @chaudum
 - Move to https://gitlab.com/mbarkhau/pycalver
 
 
-## v201809.0001-alpha
+## PyCalVer v201809.0001-alpha
 
 - Initial release

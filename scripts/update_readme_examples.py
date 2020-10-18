@@ -11,7 +11,7 @@ import rich
 import rich.box
 import rich.table
 
-from pycalver import v2version
+from bumpcalver import v2version
 
 
 def update(content, marker, value):
@@ -73,10 +73,10 @@ def pattern_examples():
         ("MAJOR.MINOR.PATCH[PYTAGNUM]"  , ""),
         ("MAJOR.MINOR[.PATCH[PYTAGNUM]]", ""),
         ("YYYY.BUILD[PYTAGNUM]"         , ""),
-        ("YYYY.BUILD[-RELEASE]"         , ""),
+        ("YYYY.BUILD[-TAG]"             , ""),
         ("YYYY.INC0[PYTAGNUM]"          , ""),
-        ("YYYY0M.PATCH[-RELEASE]"       , "¹"),
-        ("YYYY0M.BUILD[-RELEASE]"       , ""),
+        ("YYYY0M.PATCH[-TAG]"           , "¹"),
+        ("YYYY0M.BUILD[-TAG]"           , ""),
         ("YYYY.0M"                      , ""),
         ("YYYY.MM"                      , ""),
         ("YYYY.WW"                      , ""),
@@ -184,8 +184,8 @@ def pattern_examples():
 old_content = io.open("README.md").read()
 
 new_content = old_content
-new_content = update_md_code_output(new_content, "calver --help")
-new_content = update_md_code_output(new_content, "calver bump --help")
+new_content = update_md_code_output(new_content, "bumpver --help")
+new_content = update_md_code_output(new_content, "bumpver update --help")
 new_content = update(new_content, "pattern_examples", pattern_examples())
 new_content = update(new_content, "weeknum_example" , weeknum_example())
 
@@ -197,20 +197,3 @@ elif "--dry" in sys.argv:
 else:
     with io.open("README.md", mode="w") as fobj:
         fobj.write(new_content)
-
-
-# @printf '\n```\n$$ calver --help\n' > /tmp/pycalver_help.txt
-# @$(DEV_ENV)/bin/calver --help >> /tmp/pycalver_help.txt
-# @printf '```\n\n' >> /tmp/pycalver_help.txt
-
-# sed -i -ne '/<!-- BEGIN pycalver --help -->/ {p; r /tmp/pycalver_help.txt' \
-#     -e ':a; n; /<!-- END pycalver --help -->/ {p; b}; ba}; p' \
-#     README.md
-
-# @printf '\n```\n$$ pycalver bump --help\n' > /tmp/pycalver_help.txt
-# @$(DEV_ENV)/bin/pycalver bump --help >> /tmp/pycalver_help.txt
-# @printf '```\n\n' >> /tmp/pycalver_help.txt
-
-# sed -i -ne '/<!-- BEGIN pycalver bump --help -->/ {p; r /tmp/pycalver_help.txt' \
-#     -e ':a; n; /<!-- END pycalver bump --help -->/ {p; b}; ba}; p' \
-#     README.md

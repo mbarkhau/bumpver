@@ -74,6 +74,6 @@ pycalver_deps.svg:
 
 
 ## Update cli reference in README.md
-README.md: src/pycalver/__main__.py scripts/update_readme_examples.py Makefile
+README.md: src/pycalver2/cli.py scripts/update_readme_examples.py Makefile
 	@git add README.md
 	@$(DEV_ENV)/bin/python scripts/update_readme_examples.py

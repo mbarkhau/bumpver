@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 import io
 from test import util
 
-from pycalver2 import config
+from bumpver import config
 
 # pylint:disable=redefined-outer-name ; pytest fixtures
 # pylint:disable=protected-access ; allowed for test code
@@ -51,33 +51,33 @@ push = false
 """
 
 CALVER_TOML_FIXTURE_3 = """
-[calver]
+[bumpver]
 current_version = "v201808.0123-alpha"
 version_pattern = "vYYYY0M.BUILD[-TAG]"
 commit = true
 tag = true
 push = true
 
-[calver.file_patterns]
+[bumpver.file_patterns]
 "README.md" = [
     "{version}",
     "{pep440_version}",
 ]
-"calver.toml" = [
+"bumpver.toml" = [
     'current_version = "{version}"',
 ]
 """
 
 
 SETUP_CFG_FIXTURE = """
-[calver]
+[bumpver]
 current_version = "v201808.0456-beta"
 version_pattern = "vYYYY0M.BUILD[-TAG]"
 commit = True
 tag = True
 push = True
 
-[calver:file_patterns]
+[bumpver:file_patterns]
 setup.py =
     {version}
     {pep440_version}
@@ -87,7 +87,7 @@ setup.cfg =
 
 
 NEW_PATTERN_CFG_FIXTURE = """
-[calver]
+[bumpver]
 current_version = "v201808.1456-beta"
 version_pattern = "vYYYY0M.BUILD[-TAG]"
 commit_message = "bump version to {new_version}"
@@ -95,7 +95,7 @@ commit = True
 tag = True
 push = True
 
-[calver:file_patterns]
+[bumpver:file_patterns]
 setup.py =
     {version}
     {pep440_version}
@@ -172,11 +172,11 @@ def test_parse_toml_3():
     assert cfg.push   is True
 
     files = set(cfg.file_patterns)
-    assert "calver.toml" in files
+    assert "bumpver.toml" in files
 
     raw_patterns_by_path = _parse_raw_patterns_by_filepath(cfg)
-    assert raw_patterns_by_path["README.md"  ] == ["vYYYY0M.BUILD[-TAG]", "YYYY0M.BLD[PYTAGNUM]"]
-    assert raw_patterns_by_path["calver.toml"] == ['current_version = "vYYYY0M.BUILD[-TAG]"']
+    assert raw_patterns_by_path["README.md"   ] == ["vYYYY0M.BUILD[-TAG]", "YYYY0M.BLD[PYTAGNUM]"]
+    assert raw_patterns_by_path["bumpver.toml"] == ['current_version = "vYYYY0M.BUILD[-TAG]"']
 
 
 def test_parse_v1_cfg():
@@ -247,8 +247,8 @@ def test_parse_default_cfg():
 
 def test_parse_project_toml():
     project_path    = util.FIXTURES_DIR / "project_a"
-    config_path     = util.FIXTURES_DIR / "project_a" / "calver.toml"
-    config_rel_path = "calver.toml"
+    config_path     = util.FIXTURES_DIR / "project_a" / "bumpver.toml"
+    config_rel_path = "bumpver.toml"
 
     with config_path.open() as fobj:
         config_data = fobj.read()
@@ -268,7 +268,7 @@ def test_parse_project_toml():
     assert cfg.push   is True
 
     files = set(cfg.file_patterns.keys())
-    assert files == {"calver.toml", "README.md"}
+    assert files == {"bumpver.toml", "README.md"}
 
 
 def test_parse_project_cfg():
@@ -406,7 +406,7 @@ def test_parse_missing_version(tmpdir):
     setup_path.write(
         "\n".join(
             (
-                "[calver]",
+                "[bumpver]",
                 # f"current_version = v201808.1001-dev",
                 "commit = False",
             )
@@ -422,7 +422,7 @@ def test_parse_missing_version(tmpdir):
 
 def test_parse_invalid_version(tmpdir):
     setup_path = tmpdir.mkdir("fail").join("setup.cfg")
-    setup_path.write("\n".join(("[calver]", "current_version = 0.1.0", "commit = False")))
+    setup_path.write("\n".join(("[bumpver]", "current_version = 0.1.0", "commit = False")))
 
     ctx = config.init_project_ctx(setup_path)
     assert ctx

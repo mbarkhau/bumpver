@@ -29,7 +29,7 @@ FIXTURE_PATH_PARTS = [
     ["setup.cfg"],
     ["setup.py"],
     ["pycalver.toml"],
-    ["calver.toml"],
+    ["bumpver.toml"],
     ["src", "module_v1", "__init__.py"],
     ["src", "module_v2", "__init__.py"],
 ]
@@ -41,7 +41,7 @@ class Project:
         self.tmpdir   = tmpdir
         self.prev_cwd = os.getcwd()
 
-        self.dir = tmpdir / "pycalver_project"
+        self.dir = tmpdir / "bumpver_project"
         self.dir.mkdir()
 
         if project is None:

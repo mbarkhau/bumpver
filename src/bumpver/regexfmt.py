@@ -9,7 +9,7 @@ import textwrap
 
 from . import pysix
 
-logger = logging.getLogger("pycalver2.regexfmt")
+logger = logging.getLogger("bumpver.regexfmt")
 
 
 def format_regex(regex: str) -> str:

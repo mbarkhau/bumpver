@@ -4,19 +4,19 @@
 AUTHOR_NAME="Manuel Barkhau"
 AUTHOR_EMAIL="mbarkhau@gmail.com"
 
-KEYWORDS="version versioning calver semver bumpversion pep440"
-DESCRIPTION="CalVer for python packages."
+KEYWORDS="version bumpver calver semver versioning bumpversion pep440"
+DESCRIPTION="Bump version numbers in project files."
 
 LICENSE_ID="MIT"
 
-PACKAGE_NAME="pycalver"
+PACKAGE_NAME="bumpver"
 GIT_REPO_NAMESPACE="mbarkhau"
 GIT_REPO_DOMAIN="github.com"
 
-PACKAGE_VERSION="v2020.1041-beta"
+PACKAGE_VERSION="2020.1041-beta"
 
 DEFAULT_PYTHON_VERSION="python=3.8"
-SUPPORTED_PYTHON_VERSIONS="python=2.7 python=3.6 python=3.8 pypy2.7 pypy3.5"
+SUPPORTED_PYTHON_VERSIONS="python=2.7 python=3.6 pypy2.7 pypy3.5 python=3.8"
 
 DOCKER_REGISTRY_DOMAIN=registry.gitlab.com
 

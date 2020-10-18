@@ -58,14 +58,14 @@ if any(arg.startswith("bdist") for arg in sys.argv):
 
 
 setuptools.setup(
-    name="python-calver",
+    name="bumpver",
     license="MIT",
     author="Manuel Barkhau",
     author_email="mbarkhau@gmail.com",
-    url="https://github.com/mbarkhau/pycalver",
+    url="https://github.com/mbarkhau/bumpver",
     version="2020.1041b0",
-    keywords="version versioning calver semver bumpversion pep440",
-    description="CalVer for python libraries.",
+    keywords="version bumpver calver semver versioning bumpversion pep440",
+    description="Bump version numbers in project files.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages("src/"),
@@ -73,7 +73,7 @@ setuptools.setup(
     install_requires=install_requires,
     entry_points="""
         [console_scripts]
-        calver=pycalver2.cli:cli
+        bumpver=bumpver.cli:cli
     """,
     python_requires=">=2.7",
     zip_safe=True,

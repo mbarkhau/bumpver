@@ -38,7 +38,7 @@ from . import utils
 from .patterns import RE_PATTERN_ESCAPES
 from .patterns import Pattern
 
-logger = logging.getLogger("pycalver2.v1patterns")
+logger = logging.getLogger("bumpver.v1patterns")
 
 # https://regex101.com/r/fnj60p/10
 PYCALVER_PATTERN = r"""
