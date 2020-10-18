@@ -40,20 +40,20 @@ Code Quality/CI:
 | Manuel Barkhau (mbarkhau@gmail.com) | author/maintainer | 2018-09 | -     |
 
 
-[img_github_build]: https://github.com/mbarkhau/bumpver/workflows/CI/badge.svg
-[url_github_build]: https://github.com/mbarkhau/bumpver/actions?query=workflow%3ACI
+[img_github_build]: https://github.com/mbarkhau/pycalver/workflows/CI/badge.svg
+[url_github_build]: https://github.com/mbarkhau/pycalver/actions?query=workflow%3ACI
 
-[img_gitlab_build]: https://gitlab.com/mbarkhau/bumpver/badges/master/pipeline.svg
-[url_gitlab_build]: https://gitlab.com/mbarkhau/bumpver/pipelines
+[img_gitlab_build]: https://gitlab.com/mbarkhau/pycalver/badges/master/pipeline.svg
+[url_gitlab_build]: https://gitlab.com/mbarkhau/pycalver/pipelines
 
-[img_codecov]: https://gitlab.com/mbarkhau/bumpver/badges/master/coverage.svg
-[url_codecov]: https://mbarkhau.gitlab.io/bumpver/cov
+[img_codecov]: https://gitlab.com/mbarkhau/pycalver/badges/master/coverage.svg
+[url_codecov]: https://mbarkhau.gitlab.io/pycalver/cov
 
 [img_license]: https://img.shields.io/badge/License-MIT-blue.svg
-[url_license]: https://gitlab.com/mbarkhau/bumpver/blob/master/LICENSE
+[url_license]: https://gitlab.com/mbarkhau/pycalver/blob/master/LICENSE
 
 [img_mypy]: https://img.shields.io/badge/mypy-checked-green.svg
-[url_mypy]: https://mbarkhau.gitlab.io/bumpver/mypycov
+[url_mypy]: https://mbarkhau.gitlab.io/pycalver/mypycov
 
 [img_style]: https://img.shields.io/badge/code%20style-%20sjfmt-f71.svg
 [url_style]: https://gitlab.com/mbarkhau/straitjacket/
