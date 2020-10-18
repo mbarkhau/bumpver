@@ -164,7 +164,7 @@ def _get_normalized_pattern(raw_pattern: str, version_pattern: typ.Optional[str]
 
 
 @click.group()
-@click.version_option(version="2020.1102-beta")
+@click.version_option(version="2020.1103-beta")
 @click.help_option()
 @click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
 def cli(verbose: int = 0) -> None:
