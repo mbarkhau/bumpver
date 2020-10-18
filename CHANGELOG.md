@@ -1,7 +1,7 @@
 # Changelog for https://github.com/mbarkhau/pycalver
 
 
-## BumpVer 2020.1042-beta
+## BumpVer 2020.1100-beta
 
 Rename package and module from PyCalVer to BumpVer. This name change is due to confusion that this project is either Python specific, or only suitible for CalVer versioning schemes, neither of which is the case.
 
@@ -51,6 +51,11 @@ Many thanks to contributors of this release: @LucidOne, @khanguslee, @chaudum
 [gitlab_i12]: https://gitlab.com/mbarkhau/pycalver/-/issues/12
 [gitlab_i11]: https://gitlab.com/mbarkhau/pycalver/-/issues/11
 [gitlab_i8]: https://gitlab.com/mbarkhau/pycalver/-/issues/8
+
+
+## PyCalVer v202010.1042
+
+- Add deprication warning to README.md
 
 
 ## PyCalVer v201907.0036
