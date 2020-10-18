@@ -558,7 +558,7 @@ freeze:
 ## Bump Version number in all files
 .PHONY: bump_version
 bump_version:
-	$(DEV_ENV)/bin/pycalver bump;
+	$(DEV_ENV)/bin/bumpver update;
 
 
 ## Create python sdist and bdist_wheel files
