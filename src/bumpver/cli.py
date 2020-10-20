@@ -607,7 +607,7 @@ def _try_update(
 @verbose_option
 @dry_option
 def init(verbose: int = 0, dry: bool = False) -> None:
-    """Initialize [calver] configuration."""
+    """Initialize [bumpver] configuration."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
 
     ctx, cfg = config.init(project_path=".", cfg_missing_ok=True)

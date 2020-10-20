@@ -510,11 +510,11 @@ Options:
   -v, --verbose  Control log level. -vv for debug level.
 
 Commands:
-  update  Increment the current version string and update project files.
   grep    Search file(s) for a version pattern.
   init    Initialize [bumpver] configuration.
   show    Show current version of your project.
   test    Increment a version number for demo purposes.
+  update  Update project files with the incremented version string.
 ```
 
 <!-- END bumpver --help -->
@@ -525,30 +525,31 @@ Commands:
 $ bumpver update --help
 Usage: bumpver update [OPTIONS]
 
-  Increment the current version string and update project files.
+  Update project files with the incremented version string.
 
 Options:
-  -v, --verbose                 Control log level. -vv for debug level.
-  -f, --fetch / -n, --no-fetch  Sync tags from remote origin.
   -d, --dry                     Display diff of changes, don't rewrite files.
+  -f, --fetch / -n, --no-fetch  Sync tags from remote origin.
+  -v, --verbose                 Control log level. -vv for debug level.
   --allow-dirty                 Commit even when working directory is has
                                 uncomitted changes. (WARNING: The commit will
                                 still be aborted if there are uncomitted to
                                 files with version strings.
 
-  --major                       Increment major component.
-  -m, --minor                   Increment minor component.
-  -p, --patch                   Increment patch component.
-  -t, --tag <NAME>              Override release tag of current_version. Valid
-                                options are: alpha, beta, rc, post, final.
+  --set-version <VERSION>       Set version explicitly.
+  --date <ISODATE>              Set explicit date in format YYYY-0M-0D (e.g.
+                                2020-10-20).
 
+  --pin-date                    Leave date components unchanged.
   --tag-num                     Increment release tag number (rc1, rc2,
                                 rc3..).
 
-  --pin-date                    Leave date components unchanged.
-  --date <ISODATE>              Set explicit date in format YYYY-0M-0D (e.g.
-                                2020-10-16).
+  -t, --tag <NAME>              Override release tag of current_version. Valid
+                                options are: alpha, beta, rc, post, final.
 
+  -p, --patch                   Increment patch component.
+  -m, --minor                   Increment minor component.
+  --major                       Increment major component.
   --help                        Show this message and exit.
 ```
 
