@@ -163,10 +163,83 @@ def _get_normalized_pattern(raw_pattern: str, version_pattern: typ.Optional[str]
         return raw_pattern
 
 
+verbose_option = click.option(
+    "-v",
+    "--verbose",
+    count=True,
+    help="Control log level. -vv for debug level.",
+)
+
+
+dry_option = click.option(
+    "-d",
+    "--dry",
+    default=False,
+    is_flag=True,
+    help="Display diff of changes, don't rewrite files.",
+)
+
+
+fetch_option = click.option(
+    "-f/-n",
+    "--fetch/--no-fetch",
+    is_flag=True,
+    default=True,
+    help="Sync tags from remote origin.",
+)
+
+
+def version_options(function: typ.Callable) -> typ.Callable:
+    decorators = [
+        click.option("--major", is_flag=True, default=False, help="Increment major component."),
+        click.option(
+            "-m", "--minor", is_flag=True, default=False, help="Increment minor component."
+        ),
+        click.option(
+            "-p", "--patch", is_flag=True, default=False, help="Increment patch component."
+        ),
+        click.option(
+            "-t",
+            "--tag",
+            default=None,
+            metavar="<NAME>",
+            help=(
+                "Override release tag of current_version. Valid options are: "
+                f"{', '.join(VALID_RELEASE_TAG_VALUES)}."
+            ),
+        ),
+        click.option(
+            "--tag-num",
+            is_flag=True,
+            default=False,
+            help="Increment release tag number (rc1, rc2, rc3..).",
+        ),
+        click.option(
+            "--pin-date", is_flag=True, default=False, help="Leave date components unchanged."
+        ),
+        click.option(
+            "--date",
+            default=None,
+            metavar="<ISODATE>",
+            help=f"Set explicit date in format YYYY-0M-0D (e.g. {_current_date}).",
+        ),
+        click.option(
+            "--set-version",
+            default=None,
+            metavar="<VERSION>",
+            help="Set version explicitly.",
+        ),
+    ]
+    decorated = function
+    for decorator in decorators:
+        decorated = decorator(decorated)
+    return decorated
+
+
 @click.group()
 @click.version_option(version="2020.1103-beta")
 @click.help_option()
-@click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
+@verbose_option
 def cli(verbose: int = 0) -> None:
     """Automatically update CalVer version strings in plaintext files."""
     if verbose:
@@ -176,43 +249,20 @@ def cli(verbose: int = 0) -> None:
 @cli.command()
 @click.argument("old_version")
 @click.argument("pattern")
-@click.option('-v'     , '--verbose', count=True, help="Control log level. -vv for debug level.")
-@click.option("--major", is_flag=True, default=False, help="Increment major component.")
-@click.option("-m"     , "--minor", is_flag=True, default=False, help="Increment minor component.")
-@click.option("-p"     , "--patch", is_flag=True, default=False, help="Increment patch component.")
-@click.option(
-    "--tag",
-    default=None,
-    metavar="<NAME>",
-    help=(
-        f"Override release tag of current_version. Valid options are: "
-        f"{', '.join(VALID_RELEASE_TAG_VALUES)}."
-    ),
-)
-@click.option(
-    "--tag-num",
-    is_flag=True,
-    default=False,
-    help="Increment release tag number (rc1, rc2, rc3..).",
-)
-@click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
-@click.option(
-    "--date",
-    default=None,
-    metavar="<ISODATE>",
-    help=f"Set explicit date in format YYYY-0M-0D (e.g. {_current_date}).",
-)
+@verbose_option
+@version_options
 def test(
     old_version: str,
     pattern    : str,
     verbose    : int = 0,
-    tag        : str = None,
     major      : bool = False,
     minor      : bool = False,
     patch      : bool = False,
+    tag        : str = None,
     tag_num    : bool = False,
     pin_date   : bool = False,
     date       : typ.Optional[str] = None,
+    set_version: typ.Optional[str] = None,
 ) -> None:
     """Increment a version number for demo purposes."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
@@ -223,19 +273,29 @@ def test(
     _validate_flags(raw_pattern, major, minor, patch)
     _date = _validate_date(date, pin_date)
 
-    new_version = incr_dispatch(
-        old_version,
-        raw_pattern=raw_pattern,
-        major=major,
-        minor=minor,
-        patch=patch,
-        tag=tag,
-        tag_num=tag_num,
-        pin_date=pin_date,
-        date=_date,
-    )
+    if set_version is None:
+        new_version = incr_dispatch(
+            old_version,
+            raw_pattern=raw_pattern,
+            major=major,
+            minor=minor,
+            patch=patch,
+            tag=tag,
+            tag_num=tag_num,
+            pin_date=pin_date,
+            date=_date,
+        )
+    else:
+        new_version = set_version
+
     if new_version is None:
         _log_no_change('test', raw_pattern, old_version)
+        sys.exit(1)
+
+    if not _is_valid_version(raw_pattern, old_version, new_version):
+        if set_version:
+            logger.error(f"Invalid argument --set-version='{set_version}'")
+
         sys.exit(1)
 
     pep440_version = version.to_pep440(new_version)
@@ -316,12 +376,7 @@ def _grep(
 
 
 @cli.command()
-@click.option(
-    "-v",
-    "--verbose",
-    count=True,
-    help="Control log level. -vv for debug level.",
-)
+@verbose_option
 @click.option(
     "--version-pattern",
     default=None,
@@ -356,10 +411,8 @@ def grep(
 
 
 @cli.command()
-@click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
-@click.option(
-    "-f/-n", "--fetch/--no-fetch", is_flag=True, default=True, help="Sync tags from remote origin."
-)
+@verbose_option
+@fetch_option
 def show(verbose: int = 0, fetch: bool = True) -> None:
     """Show current version of your project."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
@@ -428,6 +481,25 @@ def _print_diff(cfg: config.Config, new_version: str) -> None:
         sys.exit(1)
 
 
+def _is_valid_version(raw_pattern: str, old_version: str, new_version: str) -> bool:
+    is_new_pattern = "{" not in raw_pattern and "}" not in raw_pattern
+    try:
+        if is_new_pattern:
+            v2version.parse_version_info(new_version, raw_pattern)
+        else:
+            v1version.parse_version_info(new_version, raw_pattern)
+    except version.PatternError:
+        logger.error(f"Invalid version {new_version} for pattern='{raw_pattern}'")
+        return False
+
+    if pkg_resources.parse_version(new_version) <= pkg_resources.parse_version(old_version):
+        logger.error("Invariant violated: New version must be greater than old version ")
+        logger.error(f"  Failed Invariant: '{new_version}' > '{old_version}'")
+        return False
+    else:
+        return True
+
+
 def incr_dispatch(
     old_version: str,
     raw_pattern: str,
@@ -477,14 +549,7 @@ def incr_dispatch(
             date=date,
         )
 
-    if new_version is None:
-        return None
-    elif pkg_resources.parse_version(new_version) <= pkg_resources.parse_version(old_version):
-        logger.error("Invariant violated: New version must be greater than old version ")
-        logger.error(f"  Failed Invariant: '{new_version}' > '{old_version}'")
-        return None
-    else:
-        return new_version
+    return new_version
 
 
 def _update(
@@ -539,10 +604,8 @@ def _try_update(
 
 
 @cli.command()
-@click.option('-v', '--verbose', count=True, help="Control log level. -vv for debug level.")
-@click.option(
-    '-d', "--dry", default=False, is_flag=True, help="Display diff of changes, don't rewrite files."
-)
+@verbose_option
+@dry_option
 def init(verbose: int = 0, dry: bool = False) -> None:
     """Initialize [calver] configuration."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
@@ -599,26 +662,9 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 
 
 @cli.command()
-@click.option(
-    "-v",
-    "--verbose",
-    count=True,
-    help="Control log level. -vv for debug level.",
-)
-@click.option(
-    "-f/-n",
-    "--fetch/--no-fetch",
-    is_flag=True,
-    default=True,
-    help="Sync tags from remote origin.",
-)
-@click.option(
-    "-d",
-    "--dry",
-    default=False,
-    is_flag=True,
-    help="Display diff of changes, don't rewrite files.",
-)
+@dry_option
+@fetch_option
+@verbose_option
 @click.option(
     "--allow-dirty",
     default=False,
@@ -629,37 +675,12 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
         "to files with version strings."
     ),
 )
-@click.option("--major", is_flag=True, default=False, help="Increment major component.")
-@click.option("-m", "--minor", is_flag=True, default=False, help="Increment minor component.")
-@click.option("-p", "--patch", is_flag=True, default=False, help="Increment patch component.")
-@click.option(
-    "-t",
-    "--tag",
-    default=None,
-    metavar="<NAME>",
-    help=(
-        f"Override release tag of current_version. Valid options are: "
-        f"{', '.join(VALID_RELEASE_TAG_VALUES)}."
-    ),
-)
-@click.option(
-    "--tag-num",
-    is_flag=True,
-    default=False,
-    help="Increment release tag number (rc1, rc2, rc3..).",
-)
-@click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged.")
-@click.option(
-    "--date",
-    default=None,
-    metavar="<ISODATE>",
-    help=f"Set explicit date in format YYYY-0M-0D (e.g. {_current_date}).",
-)
+@version_options
 def update(
-    verbose    : int = 0,
     dry        : bool = False,
     allow_dirty: bool = False,
     fetch      : bool = True,
+    verbose    : int = 0,
     major      : bool = False,
     minor      : bool = False,
     patch      : bool = False,
@@ -667,6 +688,7 @@ def update(
     tag_num    : bool = False,
     pin_date   : bool = False,
     date       : typ.Optional[str] = None,
+    set_version: typ.Optional[str] = None,
 ) -> None:
     """Update project files with the incremented version string."""
     verbose = max(_VERBOSE, verbose)
@@ -683,20 +705,29 @@ def update(
     cfg = _update_cfg_from_vcs(cfg, fetch)
 
     old_version = cfg.current_version
-    new_version = incr_dispatch(
-        old_version,
-        raw_pattern=cfg.version_pattern,
-        major=major,
-        minor=minor,
-        patch=patch,
-        tag=tag,
-        tag_num=tag_num,
-        pin_date=pin_date,
-        date=_date,
-    )
+    if set_version is None:
+        new_version = incr_dispatch(
+            old_version,
+            raw_pattern=cfg.version_pattern,
+            major=major,
+            minor=minor,
+            patch=patch,
+            tag=tag,
+            tag_num=tag_num,
+            pin_date=pin_date,
+            date=_date,
+        )
+    else:
+        new_version = set_version
 
     if new_version is None:
         _log_no_change('update', cfg.version_pattern, old_version)
+        sys.exit(1)
+
+    if not _is_valid_version(cfg.version_pattern, old_version, new_version):
+        if set_version:
+            logger.error(f"Invalid argument --set-version='{set_version}'")
+
         sys.exit(1)
 
     logger.info(f"Old Version: {old_version}")
