@@ -1,6 +1,13 @@
 # Changelog for https://github.com/mbarkhau/pycalver
 
 
+## BumpVer 2020.1105-beta
+
+- Fix [gitlab#13][gitlab_i13]: Add `--set-version=<VERSION>` to explicitly set version.
+
+[gitlab_i13]:https://gitlab.com/mbarkhau/pycalver/-/issues/13
+
+
 ## BumpVer 2020.1100-beta
 
 Rename package and module from PyCalVer to BumpVer. This name change is due to confusion that this project is either Python specific, or only suitible for CalVer versioning schemes, neither of which is the case.
