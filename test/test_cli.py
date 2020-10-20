@@ -180,9 +180,9 @@ def test_incr_semver_invalid(runner, caplog):
     result  = runner.invoke(cli.cli, ['test', "-vv", "0.1.1", pattern, "--patch"])
     assert result.exit_code == 1
     assert len(caplog.records) > 0
-    log_record = caplog.records[0]
-    assert "--patch is not applicable to pattern" in log_record.message
-    assert "to pattern 'vYYYY.BUILD[-TAG]'" in log_record.message
+    log_msg = caplog.records[0].message
+    assert "--patch is not applicable to pattern" in log_msg
+    assert "to pattern 'vYYYY.BUILD[-TAG]'" in log_msg
 
 
 def test_incr_to_beta(runner):
@@ -613,11 +613,11 @@ license_file = LICENSE
 [bdist_wheel]
 universal = 1
 
-[pycalver]
+[bumpver]
 current_version = "0.1.0"
 version_pattern = "{semver}"
 
-[pycalver:file_patterns]
+[bumpver:file_patterns]
 setup.cfg =
     current_version = "{version}"
 """
@@ -630,7 +630,7 @@ DEFAULT_SEMVER_PATTERNS = [
 
 
 @pytest.mark.parametrize("version_pattern", DEFAULT_SEMVER_PATTERNS)
-def test_v1_bump_semver_warning(runner, caplog, version_pattern):
+def test_update_semver_warning(runner, caplog, version_pattern):
     _add_project_files("README.md")
 
     with pl.Path("setup.cfg").open(mode="w") as fobj:
@@ -651,7 +651,7 @@ def test_v1_bump_semver_warning(runner, caplog, version_pattern):
 
 
 @pytest.mark.parametrize("version_pattern", DEFAULT_SEMVER_PATTERNS)
-def test_v1_bump_semver_diff(runner, caplog, version_pattern):
+def test_update_semver_diff(runner, caplog, version_pattern):
     _add_project_files("README.md")
 
     with pl.Path("setup.cfg").open(mode="w") as fobj:
@@ -673,6 +673,40 @@ def test_v1_bump_semver_diff(runner, caplog, version_pattern):
         assert "+++ setup.cfg" in out_lines
         assert "-current_version = \"0.1.0\"" in out_lines
         assert f"+current_version = \"{expected}\"" in out_lines
+
+
+def test_update_set_version(runner, caplog):
+    _add_project_files("README.md", "setup.cfg")
+
+    with pl.Path("setup.cfg").open(mode="w") as fobj:
+        fobj.write(SETUP_CFG_SEMVER_FIXTURE)
+
+    _update_config_val(
+        "setup.cfg",
+        version_pattern='"vYYYY.BUILD[-TAG]"',
+        current_version='"v2020.1001-alpha"',
+    )
+
+    result = runner.invoke(
+        cli.cli, ['update', "-vv", "-n", "--dry", "--set-version", "v2121.1234-beta"]
+    )
+    assert result.exit_code == 0
+    assert len(caplog.records) == 0
+
+    out_lines = set(result.output.splitlines())
+    assert '-current_version = "v2020.1001-alpha"' in out_lines
+    assert '+current_version = "v2121.1234-beta"' in out_lines
+
+    result = runner.invoke(
+        cli.cli, ['update', "-vv", "-n", "--dry", "--set-version", "2020.1234-invalid"]
+    )
+    assert result.exit_code == 1
+    assert len(caplog.records) > 0
+
+    log_msg = caplog.records[0].message
+    assert "Invalid version '2020.1234-invalid' for pattern 'vYYYY.BUILD[-TAG]'" in log_msg
+    log_msg = caplog.records[1].message
+    assert "Invalid argument --set-version='2020.1234-invalid'" in log_msg
 
 
 @pytest.mark.parametrize("version_pattern, cur_version, cur_pep440", DEFAULT_VERSION_PATTERNS)

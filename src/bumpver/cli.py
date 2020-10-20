@@ -489,7 +489,7 @@ def _is_valid_version(raw_pattern: str, old_version: str, new_version: str) -> b
         else:
             v1version.parse_version_info(new_version, raw_pattern)
     except version.PatternError:
-        logger.error(f"Invalid version {new_version} for pattern='{raw_pattern}'")
+        logger.error(f"Invalid version '{new_version}' for pattern '{raw_pattern}'")
         return False
 
     if pkg_resources.parse_version(new_version) <= pkg_resources.parse_version(old_version):
