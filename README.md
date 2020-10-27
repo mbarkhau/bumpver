@@ -377,6 +377,31 @@ New Version: v2020.1052
 PEP440     : 2020.1052
 ```
 
+### Explicit `--set-version`
+
+If the various automatic version incrementing methods don't work for you, you can explicitly do `--set-version=<version>`. 
+
+```diff
+$ bumpver update --dry --set-version="v2020.1060"
+INFO    - Old Version: v2020.1051-beta
+INFO    - New Version: v2020.1060
+--- setup.py
++++ setup.py
+@@ -63,7 +63,7 @@
+     name="mymodule",
+-    version="2020.1051b0",
++    version="2020.1060",
+     description=description,
+
+--- src/mymodule/__init__.py
++++ src/mymodule/__init__.py
+@@ -3,3 +3,3 @@
+
+-__version__ = "v2020.1051-beta"
++__version__ = "v2020.1060"
+```
+
+
 
 ### Searching for Patterns with `grep`
 
@@ -914,6 +939,7 @@ INFO    - New Version: 2019.1002-beta
 +    version="2019.1002b0",
      license="MIT",
 ```
+
 
 
 ### VCS Parameters (git/mercurial)
