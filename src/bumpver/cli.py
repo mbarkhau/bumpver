@@ -133,7 +133,7 @@ def _log_no_change(subcmd: str, version_pattern: str, old_version: str) -> None:
         "MAJOR" in version_pattern and "MAJOR" in version_pattern and "PATCH" in version_pattern
     )
     if is_semver:
-        logger.warning(f"calver {subcmd} [--major/--minor/--patch] required for use with SemVer.")
+        logger.warning(f"bumpver {subcmd} [--major/--minor/--patch] required for use with SemVer.")
     else:
         available_flags = [
             "--" + part.lower() for part in ['MAJOR', 'MINOR', 'PATCH'] if part in version_pattern
