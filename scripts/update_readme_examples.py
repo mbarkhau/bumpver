@@ -11,7 +11,7 @@ import rich
 import rich.box
 import rich.table
 
-from bumpcalver import v2version
+from bumpver import v2version
 
 
 def update(content, marker, value):
