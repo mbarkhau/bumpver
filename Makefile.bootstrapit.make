@@ -53,7 +53,6 @@ CONDA_ENV_BIN_PYTHON_PATHS := \
 	| sed 's!\(_pypy3[[:digit:]]\)!\1/bin/pypy3!g' \
 )
 
-
 empty :=
 literal_space := $(empty) $(empty)
 
@@ -69,6 +68,8 @@ DEV_ENV := $(ENV_PREFIX)/$(DEV_ENV_NAME)
 DEV_ENV_PY := $(DEV_ENV)/bin/python
 
 RSA_KEY_PATH := $(HOME)/.ssh/$(PKG_NAME)_gitlab_runner_id_rsa
+
+DOCKER := $(shell which podman || which docker)
 
 DOCKER_BASE_IMAGE := registry.gitlab.com/mbarkhau/pycalver/base
 
@@ -531,8 +532,8 @@ devtest:
 ## Run `make lint mypy test` using docker
 .PHONY: citest
 citest:
-	docker build --file Dockerfile --tag tmp_citest_$(PKG_NAME) .
-	docker run --tty tmp_citest_$(PKG_NAME) make lint mypy test test_compat
+	$(DOCKER) build --file Dockerfile --tag tmp_citest_$(PKG_NAME) .
+	$(DOCKER) run --tty tmp_citest_$(PKG_NAME) make lint mypy test test_compat
 
 
 ## -- Build/Deploy --
@@ -604,18 +605,18 @@ dist_publish: bump_version dist_build dist_upload
 .PHONY: docker_build
 docker_build:
 	@if [[ -f "$(RSA_KEY_PATH)" ]]; then \
-		docker build \
+		$(DOCKER) build \
 			--build-arg SSH_PRIVATE_RSA_KEY="$$(cat '$(RSA_KEY_PATH)')" \
 			--file docker_base.Dockerfile \
 			--tag $(DOCKER_BASE_IMAGE):$(DOCKER_IMAGE_VERSION) \
 			--tag $(DOCKER_BASE_IMAGE) \
 			.; \
 	else \
-		docker build \
+		$(DOCKER) build \
 			--file docker_base.Dockerfile \
 			--tag $(DOCKER_BASE_IMAGE):$(DOCKER_IMAGE_VERSION) \
 			--tag $(DOCKER_BASE_IMAGE) \
 			.; \
 	fi
 
-	docker push $(DOCKER_BASE_IMAGE)
+	# $(DOCKER) push $(DOCKER_BASE_IMAGE)
