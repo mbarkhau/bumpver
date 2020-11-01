@@ -14,6 +14,7 @@ toml
 lexid
 colorama>=0.4
 
-# needed pkg_resources.parse_version
-setuptools<46.0.0; python_version < "3.5"
-setuptools>=46.0.0; python_version >= "3.5"
+# setuptools is needed for pkg_resources.parse_version
+# Support for Python 2 was dropped with v45
+setuptools<45.0.0; python_version < "3.5"
+setuptools>=45.0.0; python_version >= "3.5"
