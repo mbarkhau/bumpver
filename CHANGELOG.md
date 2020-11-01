@@ -1,11 +1,13 @@
 # Changelog for https://github.com/mbarkhau/pycalver
 
 
-## BumpVer 2020.1105-beta
+## BumpVer 2020.1104-beta
 
 - Fix [gitlab#13][gitlab_i13]: Add `--set-version=<VERSION>` to explicitly set version.
+- Fix [gitlab#14][gitlab_i14]: Parse `tool.bumpver` when using pyproject.toml as per PEP 518.
 
-[gitlab_i13]:https://gitlab.com/mbarkhau/pycalver/-/issues/13
+[gitlab_i13]: https://gitlab.com/mbarkhau/pycalver/-/issues/13
+[gitlab_i14]: https://gitlab.com/mbarkhau/pycalver/-/issues/14
 
 
 ## BumpVer 2020.1100-beta

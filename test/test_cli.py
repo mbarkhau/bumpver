@@ -299,7 +299,9 @@ def test_novcs_nocfg_init(runner, caplog):
     with pl.Path("bumpver.toml").open(mode="r", encoding="utf-8") as fobj:
         cfg_content = fobj.read()
 
-    base_str = config.DEFAULT_TOML_BASE_TMPL.format(initial_version=config._initial_version())
+    base_str = config.DEFAULT_BUMPVER_TOML_BASE_TMPL.format(
+        initial_version=config._initial_version()
+    )
     assert base_str                          in cfg_content
     assert config.DEFAULT_TOML_README_MD_STR in cfg_content
 
@@ -348,7 +350,9 @@ def test_novcs_pyproject_init(runner, caplog):
     with pl.Path("pyproject.toml").open(mode="r", encoding="utf-8") as fobj:
         cfg_content = fobj.read()
 
-    base_str = config.DEFAULT_TOML_BASE_TMPL.format(initial_version=config._initial_version())
+    base_str = config.DEFAULT_PYPROJECT_TOML_BASE_TMPL.format(
+        initial_version=config._initial_version()
+    )
     assert base_str                          in cfg_content
     assert config.DEFAULT_TOML_README_MD_STR in cfg_content
 

@@ -213,7 +213,9 @@ def _parse_toml(cfg_buffer: typ.IO[str]) -> RawConfig:
     raw_full_cfg: typ.Any = toml.load(cfg_buffer)
     raw_cfg     : RawConfig
 
-    if 'bumpver' in raw_full_cfg:
+    if 'tool' in raw_full_cfg and 'bumpver' in raw_full_cfg['tool']:
+        raw_cfg = raw_full_cfg['tool']['bumpver']
+    elif 'bumpver' in raw_full_cfg:
         raw_cfg = raw_full_cfg['bumpver']
     elif 'pycalver' in raw_full_cfg:
         raw_cfg = raw_full_cfg['pycalver']
@@ -385,6 +387,8 @@ def _parse_current_version_default_pattern(raw_cfg: RawConfig, raw_cfg_text: str
             is_config_section = True
         elif line.strip() == "[bumpver]":
             is_config_section = True
+        elif line.strip() == "[tool.bumpver]":
+            is_config_section = True
         elif line and line[0] == "[" and line[-1] == "]":
             is_config_section = False
 
@@ -497,7 +501,20 @@ README.md =
 """.lstrip()
 
 
-DEFAULT_TOML_BASE_TMPL = """
+DEFAULT_PYPROJECT_TOML_BASE_TMPL = """
+[tool.bumpver]
+current_version = "{initial_version}"
+version_pattern = "YYYY.BUILD[-TAG]"
+commit_message = "bump version {{old_version}} -> {{new_version}}"
+commit = true
+tag = true
+push = true
+
+[tool.bumpver.file_patterns]
+""".lstrip()
+
+
+DEFAULT_BUMPVER_TOML_BASE_TMPL = """
 [bumpver]
 current_version = "{initial_version}"
 version_pattern = "YYYY.BUILD[-TAG]"
@@ -576,7 +593,10 @@ def default_config(ctx: ProjectContext) -> str:
             "README.md" : DEFAULT_CONFIGPARSER_README_MD_STR,
         }
     elif fmt == 'toml':
-        base_tmpl = DEFAULT_TOML_BASE_TMPL
+        if ctx.config_filepath.name == "pyproject.toml":
+            base_tmpl = DEFAULT_PYPROJECT_TOML_BASE_TMPL
+        else:
+            base_tmpl = DEFAULT_BUMPVER_TOML_BASE_TMPL
 
         default_pattern_strs_by_filename = {
             "pyproject.toml": DEFAULT_TOML_PYPROJECT_STR,
