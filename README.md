@@ -328,7 +328,7 @@ PEP440     : 2020.41
 ```
 
 
-### Auto Increment Parts: `BUILD`/`INC0`/`INC1`
+### Auto Increment Parts: `INC0`/`INC1`/`BUILD`
 
 These parts are incremented automatically, and do not use/require a CLI flag: `BUILD`/`INC0`/`INC1`.
 
@@ -349,6 +349,21 @@ New Version: 2020.10.1
 $ bumpver test '2020.10.1' 'YYYY.MM[.INC0]' --date 2020-11-01
 New Version: 2020.11
 ```
+
+You can the `BUILD` part to [maintain lexical ordering][url_pypi_lexid]  of version numbers. This means that the expression `older < newer` will always be true, whether you are dealing with integers or strings, whether you are using software that understands how to parse version numbers or not.
+
+```shell
+$ bumpver test '2020.1001' 'YYYY.BUILD'
+New Version: 2020.1002
+
+$ bumpver test '2020.1002' 'YYYY.BUILD'
+New Version: 2020.1003
+
+$ bumpver test '2020.1999' 'YYYY.BUILD'
+New Version: 2020.22000
+```
+
+[url_pypi_lexid]: https://pypi.org/project/lexid/
 
 
 ### Persistent Parts: `BUILD`/`TAG`/`PYTAG`
@@ -376,6 +391,7 @@ $ bumpver test 'v2020.1051-beta' 'vYYYY.BUILD[-TAG]' --tag=final
 New Version: v2020.1052
 PEP440     : 2020.1052
 ```
+
 
 ### Explicit `--set-version`
 
