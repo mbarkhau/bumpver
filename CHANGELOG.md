@@ -1,6 +1,15 @@
 # Changelog for https://github.com/mbarkhau/pycalver
 
 
+## BumpVer 2020.1105-beta
+
+- Fix [gitlab#15][gitlab_i15]: Fix config parsing corner case.
+- Fix [gitlab#16][gitlab_i16]: Fix rollover handling for tag/pytag.
+
+[gitlab_i15]: https://gitlab.com/mbarkhau/pycalver/-/issues/15
+[gitlab_i16]: https://gitlab.com/mbarkhau/pycalver/-/issues/16
+
+
 ## BumpVer 2020.1104-beta
 
 - Fix [gitlab#13][gitlab_i13]: Add `--set-version=<VERSION>` to explicitly set version.
