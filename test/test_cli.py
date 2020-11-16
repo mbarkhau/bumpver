@@ -24,6 +24,7 @@ from bumpver import v2patterns
 # pylint:disable=redefined-outer-name ; pytest fixtures
 # pylint:disable=protected-access ; allowed for test code
 # pylint:disable=unused-argument ; allowed for test code
+# pylint:disable=too-many-lines ; allowed for test code
 
 
 README_TEXT_FIXTURE = """
@@ -323,6 +324,7 @@ def test_novcs_nocfg_init(runner, caplog):
 
 def test_novcs_setupcfg_init(runner):
     _add_project_files("README.md", "setup.cfg")
+
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
@@ -334,6 +336,24 @@ def test_novcs_setupcfg_init(runner):
     )
     assert base_str                                  in cfg_content
     assert config.DEFAULT_CONFIGPARSER_README_MD_STR in cfg_content
+
+    result = runner.invoke(cli.cli, ['show', "-vv"])
+    assert result.exit_code == 0
+    assert f"Current Version: {config._initial_version()}\n" in result.output
+    assert f"PEP440         : {config._initial_version_pep440()}\n" in result.output
+
+
+def test_novcs_multi_cfg(runner):
+    _add_project_files("README.md", "setup.cfg")
+
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    # NOTE (mb 2020-11-16): Even though a pyproject.toml exists, it shouldn't
+    #   be used because the setup.cfg has the [bumpver] config section and
+    #   should have higher priorty.
+    with pl.Path("pyproject.toml").open(mode="wt", encoding="utf-8") as fobj:
+        fobj.write("")
 
     result = runner.invoke(cli.cli, ['show', "-vv"])
     assert result.exit_code == 0

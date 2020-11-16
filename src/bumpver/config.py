@@ -47,23 +47,39 @@ class ProjectContext(typ.NamedTuple):
     vcs_type       : typ.Optional[str]
 
 
+def _pick_config_filepath(path: pl.Path) -> pl.Path:
+    config_candidates: typ.List[pl.Path] = [
+        path / "pycalver.toml",
+        path / "bumpver.toml",
+        path / "pyproject.toml",
+        path / "setup.cfg",
+    ]
+
+    # Prefer to use a config which contains a bumpver and current_version
+    # This means a project can have multiple different configs.
+    for config_filepath in config_candidates:
+        if config_filepath.exists():
+            with config_filepath.open(mode="rb") as fobj:
+                data = fobj.read()
+
+            has_bumpver_section = (
+                b"bumpver]" in data or b"pycalver]" in data
+            ) and b"current_version" in data
+            if has_bumpver_section:
+                return config_filepath
+
+    # Next pick whatever config happens to exist, even if it
+    # doesn't have a [bumpver] section (yet).
+    for config_filepath in config_candidates:
+        if config_filepath.exists():
+            return config_filepath
+
+    # fallback to creating a new bumpver.toml
+    return path / "bumpver.toml"
+
+
 def _parse_config_and_format(path: pl.Path) -> typ.Tuple[pl.Path, str, str]:
-    if (path / "pycalver.toml").exists():
-        config_filepath = path / "pycalver.toml"
-        config_format   = 'toml'
-    elif (path / "bumpver.toml").exists():
-        config_filepath = path / "bumpver.toml"
-        config_format   = 'toml'
-    elif (path / "pyproject.toml").exists():
-        config_filepath = path / "pyproject.toml"
-        config_format   = 'toml'
-    elif (path / "setup.cfg").exists():
-        config_filepath = path / "setup.cfg"
-        config_format   = 'cfg'
-    else:
-        # fallback to creating a new bumpver.toml
-        config_filepath = path / "bumpver.toml"
-        config_format   = 'toml'
+    config_filepath = _pick_config_filepath(path)
 
     if config_filepath.is_absolute():
         config_rel_path = str(config_filepath.relative_to(path.absolute()))
@@ -71,6 +87,7 @@ def _parse_config_and_format(path: pl.Path) -> typ.Tuple[pl.Path, str, str]:
         config_rel_path = str(config_filepath)
         config_filepath = pl.Path.cwd() / config_filepath
 
+    config_format = config_filepath.suffix[1:]
     return (config_filepath, config_rel_path, config_format)
 
 
@@ -446,9 +463,10 @@ def parse(ctx: ProjectContext, cfg_missing_ok: bool = False) -> MaybeConfig:
         except (TypeError, ValueError) as ex:
             logger.warning(f"Couldn't parse {ctx.config_rel_path}: {str(ex)}")
             return None
+    elif cfg_missing_ok:
+        return None
     else:
-        if not cfg_missing_ok:
-            logger.warning(f"File not found: {ctx.config_rel_path}")
+        logger.warning(f"File not found: {ctx.config_rel_path}")
         return None
 
 
