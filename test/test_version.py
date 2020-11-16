@@ -26,7 +26,7 @@ def test_bump_beta():
     assert v1version.incr(cur_version, tag="final").endswith("0002")
 
 
-def test_bump_final():
+def test_bump_final_v1():
     cur_version = "v201712.0001"
     assert cur_version < v1version.incr(cur_version)
     assert v1version.incr(cur_version).endswith(".0002")
@@ -36,6 +36,17 @@ def test_bump_final():
 
     pre_version = cur_version + "-beta"
     assert v1version.incr(pre_version, tag="final").endswith(".0002")
+
+
+def test_bump_final_v2():
+    print()
+    raw_pattern = "vMAJOR.MINOR.PATCH[PYTAGNUM]"
+    cur_version = "v0.1.4b1"
+    assert v2version.incr(cur_version, raw_pattern, major=True  ) == "v1.0.0b0"
+    assert v2version.incr(cur_version, raw_pattern, minor=True  ) == "v0.2.0b0"
+    assert v2version.incr(cur_version, raw_pattern, patch=True  ) == "v0.1.5b0"
+    assert v2version.incr(cur_version, raw_pattern, tag_num=True) == "v0.1.4b2"
+    assert v2version.incr(cur_version, raw_pattern, patch=True, tag="final") == "v0.1.5"
 
 
 def test_bump_future():

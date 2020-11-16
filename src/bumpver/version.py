@@ -69,10 +69,10 @@ class V2VersionInfo(typ.NamedTuple):
     major  : int
     minor  : int
     patch  : int
-    num    : int
     bid    : str
     tag    : str
     pytag  : str
+    num    : int
     inc0   : int
     inc1   : int
 

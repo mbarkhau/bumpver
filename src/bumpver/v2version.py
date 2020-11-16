@@ -247,10 +247,10 @@ def parse_field_values_to_vinfo(field_values: FieldValues) -> version.V2VersionI
         major=major,
         minor=minor,
         patch=patch,
-        num=num,
         bid=bid,
         tag=tag,
         pytag=pytag,
+        num=num,
         inc0=inc0,
         inc1=inc1,
     )
@@ -584,7 +584,7 @@ def _parse_pattern_fields(raw_pattern: str) -> typ.List[str]:
     fields_by_index = {}
     for segment_index, segment in enumerate(segments):
         for part in parts:
-            part_index = segment.find(part)
+            part_index = segment.find(part, 0)
             if part_index >= 0:
                 field = v2patterns.PATTERN_PART_FIELDS[part]
                 fields_by_index[segment_index, part_index] = field
@@ -607,6 +607,46 @@ def _iter_reset_field_items(
             has_reset = True
 
 
+def _reset_rollover_fields(
+    raw_pattern: str,
+    old_vinfo  : version.V2VersionInfo,
+    cur_vinfo  : version.V2VersionInfo,
+) -> version.V2VersionInfo:
+    """Reset major/minor/patch/num/inc to zero.
+
+    The reset/rollover happens if any part to the left of another is incremented.
+    """
+    fields       = _parse_pattern_fields(raw_pattern)
+    reset_fields = dict(_iter_reset_field_items(fields, old_vinfo, cur_vinfo))
+
+    cur_kwargs = cur_vinfo._asdict()
+    for field, value in reset_fields.items():
+        if value.isdigit():
+            cur_kwargs[field] = int(value)
+        else:
+            cur_kwargs[field] = value
+
+    cur_vinfo = version.V2VersionInfo(**cur_kwargs)
+
+    if 'major' in reset_fields:
+        cur_vinfo = cur_vinfo._replace(major=0)
+    if 'minor' in reset_fields:
+        cur_vinfo = cur_vinfo._replace(minor=0)
+    if 'patch' in reset_fields:
+        cur_vinfo = cur_vinfo._replace(patch=0)
+    if 'inc0' in reset_fields:
+        cur_vinfo = cur_vinfo._replace(inc0=0)
+    if 'inc1' in reset_fields:
+        cur_vinfo = cur_vinfo._replace(inc1=1)
+    if 'tag' in reset_fields:
+        cur_vinfo = cur_vinfo._replace(tag="final", pytag="")
+    if 'pytag' in reset_fields:
+        cur_vinfo = cur_vinfo._replace(tag="final", pytag="")
+    if 'tag_num' in reset_fields:
+        cur_vinfo = cur_vinfo._replace(num=0)
+    return cur_vinfo
+
+
 def _incr_numeric(
     raw_pattern: str,
     old_vinfo  : version.V2VersionInfo,
@@ -621,10 +661,11 @@ def _incr_numeric(
 
     >>> raw_pattern = 'MAJOR.MINOR.PATCH[PYTAGNUM]'
     >>> old_vinfo = parse_field_values_to_vinfo({'major': "1", 'minor': "2", 'patch': "3"})
-    >>> cur_vinfo = old_vinfo
+    >>> (old_vinfo.major, old_vinfo.minor, old_vinfo.patch, old_vinfo.tag, old_vinfo.pytag, old_vinfo.num)
+    (1, 2, 3, 'final', '', 0)
     >>> new_vinfo = _incr_numeric(
     ...     raw_pattern,
-    ...     cur_vinfo,
+    ...     old_vinfo,
     ...     old_vinfo,
     ...     major=False,
     ...     minor=False,
@@ -635,51 +676,30 @@ def _incr_numeric(
     >>> (new_vinfo.major, new_vinfo.minor, new_vinfo.patch, new_vinfo.tag, new_vinfo.pytag, new_vinfo.num)
     (1, 2, 4, 'beta', 'b', 0)
     """
-    # Reset major/minor/patch/num/inc to zero if any part to the left of it is incremented
-    fields       = _parse_pattern_fields(raw_pattern)
-    reset_fields = dict(_iter_reset_field_items(fields, old_vinfo, cur_vinfo))
+    if major:
+        cur_vinfo = cur_vinfo._replace(major=cur_vinfo.major + 1)
+    if minor:
+        cur_vinfo = cur_vinfo._replace(minor=cur_vinfo.minor + 1)
+    if patch:
+        cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
+    if tag_num:
+        cur_vinfo = cur_vinfo._replace(num=cur_vinfo.num + 1)
+    if tag:
+        if tag != cur_vinfo.tag:
+            cur_vinfo = cur_vinfo._replace(num=0)
+        cur_vinfo = cur_vinfo._replace(tag=tag)
+        pytag     = version.PEP440_TAG_BY_TAG[tag]
+        cur_vinfo = cur_vinfo._replace(pytag=pytag)
 
-    cur_kwargs = cur_vinfo._asdict()
-    cur_kwargs.update(reset_fields)
-    cur_vinfo = version.V2VersionInfo(**cur_kwargs)
+    cur_vinfo = cur_vinfo._replace(inc0=cur_vinfo.inc0 + 1)
+    cur_vinfo = cur_vinfo._replace(inc1=cur_vinfo.inc1 + 1)
 
     # prevent truncation of leading zeros
     if int(cur_vinfo.bid) < 1000:
         cur_vinfo = cur_vinfo._replace(bid=str(int(cur_vinfo.bid) + 1000))
 
     cur_vinfo = cur_vinfo._replace(bid=lexid.next_id(cur_vinfo.bid))
-
-    if 'inc0' in reset_fields:
-        cur_vinfo = cur_vinfo._replace(inc0=0)
-    else:
-        cur_vinfo = cur_vinfo._replace(inc0=cur_vinfo.inc0 + 1)
-
-    if 'inc1' in reset_fields:
-        cur_vinfo = cur_vinfo._replace(inc1=1)
-    else:
-        cur_vinfo = cur_vinfo._replace(inc1=cur_vinfo.inc1 + 1)
-
-    if major and 'major' not in reset_fields:
-        cur_vinfo = cur_vinfo._replace(major=cur_vinfo.major + 1, minor=0, patch=0)
-    if minor and 'minor' not in reset_fields:
-        cur_vinfo = cur_vinfo._replace(minor=cur_vinfo.minor + 1, patch=0)
-    if patch and 'patch' not in reset_fields:
-        cur_vinfo = cur_vinfo._replace(patch=cur_vinfo.patch + 1)
-    if tag_num and 'tag_num' not in reset_fields:
-        cur_vinfo = cur_vinfo._replace(num=cur_vinfo.num + 1)
-    if tag and 'tag' not in reset_fields:
-        if tag != cur_vinfo.tag:
-            cur_vinfo = cur_vinfo._replace(num=0)
-        cur_vinfo = cur_vinfo._replace(tag=tag)
-
-    if cur_vinfo.tag and not cur_vinfo.pytag:
-        pytag     = version.PEP440_TAG_BY_TAG[cur_vinfo.tag]
-        cur_vinfo = cur_vinfo._replace(pytag=pytag)
-    elif cur_vinfo.pytag and not cur_vinfo.tag:
-        tag       = version.TAG_BY_PEP440_TAG[cur_vinfo.pytag]
-        cur_vinfo = cur_vinfo._replace(tag=tag)
-
-    return cur_vinfo
+    return _reset_rollover_fields(raw_pattern, old_vinfo, cur_vinfo)
 
 
 def is_valid_week_pattern(raw_pattern: str) -> bool:
