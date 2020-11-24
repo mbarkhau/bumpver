@@ -3,3 +3,4 @@ include README.md
 include CHANGELOG.md
 include requirements/pypi.txt
 graft test
+global-exclude *.py[cod]
