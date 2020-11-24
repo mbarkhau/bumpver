@@ -1,6 +1,6 @@
 <div align="center">
 <p align="center">
-  <img alt="logo" src="https://gitlab.com/mbarkhau/pycalver/-/raw/master/pycalver1k2_128.png">
+  <img alt="logo" src="https://raw.githubusercontent.com/mbarkhau/bumpver/master/pycalver1k2_128.png">
 </p>
 </div>
 
@@ -13,7 +13,7 @@ With the CLI command `bumpver`, you can search for and update version strings in
 - Optional Git or Mercurial integration
 - Works with plaintext, so you can use it with any project.
 
-[url_repo]: https://gitlab.com/mbarkhau/bumpver
+[url_repo]: https://github.com/mbarkhau/bumpver
 [url_semver_org]: https://semver.org/
 [url_calver_org]: https://calver.org/
 
@@ -50,7 +50,7 @@ Code Quality/CI:
 [url_codecov]: https://mbarkhau.gitlab.io/pycalver/cov
 
 [img_license]: https://img.shields.io/badge/License-MIT-blue.svg
-[url_license]: https://gitlab.com/mbarkhau/pycalver/blob/master/LICENSE
+[url_license]: https://github.com/mbarkhau/bumpver/blob/master/LICENSE
 
 [img_mypy]: https://img.shields.io/badge/mypy-checked-green.svg
 [url_mypy]: https://mbarkhau.gitlab.io/pycalver/mypycov
