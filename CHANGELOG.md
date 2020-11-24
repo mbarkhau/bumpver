@@ -1,5 +1,8 @@
 # Changelog for https://github.com/mbarkhau/pycalver
 
+## BumpVer 2020.1107
+
+- Non-Beta release (no significant code changes).
 
 ## BumpVer 2020.1105-beta
 
