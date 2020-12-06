@@ -1,5 +1,10 @@
 # Changelog for https://github.com/mbarkhau/pycalver
 
+## BumpVer 2020.1108
+
+- Don't match empty patterns (possibly causing a whole file to be rewritten if braces `[]` are not escaped).
+
+
 ## BumpVer 2020.1107
 
 - Non-Beta release (no significant code changes).
