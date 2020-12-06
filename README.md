@@ -35,11 +35,6 @@ Code Quality/CI:
 [![Code Style: sjfmt][img_style]][url_style]
 
 
-|                Name                 |    role           |  since  | until |
-|-------------------------------------|-------------------|---------|-------|
-| Manuel Barkhau (mbarkhau@gmail.com) | author/maintainer | 2018-09 | -     |
-
-
 [img_github_build]: https://github.com/mbarkhau/pycalver/workflows/CI/badge.svg
 [url_github_build]: https://github.com/mbarkhau/pycalver/actions?query=workflow%3ACI
 
@@ -395,7 +390,7 @@ PEP440     : 2020.1052
 
 ### Explicit `--set-version`
 
-If the various automatic version incrementing methods don't work for you, you can explicitly do `--set-version=<version>`. 
+If the various automatic version incrementing methods don't work for you, you can explicitly do `--set-version=<version>`.
 
 ```diff
 $ bumpver update --dry --set-version="v2020.1060"
@@ -1004,3 +999,9 @@ INFO    - git commit --message 'bump version to 2020.1006'
 INFO    - git tag --annotate 2020.1006 --message 2020.1006
 INFO    - git push origin --follow-tags 2020.1006 HEAD
 ```
+
+## Contributors
+
+|                Name                 |    role           |  since  | until |
+|-------------------------------------|-------------------|---------|-------|
+| Manuel Barkhau (mbarkhau@gmail.com) | author/maintainer | 2018-09 | -     |

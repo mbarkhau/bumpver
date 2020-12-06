@@ -241,7 +241,7 @@ def version_options(function: typ.Callable) -> typ.Callable:
 @click.help_option()
 @verbose_option
 def cli(verbose: int = 0) -> None:
-    """Automatically update CalVer version strings in plaintext files."""
+    """Automatically update version strings in plaintext files."""
     if verbose:
         _configure_logging(verbose=max(_VERBOSE, verbose))
 

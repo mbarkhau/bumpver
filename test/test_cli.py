@@ -101,7 +101,6 @@ def runner(tmpdir):
 def test_help(runner):
     result = runner.invoke(cli.cli, ['--help', "-vv"])
     assert result.exit_code == 0
-    assert "CalVer" in result.output
     assert "update " in result.output
     assert "test " in result.output
     assert "init " in result.output
@@ -927,32 +926,7 @@ README.* =
 """
 
 
-def test_multimatch_file_patterns_v1(runner):
-    _add_project_files("README.md")
-    with pl.Path("setup.cfg").open(mode="w", encoding="utf-8") as fobj:
-        fobj.write(SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE_V1)
-
-    with pl.Path("README.md").open(mode="r", encoding="utf-8") as fobj:
-        content = fobj.read()
-
-    assert content.count("Hello World v201707.1002-alpha !") == 1
-    assert content.count("Hello World v202011.1003-beta !") == 0
-    assert content.count("[aka. 201707.1002a0 !]") == 1
-    assert content.count("[aka. 202011.1003b0 !]") == 0
-
-    result = runner.invoke(cli.cli, ['update', '--tag', 'beta', '--date', "2020-11-22"])
-    assert result.exit_code == 0
-
-    with pl.Path("README.md").open(mode="r", encoding="utf-8") as fobj:
-        content = fobj.read()
-
-    assert content.count("Hello World v201707.1002-alpha !") == 0
-    assert content.count("Hello World v202011.1003-beta !") == 1
-    assert content.count("[aka. 201707.1002a0 !]") == 0
-    assert content.count("[aka. 202011.1003b0 !]") == 1
-
-
-SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE_v2 = r"""
+SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE_V2 = r"""
 [bumpver]
 current_version = "v201701.1002-alpha"
 version_pattern = "vYYYY0M.BUILD[-TAG][NUM]"
@@ -967,10 +941,14 @@ README.* =
 """
 
 
-def test_multimatch_file_patterns_v2(runner):
+@pytest.mark.parametrize(
+    "config_text",
+    [SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE_V1, SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE_V2],
+)
+def test_multimatch_file_patterns(config_text, runner):
     _add_project_files("README.md")
     with pl.Path("setup.cfg").open(mode="w", encoding="utf-8") as fobj:
-        fobj.write(SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE_v2)
+        fobj.write(config_text)
 
     with pl.Path("README.md").open(mode="r", encoding="utf-8") as fobj:
         content = fobj.read()
