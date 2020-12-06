@@ -55,7 +55,7 @@ PatternMatches = typ.Iterable[PatternMatch]
 def _iter_for_pattern(lines: typ.List[str], pattern: Pattern) -> PatternMatches:
     for lineno, line in enumerate(lines):
         match = pattern.regexp.search(line)
-        if match:
+        if match and len(match.group(0)) > 0:
             yield PatternMatch(lineno, line, pattern, match.span(), match.group(0))
 
 

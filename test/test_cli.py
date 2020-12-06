@@ -912,7 +912,7 @@ def test_grep(runner):
     assert result3.output == result4.output
 
 
-SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE = r"""
+SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE_V1 = r"""
 [pycalver]
 current_version = "v201701.1002-alpha"
 version_pattern = "{pycalver}"
@@ -927,10 +927,18 @@ README.* =
 """
 
 
-def test_multimatch_file_patterns(runner):
+def test_multimatch_file_patterns_v1(runner):
     _add_project_files("README.md")
     with pl.Path("setup.cfg").open(mode="w", encoding="utf-8") as fobj:
-        fobj.write(SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE)
+        fobj.write(SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE_V1)
+
+    with pl.Path("README.md").open(mode="r", encoding="utf-8") as fobj:
+        content = fobj.read()
+
+    assert content.count("Hello World v201707.1002-alpha !") == 1
+    assert content.count("Hello World v202011.1003-beta !") == 0
+    assert content.count("[aka. 201707.1002a0 !]") == 1
+    assert content.count("[aka. 202011.1003b0 !]") == 0
 
     result = runner.invoke(cli.cli, ['update', '--tag', 'beta', '--date', "2020-11-22"])
     assert result.exit_code == 0
@@ -938,8 +946,50 @@ def test_multimatch_file_patterns(runner):
     with pl.Path("README.md").open(mode="r", encoding="utf-8") as fobj:
         content = fobj.read()
 
-    assert "Hello World v202011.1003-beta !" in content
-    assert "[aka. 202011.1003b0 !]" in content
+    assert content.count("Hello World v201707.1002-alpha !") == 0
+    assert content.count("Hello World v202011.1003-beta !") == 1
+    assert content.count("[aka. 201707.1002a0 !]") == 0
+    assert content.count("[aka. 202011.1003b0 !]") == 1
+
+
+SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE_v2 = r"""
+[bumpver]
+current_version = "v201701.1002-alpha"
+version_pattern = "vYYYY0M.BUILD[-TAG][NUM]"
+
+[bumpver:file_patterns]
+setup.cfg =
+    current_version = "{version}"
+README.md =
+    Hello World {version} !
+README.* =
+    \[aka. {pep440_version} !\]
+"""
+
+
+def test_multimatch_file_patterns_v2(runner):
+    _add_project_files("README.md")
+    with pl.Path("setup.cfg").open(mode="w", encoding="utf-8") as fobj:
+        fobj.write(SETUP_CFG_MULTIMATCH_FILE_PATTERNS_FIXTURE_v2)
+
+    with pl.Path("README.md").open(mode="r", encoding="utf-8") as fobj:
+        content = fobj.read()
+
+    assert content.count("Hello World v201707.1002-alpha !") == 1
+    assert content.count("Hello World v202011.1003-beta !") == 0
+    assert content.count("[aka. 201707.1002a0 !]") == 1
+    assert content.count("[aka. 202011.1003b0 !]") == 0
+
+    result = runner.invoke(cli.cli, ['update', '--tag', 'beta', '--date', "2020-11-22"])
+    assert result.exit_code == 0
+
+    with pl.Path("README.md").open(mode="r", encoding="utf-8") as fobj:
+        content = fobj.read()
+
+    assert content.count("Hello World v201707.1002-alpha !") == 0
+    assert content.count("Hello World v202011.1003-beta !") == 1
+    assert content.count("[aka. 201707.1002a0 !]") == 0
+    assert content.count("[aka. 202011.1003b0 !]") == 1
 
 
 def _kwargs(year, month, minor=False):
