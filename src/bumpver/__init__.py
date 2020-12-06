@@ -5,4 +5,4 @@
 # SPDX-License-Identifier: MIT
 """BumpVer: A CLI program for versioning."""
 
-__version__ = "2020.1107"
+__version__ = "2020.1108"
