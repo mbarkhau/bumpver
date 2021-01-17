@@ -1,11 +1,11 @@
-# Changelog for https://github.com/mbarkhau/pycalver
+# Changelog for https://github.com/mbarkhau/bumpver
 
 ## BumpVer 2021.1109
 
  - Add `-e/--env` option to support shell script automation.
  - Fix [github#151][github_i151]: invalid increment of `TAGNUM` when `TAG=final` is set.
 
-[github_i151]: https://gitlab.com/mbarkhau/pycalver/-/issues/15
+[github_i151]: https://github.com/mbarkhau/bumpver/issues/151
 
 Thank you to Dave Wapstra @dwapstra for your contributions.
 
