@@ -538,7 +538,7 @@ ERROR   - No patterns matched for file 'src/mymodule/utils.py'
 $ bumpver --help
 Usage: bumpver [OPTIONS] COMMAND [ARGS]...
 
-  Automatically update CalVer version strings in plaintext files.
+  Automatically update version strings in plaintext files.
 
 Options:
   --version      Show the version and exit.
@@ -590,6 +590,21 @@ Options:
 ```
 
 <!-- END bumpver update --help -->
+
+To help with shell script automatin, you can use `bumpver show --env`
+
+```shell
+$ bumpver show -n --env
+YEAR_Y=2020
+YEAR_G=
+...
+TAG=final
+...
+
+$ eval $(bumpver show -n --env)
+$ echo $TAG
+final
+```
 
 
 ### Part Overview

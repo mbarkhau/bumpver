@@ -194,7 +194,7 @@ env_option = click.option(
     "--env",
     is_flag=True,
     default=False,
-    help="Print output as environment variables",
+    help="Print version state for use with shell scripts: eval $(bumpver show --env)",
 )
 
 
