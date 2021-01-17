@@ -116,6 +116,17 @@ def test_version(runner):
     assert match
 
 
+def test_show_env(runner):
+    _add_project_files("README.md", "setup.cfg")
+
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    result = runner.invoke(cli.cli, ['show', "-e"])
+    assert result.exit_code == 0
+    assert "TAG=alpha" in result.output
+
+
 def test_incr_default(runner):
     old_version = "v201709.1004-alpha"
 
