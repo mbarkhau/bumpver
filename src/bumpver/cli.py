@@ -438,6 +438,8 @@ def show(verbose: int = 0, fetch: bool = True, env: bool = False) -> None:
         version_info = v2version.parse_version_info(cfg.current_version, cfg.version_pattern)
         for key, val in version_info._asdict().items():
             click.echo(f"{key.upper()}={val if val else ''}")
+        click.echo(f"CURRENT_VERSION={cfg.current_version}")
+        click.echo(f"PEP440_VERSION={cfg.pep440_version}")
     else:
         click.echo(f"Current Version: {cfg.current_version}")
         click.echo(f"PEP440         : {cfg.pep440_version}")
