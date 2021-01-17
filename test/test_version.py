@@ -73,6 +73,18 @@ def test_bump_random(monkeypatch):
         cur_version = new_version
 
 
+def test_bump_tag_num():
+    raw_pattern = "MAJOR.MINOR.PATCH[PYTAGNUM]"
+    cur_version = "0.1.1b0"
+    assert v2version.incr(cur_version, raw_pattern, tag_num=True) == "0.1.1b1"
+
+
+def test_bump_tag_num_without_tag():
+    raw_pattern = "MAJOR.MINOR.PATCH[PYTAGNUM]"
+    cur_version = "0.1.1"
+    assert v2version.incr(cur_version, raw_pattern, tag_num=True) is None
+
+
 def test_parse_version_info():
     version_str  = "v201712.0001-alpha"
     version_info = v1version.parse_version_info(version_str)
