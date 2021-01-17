@@ -591,7 +591,7 @@ Options:
 
 <!-- END bumpver update --help -->
 
-To help with shell script automatin, you can use `bumpver show --env`
+To help with shell script automation, you can use `bumpver show --env`.
 
 ```shell
 $ bumpver show -n --env
