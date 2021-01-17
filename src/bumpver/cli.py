@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-# This file is part of the pycalver project
-# https://github.com/mbarkhau/pycalver
+# This file is part of the bumpver project
+# https://github.com/mbarkhau/bumpver
 #
-# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# Copyright (c) 2018-2021 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 """cli module for BumpVer."""
 import io
@@ -189,6 +189,15 @@ fetch_option = click.option(
 )
 
 
+env_option = click.option(
+    "-e",
+    "--env",
+    is_flag=True,
+    default=False,
+    help="Print version state for use with shell scripts: eval $(bumpver show --env)",
+)
+
+
 def version_options(function: typ.Callable) -> typ.Callable:
     decorators = [
         click.option("--major", is_flag=True, default=False, help="Increment major component."),
@@ -237,7 +246,7 @@ def version_options(function: typ.Callable) -> typ.Callable:
 
 
 @click.group()
-@click.version_option(version="2020.1108")
+@click.version_option(version="2021.1109")
 @click.help_option()
 @verbose_option
 def cli(verbose: int = 0) -> None:
@@ -413,7 +422,8 @@ def grep(
 @cli.command()
 @verbose_option
 @fetch_option
-def show(verbose: int = 0, fetch: bool = True) -> None:
+@env_option
+def show(verbose: int = 0, fetch: bool = True, env: bool = False) -> None:
     """Show current version of your project."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
 
@@ -424,8 +434,15 @@ def show(verbose: int = 0, fetch: bool = True) -> None:
         sys.exit(1)
 
     cfg = _update_cfg_from_vcs(cfg, fetch)
-    click.echo(f"Current Version: {cfg.current_version}")
-    click.echo(f"PEP440         : {cfg.pep440_version}")
+    if env:
+        version_info = v2version.parse_version_info(cfg.current_version, cfg.version_pattern)
+        for key, val in version_info._asdict().items():
+            click.echo(f"{key.upper()}={val if val else ''}")
+        click.echo(f"CURRENT_VERSION={cfg.current_version}")
+        click.echo(f"PEP440_VERSION={cfg.pep440_version}")
+    else:
+        click.echo(f"Current Version: {cfg.current_version}")
+        click.echo(f"PEP440         : {cfg.pep440_version}")
 
 
 def _colored_diff_lines(diff: str) -> typ.Iterable[str]:

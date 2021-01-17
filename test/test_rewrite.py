@@ -227,10 +227,10 @@ def test_v1_iter_rewritten():
     rewritten_datas = v1rewrite.iter_rewritten(file_patterns, new_vinfo)
     rfd             = list(rewritten_datas)[0]
     expected        = [
-        "# This file is part of the pycalver project",
-        "# https://github.com/mbarkhau/pycalver",
+        "# This file is part of the bumpver project",
+        "# https://github.com/mbarkhau/bumpver",
         "#",
-        "# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License",
+        "# Copyright (c) 2018-2021 Manuel Barkhau (mbarkhau@gmail.com) - MIT License",
         "# SPDX-License-Identifier: MIT",
         '"""BumpVer: A CLI program for versioning."""',
         '',
@@ -253,10 +253,10 @@ def test_v2_iter_rewritten():
     rewritten_datas = v2rewrite.iter_rewritten(file_patterns, new_vinfo)
     rfd             = list(rewritten_datas)[0]
     expected        = [
-        "# This file is part of the pycalver project",
-        "# https://github.com/mbarkhau/pycalver",
+        "# This file is part of the bumpver project",
+        "# https://github.com/mbarkhau/bumpver",
         "#",
-        "# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License",
+        "# Copyright (c) 2018-2021 Manuel Barkhau (mbarkhau@gmail.com) - MIT License",
         "# SPDX-License-Identifier: MIT",
         '"""BumpVer: A CLI program for versioning."""',
         '',

@@ -1,5 +1,5 @@
-# This file is part of the pycalver project
-# https://github.com/mbarkhau/pycalver
+# This file is part of the bumpver project
+# https://github.com/mbarkhau/bumpver
 #
 # Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
@@ -63,7 +63,7 @@ setuptools.setup(
     author="Manuel Barkhau",
     author_email="mbarkhau@gmail.com",
     url="https://github.com/mbarkhau/bumpver",
-    version="2020.1108",
+    version="2021.1109",
     keywords="version bumpver calver semver versioning bumpversion pep440",
     description="Bump version numbers in project files.",
     long_description=long_description,

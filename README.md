@@ -22,7 +22,7 @@ Project/Repo:
 
 [![MIT License][img_license]][url_license]
 [![Supported Python Versions][img_pyversions]][url_pyversions]
-[![CalVer 2020.1108][img_version]][url_version]
+[![CalVer 2021.1109][img_version]][url_version]
 [![PyPI Releases][img_pypi]][url_pypi]
 [![PyPI Downloads][img_downloads]][url_downloads]
 
@@ -56,7 +56,7 @@ Code Quality/CI:
 [img_downloads]: https://pepy.tech/badge/bumpver/month
 [url_downloads]: https://pepy.tech/project/bumpver
 
-[img_version]: https://img.shields.io/static/v1.svg?label=CalVer&message=2020.1108&color=blue
+[img_version]: https://img.shields.io/static/v1.svg?label=CalVer&message=2021.1109&color=blue
 [url_version]: https://pypi.org/project/bumpver/
 
 [img_pypi]: https://img.shields.io/badge/PyPI-wheels-green.svg
@@ -538,7 +538,7 @@ ERROR   - No patterns matched for file 'src/mymodule/utils.py'
 $ bumpver --help
 Usage: bumpver [OPTIONS] COMMAND [ARGS]...
 
-  Automatically update CalVer version strings in plaintext files.
+  Automatically update version strings in plaintext files.
 
 Options:
   --version      Show the version and exit.
@@ -590,6 +590,21 @@ Options:
 ```
 
 <!-- END bumpver update --help -->
+
+To help with shell script automation, you can use `bumpver show --env`.
+
+```shell
+$ bumpver show -n --env
+YEAR_Y=2020
+YEAR_G=
+...
+TAG=final
+...
+
+$ eval $(bumpver show -n --env)
+$ echo $TAG
+final
+```
 
 
 ### Part Overview
@@ -749,7 +764,7 @@ The create an initial configuration for project with `bumpver init`.
 $ pip install bumpver
 ...
 Installing collected packages: click toml lexid bumpver
-Successfully installed bumpver-2020.1108
+Successfully installed bumpver-2021.1109
 
 $ cd myproject
 ~/myproject/

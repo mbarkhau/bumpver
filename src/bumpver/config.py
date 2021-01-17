@@ -1,7 +1,7 @@
-# This file is part of the pycalver project
-# https://gitlab.com/mbarkhau/pycalver
+# This file is part of the bumpver project
+# https://gitlab.com/mbarkhau/bumpver
 #
-# Copyright (c) 2018-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# Copyright (c) 2018-2021 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 """Parse bumpver.toml, setup.cfg or pyproject.toml files."""
 
