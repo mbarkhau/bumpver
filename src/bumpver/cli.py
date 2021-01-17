@@ -436,8 +436,8 @@ def show(verbose: int = 0, fetch: bool = True, env: bool = False) -> None:
     cfg = _update_cfg_from_vcs(cfg, fetch)
     if env:
         version_info = v2version.parse_version_info(cfg.current_version, cfg.version_pattern)
-        for k, v in version_info._asdict().items():
-            click.echo(f"{k.upper()}={v if v else ''}")
+        for key, val in version_info._asdict().items():
+            click.echo(f"{key.upper()}={val if val else ''}")
     else:
         click.echo(f"Current Version: {cfg.current_version}")
         click.echo(f"PEP440         : {cfg.pep440_version}")
