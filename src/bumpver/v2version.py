@@ -754,6 +754,11 @@ def incr(
     else:
         cur_vinfo = old_vinfo._replace(**cur_cinfo._asdict())
 
+    has_tag_part = cur_vinfo.tag != "final"
+    if tag_num and not tag and not has_tag_part:
+        logger.error("Invalid arguments, non-final --tag=<tag> is needed to use --tag-num.")
+        return None
+
     cur_vinfo = _incr_numeric(
         raw_pattern,
         old_vinfo,
