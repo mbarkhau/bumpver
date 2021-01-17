@@ -1,5 +1,15 @@
 # Changelog for https://github.com/mbarkhau/pycalver
 
+## BumpVer 2021.1109
+
+ - Add `-e/--env` option to support shell script automation.
+ - Fix [github#151][github_i151]: invalid increment of `TAGNUM` when `TAG=final` is set.
+
+[github_i151]: https://gitlab.com/mbarkhau/pycalver/-/issues/15
+
+Thank you to Dave Wapstra @dwapstra for your contributions.
+
+
 ## BumpVer 2020.1108
 
 - Don't match empty patterns (possibly causing a whole file to be rewritten if braces `[]` are not escaped).
