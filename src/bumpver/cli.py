@@ -124,7 +124,7 @@ def _validate_flags(
         sys.exit(1)
 
 
-def _log_no_change(subcmd: str, version_pattern: str, old_version: str) -> None:
+def _log_no_change(subcmd: str, version_pattern: str) -> None:
     is_semver = "{semver}" in version_pattern or (
         "MAJOR" in version_pattern and "MAJOR" in version_pattern and "PATCH" in version_pattern
     )
@@ -294,7 +294,7 @@ def test(
         new_version = set_version
 
     if new_version is None:
-        _log_no_change('test', raw_pattern, old_version)
+        _log_no_change('test', raw_pattern)
         sys.exit(1)
 
     if not _is_valid_version(raw_pattern, old_version, new_version):
@@ -732,7 +732,7 @@ def update(
         new_version = set_version
 
     if new_version is None:
-        _log_no_change('update', cfg.version_pattern, old_version)
+        _log_no_change('update', cfg.version_pattern)
         sys.exit(1)
 
     if not _is_valid_version(cfg.version_pattern, old_version, new_version):
