@@ -118,9 +118,9 @@ version_pattern = "MAJOR.MINOR.PATCH"
 
 [bumpver:file_patterns]
 setup.py
-  version="{version}",
+    version="{version}",
 src/mymodule/__init__.py
-	__version__ = "{version}"
+    __version__ = "{version}"
 ```
 
 Using this configuration, the output of `bumpver update --dry` might look something like this:
