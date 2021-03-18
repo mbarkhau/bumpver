@@ -14,7 +14,6 @@ import subprocess as sp
 
 import click
 import colorama
-import pkg_resources
 
 from . import vcs
 from . import config
@@ -509,7 +508,7 @@ def _is_valid_version(raw_pattern: str, old_version: str, new_version: str) -> b
         logger.error(f"Invalid version '{new_version}' for pattern '{raw_pattern}'")
         return False
 
-    if pkg_resources.parse_version(new_version) <= pkg_resources.parse_version(old_version):
+    if version.parse_version(new_version) <= version.parse_version(old_version):
         logger.error("Invariant violated: New version must be greater than old version ")
         logger.error(f"  Failed Invariant: '{new_version}' > '{old_version}'")
         return False
@@ -651,7 +650,7 @@ def get_latest_vcs_version_tag(cfg: config.Config, fetch: bool) -> typ.Optional[
         version_tags = [tag for tag in all_tags if v1version.is_valid(tag, cfg.version_pattern)]
 
     if version_tags:
-        version_tags.sort(key=pkg_resources.parse_version, reverse=True)
+        version_tags.sort(key=version.parse_version, reverse=True)
         _debug_tags = ", ".join(version_tags[:3])
         logger.debug(f"found tags: {_debug_tags} ... ({len(version_tags)} in total)")
         return version_tags[0]

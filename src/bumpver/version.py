@@ -6,9 +6,14 @@
 import typing as typ
 import datetime as dt
 
-import pkg_resources
-
 MaybeInt = typ.Optional[int]
+
+
+def parse_version(version: str) -> typ.Any:
+    # pylint: disable=import-outside-toplevel; lazy import to speed up --help
+    import pkg_resources
+
+    return pkg_resources.parse_version(version)
 
 
 class V1CalendarInfo(typ.NamedTuple):
@@ -171,4 +176,4 @@ def to_pep440(version: str) -> str:
     >>> to_pep440("v201811.0007-beta")
     '201811.7b0'
     """
-    return str(pkg_resources.parse_version(version))
+    return str(parse_version(version))
