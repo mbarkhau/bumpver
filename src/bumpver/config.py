@@ -211,6 +211,7 @@ def _parse_cfg(cfg_buffer: typ.IO[str]) -> RawConfig:
     elif cfg_parser.has_section("bumpver"):
         raw_cfg = dict(cfg_parser.items("bumpver"))
     else:
+        logger.warning("Perhaps try 'bumpver init'.")
         raise ValueError("Missing [bumpver] section.")
 
     for option, default_val in BOOL_OPTIONS.items():
@@ -286,6 +287,21 @@ def _compile_v2_file_patterns(raw_cfg: RawConfig) -> typ.Iterable[FilePatternsIt
     raw_patterns_by_file: RawPatternsByFile = raw_cfg['file_patterns']
 
     for filepath, raw_patterns in _iter_glob_expanded_file_patterns(raw_patterns_by_file):
+        for raw_pattern in raw_patterns:
+            if raw_pattern.startswith("["):
+                errmsg = (
+                    f"Invalid pattern {raw_pattern} for {filepath}. "
+                    + "Character not valid in this position '[' "
+                )
+                raise ValueError(errmsg)
+
+            # provoke error for specifc pattern
+            try:
+                v2patterns.compile_pattern(version_pattern, raw_pattern)
+            except re.error:
+                logger.warning(f"Invalid patterns for {filepath} ({raw_pattern})")
+                raise
+
         compiled_patterns = v2patterns.compile_patterns(version_pattern, raw_patterns)
         yield filepath, compiled_patterns
 

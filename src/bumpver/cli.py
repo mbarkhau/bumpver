@@ -125,9 +125,6 @@ def _validate_flags(
 
 
 def _log_no_change(subcmd: str, version_pattern: str, old_version: str) -> None:
-    msg = f"Invalid version '{old_version}' and/or pattern '{version_pattern}'."
-    logger.error(msg)
-
     is_semver = "{semver}" in version_pattern or (
         "MAJOR" in version_pattern and "MAJOR" in version_pattern and "PATCH" in version_pattern
     )
@@ -541,7 +538,7 @@ def incr_dispatch(
         logger.info("regex = " + regexfmt.pyexpr_regex(pattern.regexp.pattern))
 
     if has_v1_part:
-        new_version = v1version.incr(
+        return v1version.incr(
             old_version,
             raw_pattern=raw_pattern,
             major=major,
@@ -553,7 +550,7 @@ def incr_dispatch(
             date=date,
         )
     else:
-        new_version = v2version.incr(
+        return v2version.incr(
             old_version,
             raw_pattern=raw_pattern,
             major=major,
@@ -564,8 +561,6 @@ def incr_dispatch(
             pin_date=pin_date,
             date=date,
         )
-
-    return new_version
 
 
 def _update(
@@ -715,7 +710,7 @@ def update(
     _, cfg = config.init(project_path=".")
 
     if cfg is None:
-        logger.error("Could not parse configuration. Perhaps try 'bumpver init'.")
+        logger.error("Could not parse configuration.")
         sys.exit(1)
 
     cfg = _update_cfg_from_vcs(cfg, fetch)

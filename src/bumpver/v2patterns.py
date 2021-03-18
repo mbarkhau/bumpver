@@ -31,13 +31,10 @@
 
 import re
 import typing as typ
-import logging
 
 from . import utils
 from .patterns import RE_PATTERN_ESCAPES
 from .patterns import Pattern
-
-logger = logging.getLogger("bumpver.v2patterns")
 
 # NOTE (mb 2020-09-17): For patterns with different options '(AAA|BB|C)', the
 #   patterns with more digits should be first/left of those with fewer digits:

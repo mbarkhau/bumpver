@@ -743,6 +743,7 @@ def incr(
     try:
         old_vinfo = parse_version_info(old_version, raw_pattern)
     except version.PatternError as ex:
+        logger.error(f"Invalid version '{old_version}' and/or pattern '{raw_pattern}'")
         logger.error(str(ex))
         return None
 
