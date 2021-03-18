@@ -61,16 +61,13 @@ def pyexpr_regex(regex: str) -> str:
         return f"re.compile({repr(regex)})"
 
 
+URL_TEMPLATE = "https://regex101.com/?flavor=python&flags=gmx&regex="
+
+
 def regex101_url(regex_pattern: str) -> str:
     try:
         regex_pattern = format_regex(regex_pattern)
     except re.error:
         logger.warning(f"Error formatting regex '{repr(regex_pattern)}'")
 
-    return "".join(
-        (
-            "https://regex101.com/",
-            "?flavor=python",
-            "&flags=gmx" "&regex=" + pysix.quote(regex_pattern),
-        )
-    )
+    return URL_TEMPLATE + pysix.quote(regex_pattern)
