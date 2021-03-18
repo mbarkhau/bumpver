@@ -8,6 +8,11 @@ import os
 import sys
 import setuptools
 
+try:
+    import fastentrypoints  # noqa
+except ImportError:
+    pass
+
 
 def project_path(*sub_paths):
     project_dirpath = os.path.abspath(os.path.dirname(__file__))
