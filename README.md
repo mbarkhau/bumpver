@@ -148,9 +148,9 @@ INFO    - New Version: 1.5.3
 
 ### Name Change PyCalVer -> BumpVer
 
-This project was originally developed under the name PyCalVer, with the intent to support various CalVer schemes. The package and CLI command have since been renamed from PyCalVer/`pycalver` to BumpVer/`bumpver`.
+This project was originally developed under the name PyCalVer, with the intent to support various CalVer schemes. The package has since been renamed from PyCalVer to BumpVer and the CLI command from `pycalver` to `bumpver`.
 
-This name change is due to confusion that this project is either Python specific, or only suitible for CalVer versioning schemes, neither of which is the case.
+This name change is to reduce confusion that this project is only suitable for Python projects or only for CalVer versioning schemes, neither of which is the case.
 
 
 ### Related Projects/Alternatives
