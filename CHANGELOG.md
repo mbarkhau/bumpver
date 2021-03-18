@@ -1,5 +1,16 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2021.1110
+
+ - Fix [github#157][github_i157]: Improve error messages.
+ - Fix [github#158][github_i158]: Clarify `PYTAGNUM` "part"
+
+[github_i157]: https://github.com/mbarkhau/bumpver/issues/157
+[github_i158]: https://github.com/mbarkhau/bumpver/issues/158
+
+Thank you to Julien Palard @JulienPalard for testing and feedback.
+
+
 ## BumpVer 2021.1109
 
  - Add `-e/--env` option to support shell script automation.
