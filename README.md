@@ -1,6 +1,6 @@
 <div align="center">
 <p align="center">
-  <img alt="logo" src="https://raw.githubusercontent.com/mbarkhau/bumpver/master/pycalver1k2_128.png">
+  <img alt="logo" src="https://raw.githubusercontent.com/mbarkhau/bumpver/master/bumpver_128.png">
 </p>
 </div>
 
