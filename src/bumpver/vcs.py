@@ -76,7 +76,7 @@ class VCSAPI:
         else:
             logger.debug(cmd_str)
         cmd_parts = shlex.split(cmd_str)
-        output_data: bytes = sp.check_output(cmd_parts, env=env, stderr=sp.STDOUT)
+        output_data: bytes = sp.check_output(cmd_parts, env=env, stderr=sp.PIPE)
 
         return output_data.decode("utf-8")
 
