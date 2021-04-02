@@ -1,5 +1,10 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2021.1111
+
+ - Fix: Build from source on windows.
+
+
 ## BumpVer 2021.1110
 
  - Fix [github#157][github_i157]: Improve error messages.
