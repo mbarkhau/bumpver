@@ -73,7 +73,7 @@ setuptools.setup(
     description="Bump version numbers in project files.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=setuptools.find_packages("src/"),
+    packages=setuptools.find_packages("src"),
     package_dir=package_dir,
     install_requires=install_requires,
     entry_points="""
