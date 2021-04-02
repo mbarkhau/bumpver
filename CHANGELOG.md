@@ -1,6 +1,6 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
-## BumpVer 2021.1111
+## BumpVer 2021.1112
 
  - Fix: Build from source on windows.
 
