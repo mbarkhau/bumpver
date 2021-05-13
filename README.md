@@ -574,7 +574,7 @@ Options:
 
   --set-version <VERSION>       Set version explicitly.
   --date <ISODATE>              Set explicit date in format YYYY-0M-0D (e.g.
-                                2020-10-20).
+                                2021-05-13).
 
   --pin-date                    Leave date components unchanged.
   --tag-num                     Increment release tag number (rc1, rc2,
@@ -583,9 +583,9 @@ Options:
   -t, --tag <NAME>              Override release tag of current_version. Valid
                                 options are: alpha, beta, rc, post, final.
 
-  -p, --patch                   Increment patch component.
-  -m, --minor                   Increment minor component.
-  --major                       Increment major component.
+  -p, --patch                   Increment PATCH component.
+  -m, --minor                   Increment MINOR component.
+  --major                       Increment MAJOR component.
   -c, --commit-message <TMPL>   Set commit message template.
   --help                        Show this message and exit.
 ```
@@ -969,7 +969,6 @@ INFO    - New Version: 2019.1002-beta
 ```
 
 
-
 ### VCS Parameters (git/mercurial)
 
 The individual steps performed by `bumpver update`:
@@ -1015,6 +1014,30 @@ INFO    - New Version: 2020.1006
 INFO    - git commit --message 'bump version to 2020.1006'
 INFO    - git tag --annotate 2020.1006 --message 2020.1006
 INFO    - git push origin --follow-tags 2020.1006 HEAD
+```
+
+### Custom Commit Message
+
+In addition to the `commit_message` configuration, you can also override the string used as the the commit message template with the `-c/--commit-message=<TMPL>` parameter:
+
+```shell
+$ bumpver update --tag final --commit-message 'bump version {old_version} -> {new_version} [ci-publish]' --verbose
+INFO    - Old Version: 2021.1005b0
+INFO    - New Version: 2021.1006
+INFO    - git commit --message 'bump version 2020.1005b0 -> 2021.1006 [ci-publish]'
+INFO    - git tag --annotate 2020.1006 --message 2020.1006
+INFO    - git push origin --follow-tags 2020.1006 HEAD
+```
+
+As this is a manual operation (rather than a long lived configuration option), you can use the placeholders `OLD` and `NEW` for convenience, instead of the more verbose `{old_version}` and `{new_version}`.
+
+```shell
+$ bumpver update -f -t final -c '[final-version] OLD -> NEW'
+...
+INFO    - Old Version: 1.2.0b2
+INFO    - New Version: 1.2.0
+INFO    - git commit --message '[final-version] 1.2.0b2 -> 1.2.0'
+...
 ```
 
 ## Contributors
