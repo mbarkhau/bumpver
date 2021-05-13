@@ -45,6 +45,10 @@ logger = logging.getLogger("bumpver.cli")
 _VERBOSE = 0
 
 
+# pylint:disable=too-many-arguments; such is the cli
+# pylint:disable=too-many-locals; such is the cli
+
+
 def _configure_logging(verbose: int = 0) -> None:
     # pylint:disable=global-statement; global flag is global.
     global _VERBOSE
