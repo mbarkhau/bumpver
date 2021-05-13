@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: MIT
 """cli module for BumpVer."""
 import io
+import re
 import sys
 import typing as typ
 import logging
@@ -687,19 +688,27 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     ),
 )
 @version_options
+@click.option(
+    "-c",
+    "--commit-message",
+    default=None,
+    metavar="<MESSAGE>",
+    help="Set commit message.",
+)
 def update(
-    dry        : bool = False,
-    allow_dirty: bool = False,
-    fetch      : bool = True,
-    verbose    : int = 0,
-    major      : bool = False,
-    minor      : bool = False,
-    patch      : bool = False,
-    tag        : typ.Optional[str] = None,
-    tag_num    : bool = False,
-    pin_date   : bool = False,
-    date       : typ.Optional[str] = None,
-    set_version: typ.Optional[str] = None,
+    dry           : bool = False,
+    allow_dirty   : bool = False,
+    fetch         : bool = True,
+    verbose       : int = 0,
+    major         : bool = False,
+    minor         : bool = False,
+    patch         : bool = False,
+    tag           : typ.Optional[str] = None,
+    tag_num       : bool = False,
+    pin_date      : bool = False,
+    date          : typ.Optional[str] = None,
+    set_version   : typ.Optional[str] = None,
+    commit_message: typ.Optional[str] = None,
 ) -> None:
     """Update project files with the incremented version string."""
     verbose = max(_VERBOSE, verbose)
@@ -747,18 +756,25 @@ def update(
     if dry or verbose >= 2:
         _print_diff(cfg, new_version)
 
-    if dry:
-        return
+    if commit_message is None:
+        commit_msg_template = cfg.commit_message
+    else:
+        commit_msg_template, _ = re.subn(r"\b(OLD|NEW)\b", r"{\1_VERSION}", commit_message)
 
     commit_message_kwargs = {
         'new_version'       : new_version,
         'old_version'       : old_version,
+        'NEW_VERSION'       : new_version,
+        'OLD_VERSION'       : old_version,
         'new_version_pep440': version.to_pep440(new_version),
         'old_version_pep440': version.to_pep440(old_version),
     }
-    commit_message = cfg.commit_message.format(**commit_message_kwargs)
+    try_commit_message = commit_msg_template.format(**commit_message_kwargs)
 
-    _try_update(cfg, new_version, commit_message, allow_dirty)
+    if dry:
+        return
+
+    _try_update(cfg, new_version, try_commit_message, allow_dirty)
 
 
 if __name__ == '__main__':
