@@ -36,7 +36,7 @@ except ImportError:
     pass  # no need to fail because of missing dev dependency
 
 
-setattr(click, 'disable_unicode_literals_warning', True)    # for click<8.0
+click.disable_unicode_literals_warning = True  # type: ignore[attr-defined]
 
 logger = logging.getLogger("bumpver.cli")
 
