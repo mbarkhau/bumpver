@@ -890,6 +890,42 @@ def test_git_commit_message(runner, caplog):
     assert expected in commits[1]
 
 
+def test_cli_commit_message(runner, caplog):
+    _add_project_files("README.md", "setup.cfg")
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val(
+        "setup.cfg",
+        current_version='"v2019.1001-alpha"',
+        version_pattern="vYYYY.BUILD[-TAG]",
+    )
+
+    _vcs_init("git", ["README.md", "setup.cfg"])
+    assert len(caplog.records) > 0
+
+    cmd = [
+        'update',
+        "-vv",
+        "--pin-date",
+        "--tag",
+        "beta",
+        "--commit-message",
+        "my custom message (OLD -> NEW)",
+    ]
+
+    result = runner.invoke(cli.cli, cmd)
+    assert result.exit_code == 0
+
+    tags = shell("git", "tag", "--list").decode("utf-8")
+    assert "v2019.1002-beta" in tags
+
+    commits = shell(*shlex.split("git log -l 2")).decode("utf-8").split("\n\n")
+
+    expected = "my custom message (v2019.1001-alpha -> v2019.1002-beta)"
+    assert expected in commits[1]
+
+
 def test_grep(runner):
     _add_project_files("README.md")
 
