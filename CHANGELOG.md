@@ -1,5 +1,12 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2021.1113
+
+ - Add: [`--commit-message` argument][github_i162] for `bumpver update`
+
+[github_i162]: https://github.com/mbarkhau/bumpver/issues/162
+
+
 ## BumpVer 2021.1112
 
  - Fix: Build from source on windows.
