@@ -151,7 +151,11 @@ class VCSAPI:
             self('commit', env=env, message=message)
         else:
             message_data = message.encode("utf-8")
-            tmp_file     = tempfile.NamedTemporaryFile("wb", delete=False)
+
+            # The tmp_file must exist for the duration of the commit command,
+            # but also must be flushed and closed before the command runs.
+            # pylint:disable=consider-using-with
+            tmp_file = tempfile.NamedTemporaryFile("wb", delete=False)
             try:
                 assert " " not in tmp_file.name
 
