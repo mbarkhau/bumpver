@@ -9,7 +9,8 @@
 
 pathlib2
 typing; python_version < "3.5"
-click
+click<8.0; python_version < "3.6"
+click; python_version >= "3.6"
 toml
 lexid
 colorama>=0.4
