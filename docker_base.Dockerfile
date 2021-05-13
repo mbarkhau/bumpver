@@ -9,30 +9,9 @@
 
 FROM registry.gitlab.com/mbarkhau/bootstrapit/env_builder AS builder
 
-# gcc required for cmarkgfm on python3.8
-# https://github.com/theacodes/cmarkgfm/issues/22
-RUN apt-get update
-RUN apt-get install -y gcc
-
 RUN mkdir /root/.ssh/ && \
     ssh-keyscan gitlab.com >> /root/.ssh/known_hosts && \
     ssh-keyscan registry.gitlab.com >> /root/.ssh/known_hosts
-
-ARG SSH_PRIVATE_RSA_KEY
-ENV ENV_SSH_PRIVATE_RSA_KEY=${SSH_PRIVATE_RSA_KEY}
-
-# Write private key and generate public key
-RUN if ! test -z "${ENV_SSH_PRIVATE_RSA_KEY}"; then \
-    echo -n "-----BEGIN RSA PRIVATE KEY-----" >> /root/.ssh/id_rsa && \
-    echo -n ${ENV_SSH_PRIVATE_RSA_KEY} \
-    | sed 's/-----BEGIN RSA PRIVATE KEY-----//' \
-    | sed 's/-----END RSA PRIVATE KEY-----//' \
-    | sed 's/ /\n/g' \
-    >> /root/.ssh/id_rsa && \
-    echo -n "-----END RSA PRIVATE KEY-----" >> /root/.ssh/id_rsa && \
-    chmod 600 /root/.ssh/* && \
-    ssh-keygen -y -f /root/.ssh/id_rsa > /root/.ssh/id_rsa.pub; \
-    fi
 
 ADD requirements/ requirements/
 ADD scripts/ scripts/
@@ -47,8 +26,6 @@ RUN make build/envs.txt
 # install python package dependencies (change more often)
 ADD requirements/ requirements/
 RUN make conda
-
-RUN rm -f /root/.ssh/id_rsa
 
 # Deleting pkgs implies that `conda install`
 # will have to pull all packages again.
