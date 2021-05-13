@@ -586,6 +586,7 @@ Options:
   -p, --patch                   Increment patch component.
   -m, --minor                   Increment minor component.
   --major                       Increment major component.
+  -c, --commit-message <TMPL>   Set commit message template.
   --help                        Show this message and exit.
 ```
 

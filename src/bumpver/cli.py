@@ -692,8 +692,8 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     "-c",
     "--commit-message",
     default=None,
-    metavar="<MESSAGE>",
-    help="Set commit message.",
+    metavar="<TMPL>",
+    help="Set commit message template.",
 )
 def update(
     dry           : bool = False,
