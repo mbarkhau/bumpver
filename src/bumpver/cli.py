@@ -197,12 +197,12 @@ env_option = click.option(
 
 def version_options(function: typ.Callable) -> typ.Callable:
     decorators = [
-        click.option("--major", is_flag=True, default=False, help="Increment major component."),
+        click.option("--major", is_flag=True, default=False, help="Increment MAJOR component."),
         click.option(
-            "-m", "--minor", is_flag=True, default=False, help="Increment minor component."
+            "-m", "--minor", is_flag=True, default=False, help="Increment MINOR component."
         ),
         click.option(
-            "-p", "--patch", is_flag=True, default=False, help="Increment patch component."
+            "-p", "--patch", is_flag=True, default=False, help="Increment PATCH component."
         ),
         click.option(
             "-t",
