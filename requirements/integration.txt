@@ -20,8 +20,11 @@ flake8-comprehensions
 flake8-junit-report
 flake8-2020
 pylint-ignore>=2020.1013
-mypy>=0.790
 isort
+
+mypy>=0.910
+types-setuptools
+types-toml
 
 # http://doc.pytest.org/en/latest/py27-py34-deprecation.html
 # The pytest 4.6 series will be the last to support Python 2.7
