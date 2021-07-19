@@ -203,7 +203,7 @@ def _parse_cfg(cfg_buffer: typ.IO[str]) -> RawConfig:
     if hasattr(cfg_parser, 'read_file'):
         cfg_parser.read_file(cfg_buffer)
     else:
-        cfg_parser.readfp(cfg_buffer)  # python2 compat
+        cfg_parser.readfp(cfg_buffer)  # pylint: disable=deprecated-method ; python2 compat
 
     raw_cfg: RawConfig
     if cfg_parser.has_section("pycalver"):
