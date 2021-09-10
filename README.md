@@ -674,7 +674,7 @@ For example:
 - Version: `v20.08.02-beta`
 - PEP440 : `20.8.2b0`
 
-I am not aware of any technical reason to use a normalized representation everywhere in your project. However, if you choose a pattern which is always in a normalized, it will help to avoid confusion. For example, it may not be obvious at a glance, that `v20.08.02-beta` is the same as `20.8.2b0` .
+I am not aware of any technical reason to use a normalized representation everywhere in your project. However, if you choose a pattern which is always in a normalized form, it will help to avoid confusion. For example, it may not be obvious at a glance, that `v20.08.02-beta` is the same as `20.8.2b0` .
 
 A further consideration for the choice of your `version_pattern` is that it may be processed by tools that *do not* interpret it as a version number, but treat it just like any other string. It may also be confusing to your users if they a list of version numbers, sorted lexicographically by some tool (e.g. from `git tags`) and versions are not listed in order of their release:
 
