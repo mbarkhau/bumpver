@@ -149,7 +149,7 @@ def _fmt_yy(year_y: FieldValue) -> str:
 
 
 def _fmt_0y(year_y: FieldValue) -> str:
-    return "{0:02}".format(int(str(year_y)[-2:]))
+    return f"{int(str(year_y)[-2:]):02}"
 
 
 def _fmt_gg(year_g: FieldValue) -> str:
@@ -157,31 +157,31 @@ def _fmt_gg(year_g: FieldValue) -> str:
 
 
 def _fmt_0g(year_g: FieldValue) -> str:
-    return "{0:02}".format(int(str(year_g)[-2:]))
+    return f"{int(str(year_g)[-2:]):02}"
 
 
 def _fmt_0m(month: FieldValue) -> str:
-    return "{0:02}".format(int(month))
+    return f"{int(month):02}"
 
 
 def _fmt_0d(dom: FieldValue) -> str:
-    return "{0:02}".format(int(dom))
+    return f"{int(dom):02}"
 
 
 def _fmt_00j(doy: FieldValue) -> str:
-    return "{0:03}".format(int(doy))
+    return f"{int(doy):03}"
 
 
 def _fmt_0w(week_w: FieldValue) -> str:
-    return "{0:02}".format(int(week_w))
+    return f"{int(week_w):02}"
 
 
 def _fmt_0u(week_u: FieldValue) -> str:
-    return "{0:02}".format(int(week_u))
+    return f"{int(week_u):02}"
 
 
 def _fmt_0v(week_v: FieldValue) -> str:
-    return "{0:02}".format(int(week_v))
+    return f"{int(week_v):02}"
 
 
 FormatterFunc = typ.Callable[[FieldValue], str]

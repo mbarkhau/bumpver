@@ -276,9 +276,9 @@ def _update_config_val(filename, **kwargs):
 
     new_cfg_text = old_cfg_text
     for key, val in kwargs.items():
-        replacement = "{} = {}".format(key, val)
+        replacement = f"{key} = {val}"
         if replacement not in new_cfg_text:
-            pattern      = r"^{} = .*$".format(key)
+            pattern      = fr"^{key} = .*$"
             new_cfg_text = re.sub(pattern, replacement, new_cfg_text, flags=re.MULTILINE)
             assert old_cfg_text != new_cfg_text
 
