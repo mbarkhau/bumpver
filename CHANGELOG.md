@@ -1,5 +1,14 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2021.1114
+
+ - Add: [flags to override vcs options][github_i168] for `bumpver update`
+
+[github_i168]: https://github.com/mbarkhau/bumpver/issues/168
+
+Thank you to Timo Ludwig @timoludwig for this contribution.
+
+
 ## BumpVer 2021.1113
 
  - Add: [`--commit-message` argument][github_i162] for `bumpver update`
