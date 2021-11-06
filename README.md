@@ -564,30 +564,29 @@ Usage: bumpver update [OPTIONS]
   Update project files with the incremented version string.
 
 Options:
-  -d, --dry                     Display diff of changes, don't rewrite files.
-  -f, --fetch / -n, --no-fetch  Sync tags from remote origin.
-  -v, --verbose                 Control log level. -vv for debug level.
-  --allow-dirty                 Commit even when working directory is has
-                                uncomitted changes. (WARNING: The commit will
-                                still be aborted if there are uncomitted to
-                                files with version strings.
-
-  --set-version <VERSION>       Set version explicitly.
-  --date <ISODATE>              Set explicit date in format YYYY-0M-0D (e.g.
-                                2021-05-13).
-
-  --pin-date                    Leave date components unchanged.
-  --tag-num                     Increment release tag number (rc1, rc2,
-                                rc3..).
-
-  -t, --tag <NAME>              Override release tag of current_version. Valid
-                                options are: alpha, beta, rc, post, final.
-
-  -p, --patch                   Increment PATCH component.
-  -m, --minor                   Increment MINOR component.
-  --major                       Increment MAJOR component.
-  -c, --commit-message <TMPL>   Set commit message template.
-  --help                        Show this message and exit.
+  -d, --dry                       Display diff of changes, don't rewrite files.
+  -f, --fetch / -n, --no-fetch    Sync tags from remote origin.
+  -v, --verbose                   Control log level. -vv for debug level.
+  --allow-dirty                   Commit even when working directory is has
+                                  uncomitted changes. (WARNING: The commit will
+                                  still be aborted if there are uncomitted to
+                                  files with version strings.
+  --set-version <VERSION>         Set version explicitly.
+  --date <ISODATE>                Set explicit date in format YYYY-0M-0D (e.g.
+                                  2021-05-13).
+  --pin-date                      Leave date components unchanged.
+  --tag-num                       Increment release tag number (rc1, rc2,
+                                  rc3..).
+  -t, --tag <NAME>                Override release tag of current_version. Valid
+                                  options are: alpha, beta, rc, post, final.
+  -p, --patch                     Increment PATCH component.
+  -m, --minor                     Increment MINOR component.
+  --major                         Increment MAJOR component.
+  -c, --commit-message <TMPL>     Set commit message template.
+  --commit / --no-commit          Create a commit with all updated files.
+  --tag-commit / --no-tag-commit  Tag the newly created commit.
+  --push / --no-push              Push to the default remote.
+  --help                          Show this message and exit.
 ```
 
 <!-- END bumpver update --help -->
@@ -1015,6 +1014,17 @@ INFO    - git commit --message 'bump version to 2020.1006'
 INFO    - git tag --annotate 2020.1006 --message 2020.1006
 INFO    - git push origin --follow-tags 2020.1006 HEAD
 ```
+
+It's also possible to override the config values by passing the following command line flags to `bumpver update`:
+
+|       Flag        |                 Override config                 |
+|-------------------|-------------------------------------------------|
+| `--commit`        | `commit = True`                                 |
+| `--no-commit`     | `commit = False`, `tag = False`, `push = False` |
+| `--tag-commit`    | `tag = True`                                    |
+| `--no-tag-commit` | `tag = False`                                   |
+| `--push`          | `push = True`                                   |
+| `--no-push`       | `push = False`                                  |
 
 ### Custom Commit Message
 
