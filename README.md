@@ -1015,7 +1015,7 @@ INFO    - git tag --annotate 2020.1006 --message 2020.1006
 INFO    - git push origin --follow-tags 2020.1006 HEAD
 ```
 
-It's also possible to override the config values by passing the following command line flags to `bumpver update`:
+You can also override the config values by passing these command line flags to `bumpver update`:
 
 |       Flag        |                 Override config                 |
 |-------------------|-------------------------------------------------|
@@ -1025,6 +1025,7 @@ It's also possible to override the config values by passing the following comman
 | `--no-tag-commit` | `tag = False`                                   |
 | `--push`          | `push = True`                                   |
 | `--no-push`       | `push = False`                                  |
+
 
 ### Custom Commit Message
 
@@ -1049,6 +1050,7 @@ INFO    - New Version: 1.2.0
 INFO    - git commit --message '[final-version] 1.2.0b2 -> 1.2.0'
 ...
 ```
+
 
 ## Contributors
 
