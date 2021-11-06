@@ -677,6 +677,32 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
             )
 
 
+def _parse_vcs_options(
+    cfg   : config.Config,
+    commit: typ.Optional[bool] = None,
+    tag   : typ.Optional[bool] = None,
+    push  : typ.Optional[bool] = None,
+) -> config.Config:
+    if commit is not None:
+        if not commit:
+            if tag:
+                raise ValueError("--no-commit and --tag-commit cannot be used at the same time")
+            if push:
+                raise ValueError("--no-commit and --push cannot be used at the same time")
+        cfg = cfg._replace(commit=commit)
+    if tag is not None:
+        if tag and not cfg.commit:
+            raise ValueError(
+                "--tag-commit requires the --commit flag if commit=False in the config file"
+            )
+        cfg = cfg._replace(tag=tag)
+    if push is not None:
+        if push and not cfg.commit:
+            raise ValueError("--push requires the --commit flag if commit=False in the config file")
+        cfg = cfg._replace(push=push)
+    return cfg
+
+
 @cli.command()
 @dry_option
 @fetch_option
@@ -699,6 +725,21 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     metavar="<TMPL>",
     help="Set commit message template.",
 )
+@click.option(
+    "--commit/--no-commit",
+    default=None,
+    help="Create a commit with all updated files.",
+)
+@click.option(
+    "--tag-commit/--no-tag-commit",
+    default=None,
+    help="Tag the newly created commit.",
+)
+@click.option(
+    "--push/--no-push",
+    default=None,
+    help="Push to the default remote.",
+)
 def update(
     dry           : bool = False,
     allow_dirty   : bool = False,
@@ -713,6 +754,9 @@ def update(
     date          : typ.Optional[str] = None,
     set_version   : typ.Optional[str] = None,
     commit_message: typ.Optional[str] = None,
+    commit        : typ.Optional[bool] = None,
+    tag_commit    : typ.Optional[bool] = None,
+    push          : typ.Optional[bool] = None,
 ) -> None:
     """Update project files with the incremented version string."""
     verbose = max(_VERBOSE, verbose)
@@ -724,6 +768,12 @@ def update(
 
     if cfg is None:
         logger.error("Could not parse configuration.")
+        sys.exit(1)
+
+    try:
+        cfg = _parse_vcs_options(cfg, commit, tag_commit, push)
+    except ValueError as ex:
+        logger.warning(f"Invalid argument: {ex}")
         sys.exit(1)
 
     cfg = _update_cfg_from_vcs(cfg, fetch)

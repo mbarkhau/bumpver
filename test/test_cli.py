@@ -640,6 +640,190 @@ def test_empty_hg_bump(runner, caplog):
     assert any(("setup.cfg" in r.message) for r in caplog.records)
 
 
+def test_incorrect_vcs_option_no_commit_tag(runner, caplog):
+    _add_project_files("README.md")
+    _vcs_init("git")
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    result = runner.invoke(cli.cli, ['update', "-vv", "--no-commit", "--tag-commit"])
+    assert result.exit_code == 1
+    assert len(caplog.records) == 1
+    assert (
+        "Invalid argument: --no-commit and --tag-commit cannot be used at the same time"
+        in caplog.records[0].message
+    )
+
+
+def test_incorrect_vcs_option_no_commit_push(runner, caplog):
+    _add_project_files("README.md")
+    _vcs_init("git")
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val(
+        "bumpver.toml",
+        tag="false",
+    )
+
+    result = runner.invoke(cli.cli, ['update', "-vv", "--no-commit", "--push"])
+    assert result.exit_code == 1
+    assert len(caplog.records) == 1
+    assert (
+        "Invalid argument: --no-commit and --push cannot be used at the same time"
+        in caplog.records[0].message
+    )
+
+
+def test_incorrect_vcs_option_tag_push(runner, caplog):
+    _add_project_files("README.md")
+    _vcs_init("git")
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val(
+        "bumpver.toml",
+        commit="false",
+        tag="false",
+        push="false",
+    )
+
+    result = runner.invoke(cli.cli, ['update', "-vv", "--tag-commit"])
+    assert result.exit_code == 1
+    assert len(caplog.records) == 1
+    assert (
+        "Invalid argument: --tag-commit requires the --commit flag if commit=False in the config file"
+        in caplog.records[0].message
+    )
+
+    result = runner.invoke(cli.cli, ['update', "-vv", "--push"])
+    assert result.exit_code == 1
+    assert len(caplog.records) == 2
+    assert (
+        "Invalid argument: --push requires the --commit flag if commit=False in the config file"
+        in caplog.records[1].message
+    )
+
+
+@pytest.mark.parametrize("version_pattern, cur_version, cur_pep440", DEFAULT_VERSION_PATTERNS)
+def test_vcs_option_no_commit(runner, caplog, version_pattern, cur_version, cur_pep440):
+    _add_project_files("README.md")
+    _vcs_init("git")
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val(
+        "bumpver.toml",
+        version_pattern=version_pattern,
+        current_version=f'"{cur_version}"',
+    )
+
+    shell("git", "add", "bumpver.toml")
+    shell("git", "commit", "-m", "update bumpver.toml")
+
+    prev_commit_count = shell("git", "rev-list", "HEAD", "--count").decode("utf-8")
+
+    result = runner.invoke(cli.cli, ['update', "-vv", "--no-commit"])
+    assert result.exit_code == 0
+
+    tags = shell("git", "tag", "--list").decode("utf-8")
+    assert not tags
+
+    commit_count = shell("git", "rev-list", "HEAD", "--count").decode("utf-8")
+    assert prev_commit_count == commit_count
+
+
+@pytest.mark.parametrize("version_pattern, cur_version, cur_pep440", DEFAULT_VERSION_PATTERNS)
+def test_vcs_option_commit(runner, caplog, version_pattern, cur_version, cur_pep440):
+    _add_project_files("README.md")
+    _vcs_init("git")
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val(
+        "bumpver.toml",
+        version_pattern=version_pattern,
+        current_version=f'"{cur_version}"',
+        commit="false",
+        tag="false",
+        push="false",
+    )
+
+    shell("git", "add", "bumpver.toml")
+    shell("git", "commit", "-m", "update bumpver.toml")
+
+    result = runner.invoke(cli.cli, ['update', "-vv", "--commit"])
+    assert result.exit_code == 0
+
+    calver = cur_version.split(".")[0]
+
+    tags = shell("git", "tag", "--list").decode("utf-8")
+    assert not tags
+
+    last_commit = shell("git", "log", "-1").decode("utf-8")
+    expected    = f"bump version {calver}.1001-alpha -> {calver}.1002-alpha"
+    assert expected in last_commit
+
+
+@pytest.mark.parametrize("version_pattern, cur_version, cur_pep440", DEFAULT_VERSION_PATTERNS)
+def test_vcs_option_no_tag(runner, caplog, version_pattern, cur_version, cur_pep440):
+    _add_project_files("README.md")
+    _vcs_init("git")
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val(
+        "bumpver.toml",
+        version_pattern=version_pattern,
+        current_version=f'"{cur_version}"',
+    )
+
+    shell("git", "add", "bumpver.toml")
+    shell("git", "commit", "-m", "update bumpver.toml")
+
+    result = runner.invoke(cli.cli, ['update', "-vv", "--no-tag-commit"])
+    assert result.exit_code == 0
+
+    calver = cur_version.split(".")[0]
+
+    tags = shell("git", "tag", "--list").decode("utf-8")
+    assert not tags
+
+    last_commit = shell("git", "log", "-1").decode("utf-8")
+    expected    = f"bump version {calver}.1001-alpha -> {calver}.1002-alpha"
+    assert expected in last_commit
+
+
+@pytest.mark.parametrize("version_pattern, cur_version, cur_pep440", DEFAULT_VERSION_PATTERNS)
+def test_vcs_option_tag(runner, caplog, version_pattern, cur_version, cur_pep440):
+    _add_project_files("README.md")
+    _vcs_init("git")
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val(
+        "bumpver.toml",
+        version_pattern=version_pattern,
+        current_version=f'"{cur_version}"',
+        tag="false",
+    )
+
+    shell("git", "add", "bumpver.toml")
+    shell("git", "commit", "-m", "update bumpver.toml")
+
+    result = runner.invoke(cli.cli, ['update', "-vv", "--tag-commit"])
+    assert result.exit_code == 0
+
+    calver = cur_version.split(".")[0]
+
+    tags = shell("git", "tag", "--list").decode("utf-8")
+    assert f"{calver}.1002-alpha" in tags
+
+    last_commit = shell("git", "log", "-1").decode("utf-8")
+    expected    = f"bump version {calver}.1001-alpha -> {calver}.1002-alpha"
+    assert expected in last_commit
+
+
 SETUP_CFG_SEMVER_FIXTURE = """
 [metadata]
 license_file = LICENSE
@@ -1028,13 +1212,13 @@ ROLLOVER_TEST_CASES = [
     ["{year}.{month}.{MINOR}", "2020.10.3", "2020.11.4", _kwargs(2020, 11, True)],
     ["{year}.{month}.{MINOR}", "2020.10.3", "2020.11.3", _kwargs(2020, 11, False)],
     # v2 cases
-    ["YYYY.MM.MINOR"  , "2020.10.3", "2020.10.4", _kwargs(2020, 10, True)],
-    ["YYYY.MM.MINOR"  , "2020.10.3", None, _kwargs(2020, 10, False)],
-    ["YYYY.MM.MINOR"  , "2020.10.3", "2020.11.0", _kwargs(2020, 11, True)],
-    ["YYYY.MM.MINOR"  , "2020.10.3", "2020.11.0", _kwargs(2020, 11, False)],
+    ["YYYY.MM.MINOR", "2020.10.3", "2020.10.4", _kwargs(2020, 10, True)],
+    ["YYYY.MM.MINOR", "2020.10.3", None, _kwargs(2020, 10, False)],
+    ["YYYY.MM.MINOR", "2020.10.3", "2020.11.0", _kwargs(2020, 11, True)],
+    ["YYYY.MM.MINOR", "2020.10.3", "2020.11.0", _kwargs(2020, 11, False)],
     ["YYYY.MM[.MINOR]", "2020.10.3", "2020.10.4", _kwargs(2020, 10, True)],
     ["YYYY.MM[.MINOR]", "2020.10.3", "2020.11", _kwargs(2020, 11, False)],
-    ["YYYY.MM.MINOR"  , "2020.10.3", "2021.10.0", _kwargs(2021, 10, False)],
+    ["YYYY.MM.MINOR", "2020.10.3", "2021.10.0", _kwargs(2021, 10, False)],
     # incr0/incr1 part
     ["YYYY.MM.INC0", "2020.10.3", "2020.10.4", _kwargs(2020, 10)],
     ["YYYY.MM.INC0", "2020.10.3", "2020.11.0", _kwargs(2020, 11)],
