@@ -36,6 +36,9 @@ jobs:
     - name: make test
       run: make test
 
+    - name: make test_compat
+      run: make test_compat
+
   build-macos:
 
     runs-on: macos-latest
