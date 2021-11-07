@@ -225,15 +225,16 @@ def commit(
     new_version   : str,
     commit_message: str,
 ) -> None:
-    for filepath in filepaths:
-        vcs_api.add(filepath)
+    if cfg.commit:
+        for filepath in filepaths:
+            vcs_api.add(filepath)
 
-    vcs_api.commit(commit_message)
+        vcs_api.commit(commit_message)
 
     if cfg.commit and cfg.tag:
         vcs_api.tag(new_version)
 
-    if cfg.commit and cfg.tag and cfg.push:
+    if cfg.commit and cfg.push:
         vcs_api.push(new_version)
 
 
