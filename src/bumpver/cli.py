@@ -247,7 +247,7 @@ def version_options(function: typ.Callable) -> typ.Callable:
 
 
 @click.group()
-@click.version_option(version="2021.1113")
+@click.version_option(version="2021.1114")
 @click.help_option()
 @verbose_option
 def cli(verbose: int = 0) -> None:
