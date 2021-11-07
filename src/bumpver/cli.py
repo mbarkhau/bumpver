@@ -678,27 +678,27 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 
 
 def _parse_vcs_options(
-    cfg   : config.Config,
-    commit: typ.Optional[bool] = None,
-    tag   : typ.Optional[bool] = None,
-    push  : typ.Optional[bool] = None,
+    cfg       : config.Config,
+    commit    : typ.Optional[bool] = None,
+    tag_commit: typ.Optional[bool] = None,
+    push      : typ.Optional[bool] = None,
 ) -> config.Config:
+    if commit is False and tag_commit:
+        raise ValueError("--no-commit and --tag-commit cannot be used at the same time")
+    if commit is False and push:
+        raise ValueError("--no-commit and --push cannot be used at the same time")
+
     if commit is not None:
-        if not commit:
-            if tag:
-                raise ValueError("--no-commit and --tag-commit cannot be used at the same time")
-            if push:
-                raise ValueError("--no-commit and --push cannot be used at the same time")
         cfg = cfg._replace(commit=commit)
-    if tag is not None:
-        if tag and not cfg.commit:
-            raise ValueError(
-                "--tag-commit requires the --commit flag if commit=False in the config file"
-            )
-        cfg = cfg._replace(tag=tag)
+
+    if not cfg.commit and tag_commit:
+        raise ValueError("--tag-commit requires either --commit or commit=True in your config")
+    if not cfg.commit and push:
+        raise ValueError("--push requires either --commit or commit=True in your config")
+
+    if tag_commit is not None:
+        cfg = cfg._replace(tag=tag_commit)
     if push is not None:
-        if push and not cfg.commit:
-            raise ValueError("--push requires the --commit flag if commit=False in the config file")
         cfg = cfg._replace(push=push)
     return cfg
 
