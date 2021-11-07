@@ -691,18 +691,16 @@ def test_incorrect_vcs_option_tag_push(runner, caplog):
     result = runner.invoke(cli.cli, ['update', "-vv", "--tag-commit"])
     assert result.exit_code == 1
     assert len(caplog.records) == 1
-    assert (
-        "Invalid argument: --tag-commit requires the --commit flag if commit=False in the config file"
-        in caplog.records[0].message
+    expected = (
+        "Invalid argument: --tag-commit requires either --commit or commit=True in your config"
     )
+    assert expected in caplog.records[0].message
 
     result = runner.invoke(cli.cli, ['update', "-vv", "--push"])
     assert result.exit_code == 1
     assert len(caplog.records) == 2
-    assert (
-        "Invalid argument: --push requires the --commit flag if commit=False in the config file"
-        in caplog.records[1].message
-    )
+    expected = "Invalid argument: --push requires either --commit or commit=True in your config"
+    assert expected in caplog.records[1].message
 
 
 @pytest.mark.parametrize("version_pattern, cur_version, cur_pep440", DEFAULT_VERSION_PATTERNS)
