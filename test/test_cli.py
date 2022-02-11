@@ -1200,7 +1200,7 @@ def test_multimatch_file_patterns(config_text, runner):
 
 
 def _kwargs(year, month, minor=False):
-    return {'date': dt.date(year, month, 1), 'minor': minor}
+    return {'maybe_date': dt.date(year, month, 1), 'minor': minor}
 
 
 ROLLOVER_TEST_CASES = [

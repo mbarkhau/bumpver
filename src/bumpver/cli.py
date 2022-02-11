@@ -281,7 +281,7 @@ def test(
     raw_pattern = pattern  # use internal naming convention
 
     _validate_flags(raw_pattern, major, minor, patch)
-    _date = _validate_date(date, pin_date)
+    maybe_date = _validate_date(date, pin_date)
 
     if set_version is None:
         new_version = incr_dispatch(
@@ -293,7 +293,7 @@ def test(
             tag=tag,
             tag_num=tag_num,
             pin_date=pin_date,
-            date=_date,
+            maybe_date=maybe_date,
         )
     else:
         new_version = set_version
@@ -522,13 +522,13 @@ def incr_dispatch(
     old_version: str,
     raw_pattern: str,
     *,
-    major   : bool = False,
-    minor   : bool = False,
-    patch   : bool = False,
-    tag     : str = None,
-    tag_num : bool = False,
-    pin_date: bool = False,
-    date    : typ.Optional[dt.date] = None,
+    major     : bool = False,
+    minor     : bool = False,
+    patch     : bool = False,
+    tag       : str = None,
+    tag_num   : bool = False,
+    pin_date  : bool = False,
+    maybe_date: typ.Optional[dt.date] = None,
 ) -> typ.Optional[str]:
     v1_parts    = list(v1patterns.PART_PATTERNS) + list(v1patterns.FULL_PART_FORMATS)
     has_v1_part = any("{" + part + "}" in raw_pattern for part in v1_parts)
@@ -552,7 +552,7 @@ def incr_dispatch(
             tag=tag,
             tag_num=tag_num,
             pin_date=pin_date,
-            date=date,
+            maybe_date=maybe_date,
         )
     else:
         return v2version.incr(
@@ -564,7 +564,7 @@ def incr_dispatch(
             tag=tag,
             tag_num=tag_num,
             pin_date=pin_date,
-            date=date,
+            maybe_date=maybe_date,
         )
 
 
@@ -762,7 +762,7 @@ def update(
     verbose = max(_VERBOSE, verbose)
     _configure_logging(verbose)
     _validate_release_tag(tag)
-    _date = _validate_date(date, pin_date)
+    maybe_date = _validate_date(date, pin_date)
 
     _, cfg = config.init(project_path=".")
 
@@ -789,7 +789,7 @@ def update(
             tag=tag,
             tag_num=tag_num,
             pin_date=pin_date,
-            date=_date,
+            maybe_date=maybe_date,
         )
     else:
         new_version = set_version

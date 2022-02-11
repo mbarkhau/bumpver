@@ -35,20 +35,6 @@ def _is_cal_gt(left: CalInfo, right: CalInfo) -> bool:
     return lvals > rvals
 
 
-def _ver_to_cal_info(vinfo: version.V2VersionInfo) -> version.V2CalendarInfo:
-    return version.V2CalendarInfo(
-        vinfo.year_y,
-        vinfo.year_g,
-        vinfo.quarter,
-        vinfo.month,
-        vinfo.dom,
-        vinfo.doy,
-        vinfo.week_w,
-        vinfo.week_u,
-        vinfo.week_v,
-    )
-
-
 def cal_info(date: dt.date = None) -> version.V2CalendarInfo:
     """Generate calendar components for current date.
 
@@ -86,6 +72,21 @@ def cal_info(date: dt.date = None) -> version.V2CalendarInfo:
     }
 
     return version.V2CalendarInfo(**kwargs)
+
+
+def _ver_to_cal_info(vinfo: version.V2VersionInfo) -> version.V2CalendarInfo:
+    defaults = cal_info(version.TODAY)
+    return version.V2CalendarInfo(
+        vinfo.year_y or defaults.year_y,
+        vinfo.year_g or defaults.year_g,
+        vinfo.quarter or defaults.quarter,
+        vinfo.month or defaults.month,
+        vinfo.dom or defaults.dom,
+        vinfo.doy or defaults.doy,
+        vinfo.week_w or defaults.week_w,
+        vinfo.week_u or defaults.week_u,
+        vinfo.week_v or defaults.week_v,
+    )
 
 
 VALID_FIELD_KEYS = set(version.V2VersionInfo._fields) | {'version'}
@@ -151,8 +152,14 @@ def parse_field_values_to_cinfo(field_values: FieldValues) -> version.V2Calendar
     if year_y and month and dom:
         date = dt.date(year_y, month, dom)
 
+    # Use of defaults is an all or nothing affair.
+    # We don't to mix anything from TODAY with stuff
+    # that was actually parsed from a string.
+    if not any((date, year_y, year_g, month, dom, doy, week_w, week_u, week_v)):
+        date = version.TODAY
+
+    # derive all fields from other previous values
     if date:
-        # derive all fields from other previous values
         year_y = int(date.strftime("%Y"), base=10)
         year_g = int(date.strftime("%G"), base=10)
         month  = int(date.strftime("%m"), base=10)
@@ -725,13 +732,13 @@ def incr(
     old_version: str,
     raw_pattern: str = "vYYYY0M.BUILD[-TAG]",
     *,
-    major   : bool = False,
-    minor   : bool = False,
-    patch   : bool = False,
-    tag     : typ.Optional[str] = None,
-    tag_num : bool = False,
-    pin_date: bool = False,
-    date    : typ.Optional[dt.date] = None,
+    major     : bool = False,
+    minor     : bool = False,
+    patch     : bool = False,
+    tag       : typ.Optional[str] = None,
+    tag_num   : bool = False,
+    pin_date  : bool = False,
+    maybe_date: typ.Optional[dt.date] = None,
 ) -> typ.Optional[str]:
     """Increment version string.
 
@@ -739,6 +746,8 @@ def incr(
     """
     if not is_valid_week_pattern(raw_pattern):
         return None
+
+    date = version.TODAY if maybe_date is None else maybe_date
 
     try:
         old_vinfo = parse_version_info(old_version, raw_pattern)
@@ -772,6 +781,7 @@ def incr(
     )
 
     new_version = format_version(cur_vinfo, raw_pattern)
+
     if new_version == old_version:
         logger.error("Invalid arguments or pattern, version did not change.")
         return None

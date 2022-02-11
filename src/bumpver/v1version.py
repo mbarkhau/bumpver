@@ -381,13 +381,13 @@ def incr(
     old_version: str,
     raw_pattern: str = "{pycalver}",
     *,
-    major   : bool = False,
-    minor   : bool = False,
-    patch   : bool = False,
-    tag     : typ.Optional[str] = None,
-    tag_num : bool = False,
-    pin_date: bool = False,
-    date    : typ.Optional[dt.date] = None,
+    major     : bool = False,
+    minor     : bool = False,
+    patch     : bool = False,
+    tag       : typ.Optional[str] = None,
+    tag_num   : bool = False,
+    pin_date  : bool = False,
+    maybe_date: typ.Optional[dt.date] = None,
 ) -> typ.Optional[str]:
     """Increment version string.
 
@@ -398,6 +398,8 @@ def incr(
     except version.PatternError as ex:
         logger.error(str(ex))
         return None
+
+    date = version.TODAY if maybe_date is None else maybe_date
 
     cur_cinfo = _ver_to_cal_info(old_vinfo) if pin_date else cal_info(date)
 
