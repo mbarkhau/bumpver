@@ -2,7 +2,7 @@
 # This file is part of the bumpver project
 # https://github.com/mbarkhau/bumpver
 #
-# Copyright (c) 2018-2021 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# Copyright (c) 2018-2022 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 """cli module for BumpVer."""
 import io
@@ -247,7 +247,7 @@ def version_options(function: typ.Callable) -> typ.Callable:
 
 
 @click.group()
-@click.version_option(version="2021.1114")
+@click.version_option(version="2022.1115")
 @click.help_option()
 @verbose_option
 def cli(verbose: int = 0) -> None:
