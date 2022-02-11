@@ -1,19 +1,37 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2022.1115
+
+ - Fix: [use default date values][gh_i172].
+
+   When parsing the current version, if it doesn't specify anyt
+   date part, (such as is the case for e.g. SemVer), then use the
+   current date to populate default parts.
+
+   This enables updating YYYY patterns in copyright headers even
+   for projects that don't use a CalVer pattern.
+
+   Thank you [Benjamin Depardon (@bdepardo)][gh_bdepardo] for
+   finding and reporting this issue.
+
+[gh_i168]: https://github.com/mbarkhau/bumpver/issues/172
+[gh_bdepardo]: https://github.com/bdepardo
+
+
 ## BumpVer 2021.1114
 
- - Add: [flags to override vcs options][github_i168] for `bumpver update`
+ - Add: [flags to override vcs options][gh_i168] for `bumpver update`
 
-[github_i168]: https://github.com/mbarkhau/bumpver/issues/168
+[gh_i168]: https://github.com/mbarkhau/bumpver/issues/168
 
 Thank you to Timo Ludwig @timoludwig for this contribution.
 
 
 ## BumpVer 2021.1113
 
- - Add: [`--commit-message` argument][github_i162] for `bumpver update`
+ - Add: [`--commit-message` argument][gh_i162] for `bumpver update`
 
-[github_i162]: https://github.com/mbarkhau/bumpver/issues/162
+[gh_i162]: https://github.com/mbarkhau/bumpver/issues/162
 
 
 ## BumpVer 2021.1112
@@ -23,11 +41,11 @@ Thank you to Timo Ludwig @timoludwig for this contribution.
 
 ## BumpVer 2021.1110
 
- - Fix [github#157][github_i157]: Improve error messages.
- - Fix [github#158][github_i158]: Clarify `PYTAGNUM` "part"
+ - Fix [github#157][gh_i157]: Improve error messages.
+ - Fix [github#158][gh_i158]: Clarify `PYTAGNUM` "part"
 
-[github_i157]: https://github.com/mbarkhau/bumpver/issues/157
-[github_i158]: https://github.com/mbarkhau/bumpver/issues/158
+[gh_i157]: https://github.com/mbarkhau/bumpver/issues/157
+[gh_i158]: https://github.com/mbarkhau/bumpver/issues/158
 
 Thank you to Julien Palard @JulienPalard for testing and feedback.
 
@@ -35,9 +53,9 @@ Thank you to Julien Palard @JulienPalard for testing and feedback.
 ## BumpVer 2021.1109
 
  - Add `-e/--env` option to support shell script automation.
- - Fix [github#151][github_i151]: invalid increment of `TAGNUM` when `TAG=final` is set.
+ - Fix [github#151][gh_i151]: invalid increment of `TAGNUM` when `TAG=final` is set.
 
-[github_i151]: https://github.com/mbarkhau/bumpver/issues/151
+[gh_i151]: https://github.com/mbarkhau/bumpver/issues/151
 
 Thank you to Dave Wapstra @dwapstra for your contributions.
 
