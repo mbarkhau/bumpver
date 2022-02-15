@@ -6,7 +6,6 @@
 """Parse bumpver.toml, setup.cfg or pyproject.toml files."""
 
 import re
-import glob
 import typing as typ
 import logging
 import datetime as dt
@@ -250,19 +249,20 @@ def _parse_toml(cfg_buffer: typ.IO[str]) -> RawConfig:
 
 def _iter_glob_expanded_file_patterns(
     raw_patterns_by_file: RawPatternsByFile,
-) -> typ.Iterable[FileRawPatternsItem]:
+) -> typ.Iterator[FileRawPatternsItem]:
     for filepath_glob, raw_patterns in raw_patterns_by_file.items():
-        filepaths = glob.glob(filepath_glob)
+        filepaths = list(pl.Path().glob(filepath_glob))
+
         if filepaths:
             for filepath in filepaths:
-                yield filepath, raw_patterns
+                yield str(filepath), raw_patterns
         else:
             logger.warning(f"Invalid config, no such file: {filepath_glob}")
             # fallback to treating it as a simple path
             yield filepath_glob, raw_patterns
 
 
-def _compile_v1_file_patterns(raw_cfg: RawConfig) -> typ.Iterable[FilePatternsItem]:
+def _compile_v1_file_patterns(raw_cfg: RawConfig) -> typ.Iterator[FilePatternsItem]:
     """Create inernal/compiled representation of the file_patterns config field.
 
     The result the same, regardless of the config format.
