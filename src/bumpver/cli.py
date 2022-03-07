@@ -665,7 +665,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
         return cfg
     else:
         latest_version_pep440 = version.to_pep440(latest_version_tag)
-        if latest_version_tag <= cfg.current_version:
+        if version.parse_version(latest_version_tag) <= version.parse_version(cfg.current_version):
             # current_version already newer/up-to-date
             return cfg
         else:

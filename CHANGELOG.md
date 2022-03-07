@@ -1,5 +1,16 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2022.1116
+
+ - Fix: [incorrect version comparison when updating from vcs tag][gh_i174].
+
+   When comparing the updated version to the latest vcs tag,
+   an insufficient string comparison was used instead of
+   comparing the parsed versions.
+
+[gh_i174]: https://github.com/mbarkhau/bumpver/issues/174
+
+
 ## BumpVer 2022.1115
 
  - Fix: [use default date values][gh_i172].
@@ -14,7 +25,7 @@
    Thank you [Benjamin Depardon (@bdepardo)][gh_bdepardo] for
    finding and reporting this issue.
 
-[gh_i168]: https://github.com/mbarkhau/bumpver/issues/172
+[gh_i172]: https://github.com/mbarkhau/bumpver/issues/172
 [gh_bdepardo]: https://github.com/bdepardo
 
 
