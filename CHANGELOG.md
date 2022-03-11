@@ -10,6 +10,8 @@
 
 [gh_i174]: https://github.com/mbarkhau/bumpver/issues/174
 
+Thank you to Timo Ludwig @timoludwig for this contribution.
+
 
 ## BumpVer 2022.1115
 
