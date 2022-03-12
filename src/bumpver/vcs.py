@@ -126,9 +126,9 @@ class VCSAPI:
 
             output = self('show_remotes')
             if output.strip() == "":
-                return False
+                return None
             else:
-                return True
+                return output.strip()
         except Exception:
             return None
 
