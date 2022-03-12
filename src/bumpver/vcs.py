@@ -16,6 +16,7 @@ mercurial, then the git terms are used. For example "fetch"
 """
 
 import os
+import re
 import sys
 import shlex
 import typing as typ
@@ -28,6 +29,19 @@ from . import config
 logger = logging.getLogger("bumpver.vcs")
 
 
+BRANCH_PATTERN = r"""
+    (?P<is_current>\*)?
+    \s+
+    (?P<branch>[\S]+)
+    \s+
+    [0-9a-f]+
+    \s+
+    \[(?P<remote>[^/]+)/[^\]]+\]
+"""
+
+BRANCH_RE = re.compile(BRANCH_PATTERN, flags=re.VERBOSE)
+
+
 VCS_SUBCOMMANDS_BY_NAME = {
     'git': {
         'is_usable'   : "git rev-parse --git-dir",
@@ -37,8 +51,9 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'add_path'    : "git add --update {path}",
         'commit'      : "git commit --message '{message}'",
         'tag'         : "git tag --annotate {tag} --message {tag}",
-        'push_tag'    : "git push origin --follow-tags {tag} HEAD",
+        'push_tag'    : "git push {remote} --follow-tags {tag} HEAD",
         'show_remotes': "git config --get remote.origin.url",
+        'ls_branches' : "git branch -vv",
     },
     'hg': {
         'is_usable'   : "hg root",
@@ -98,21 +113,28 @@ class VCSAPI:
             else:
                 raise
 
-    @property
-    def has_remote(self) -> bool:
+    def get_remote(self) -> typ.Optional[str]:
         # pylint:disable=broad-except;  Not sure how to anticipate all cases.
         try:
+            if self.name == 'git':
+                output = self('ls_branches')
+
+                for match in BRANCH_RE.finditer(output):
+                    branch_info = match.groupdict()
+                    if branch_info['is_current']:
+                        return branch_info['remote']
+
             output = self('show_remotes')
             if output.strip() == "":
                 return False
             else:
                 return True
         except Exception:
-            return False
+            return None
 
     def fetch(self) -> None:
         """Fetch updates from remote origin."""
-        if self.has_remote:
+        if self.get_remote():
             self('fetch')
 
     def status(self, required_files: typ.Set[str]) -> typ.List[str]:
@@ -175,8 +197,9 @@ class VCSAPI:
 
     def push(self, tag_name: str) -> None:
         """Push changes to origin."""
-        if self.has_remote:
-            self('push_tag', tag=tag_name)
+        remote = self.get_remote()
+        if remote:
+            self('push_tag', tag=tag_name, remote=remote)
 
     def __repr__(self) -> str:
         """Generate string representation."""
