@@ -77,6 +77,7 @@ class V2VersionInfo(typ.NamedTuple):
     bid    : str
     tag    : str
     pytag  : str
+    githash : str
     num    : int
     inc0   : int
     inc1   : int
