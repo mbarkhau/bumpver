@@ -221,8 +221,8 @@ def parse_field_values_to_vinfo(field_values: FieldValues) -> version.V2VersionI
 
     fvals = field_values
 
-    tag   = fvals.get('tag'  ) or ""
-    pytag = fvals.get('pytag') or ""
+    tag     = fvals.get('tag'    ) or ""
+    pytag   = fvals.get('pytag'  ) or ""
     githash = fvals.get('githash') or ""
 
     if tag and not pytag:
