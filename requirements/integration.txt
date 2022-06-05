@@ -23,7 +23,7 @@ pylint<2.13
 pylint-ignore>=2020.1013
 isort
 
-mypy>=0.910
+mypy==0.942
 types-setuptools
 types-toml
 
