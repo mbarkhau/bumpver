@@ -415,7 +415,7 @@ INFO    - New Version: v2020.1060
 #### Add git hash to version string
 
 In case you want to build a package straight from your git repository, without making a release first, 
-you can explictly add git hash to the version number using ``GITHASH`` version part in ``setup.cfg``.
+you can explictly add git hash to the version number using ``GITHASH`` version part.
 
 Let's say your ``setup.cfg`` looks like this: 
 
