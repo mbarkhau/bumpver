@@ -4,6 +4,7 @@
 
 - Add ``GITHASH`` to ``version_pattern`` (@mpasternak)
 
+
 ## BumpVer 2022.1116
 
  - Fix: [incorrect version comparison when updating from vcs tag][gh_i174].
