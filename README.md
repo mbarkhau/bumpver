@@ -412,10 +412,13 @@ INFO    - New Version: v2020.1060
 +__version__ = "v2020.1060"
 ```
 
+<!--
+
 #### Add git hash to version string
 
-In case you want to build a package straight from your git repository, without making a release first, 
-you can explictly add git hash to the version number using ``GITHASH`` version part.
+If you want to build a package straight from your git repository,
+without making a release first, you can explictly add git hash to
+the version number using ``GITHASH`` version part.
 
 Let's say your ``setup.cfg`` looks like this: 
 
@@ -432,10 +435,13 @@ Then, to update all configured files, you need to execute this command:
 $ bumpver update --no-commit --no-tag --set-version="v202202.1085.8+ged2c3aaf"
 ```
 
-This will modify your source tree, but won't commit or tag aything, so you can build your
-packages with that version number. Then, remember to reset local  changes after (by 
-typing ``git reset --hard``) as standard bumpver behaviour with such version number
-makes not much sense. 
+This will modify your source tree, but won't commit or tag
+anything, so you can build your packages with that version
+number. Then, remember to reset local  changes after (by typing
+``git reset --hard``) as standard bumpver behaviour with such
+version number makes not much sense.
+
+-->
 
 
 ### Searching for Patterns with `grep`
