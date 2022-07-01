@@ -1,8 +1,12 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
-## **unreleased**
+## BumpVer 2022.1118
 
+- Fix [#181][gh_i181]: Enable use of ``^$`` charachters to restrict
+  matching to beginning and end of line.
 - Add ``GITHASH`` to ``version_pattern`` (@mpasternak)
+
+[gh_i181]: https://github.com/mbarkhau/bumpver/issues/181
 
 
 ## BumpVer 2022.1116
