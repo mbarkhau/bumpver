@@ -433,6 +433,10 @@ def _format_segment(seg: Segment, part_values: PartValues) -> FormatedSeg:
                 zero_part_count += 1
 
     result = seg
+    # remove regex chars
+    result = result.replace(r"^", r"")
+    result = result.replace(r"$", r"")
+
     # unescape braces
     result = result.replace(r"\[", r"[")
     result = result.replace(r"\]", r"]")

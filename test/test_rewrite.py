@@ -336,3 +336,11 @@ def test_v2_diff():
     lines = diff_str.split("\n")
     assert lines[3].startswith("-MIT License Copyright (c) 2018-20")
     assert lines[4].startswith("+MIT License Copyright (c) 2018-2019")
+
+
+def test_remove_regex_chars():
+    version_pattern = "YYYY.BUILD[-TAG]"
+    new_vinfo       = v2version.parse_version_info("2018.0123-beta", version_pattern)
+    patterns        = [v2patterns.compile_pattern(version_pattern, '^__version__ = "{version}"')]
+    lines           = v2rewrite.rewrite_lines(patterns, new_vinfo, ['__version__ = "2018.0002-alpha"   '])
+    assert lines == ['__version__ = "2018.0123-beta"   ']

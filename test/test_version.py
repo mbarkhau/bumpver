@@ -39,7 +39,6 @@ def test_bump_final_v1():
 
 
 def test_bump_final_v2():
-    print()
     raw_pattern = "vMAJOR.MINOR.PATCH[PYTAGNUM]"
     cur_version = "v0.1.4b1"
     assert v2version.incr(cur_version, raw_pattern, major=True  ) == "v1.0.0b0"
