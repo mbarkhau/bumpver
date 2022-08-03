@@ -48,7 +48,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'fetch'       : "git fetch",
         'ls_tags'     : "git tag --list",
         'status'      : "git status --porcelain",
-        'add_path'    : "git add --update {path}",
+        'add_path'    : "git add --update '{path}'",
         'commit'      : "git commit --message '{message}'",
         'tag'         : "git tag --annotate {tag} --message {tag}",
         'push_tag'    : "git push {remote} --follow-tags {tag} HEAD",
