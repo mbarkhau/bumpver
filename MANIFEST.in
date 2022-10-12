@@ -1,7 +1,0 @@
-include LICENSE
-include README.md
-include CHANGELOG.md
-include fastentrypoints.py
-include requirements/pypi.txt
-graft test
-global-exclude *.py[cod]

@@ -1,0 +1,16 @@
+[bumpver]
+current_version = "v2017.0123-alpha"
+version_pattern = "vYYYY.BUILD[-TAG]"
+commit = true
+tag = true
+push = true
+
+[bumpver.file_patterns]
+"bumpver.toml" = [
+    'current_version = "{version}"',
+]
+
+"README.md" = [
+    "{version}",
+    "{pep440_version}",
+]

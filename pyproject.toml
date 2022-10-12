@@ -1,0 +1,113 @@
+[tool.poetry]
+name = "bumpver"
+version = "2022.1118"
+description = "Bump version numbers in project files."
+authors = ["Manuel Barkhau <mbarkhau@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = 'https://github.com/mbarkhau/bumpver'
+classifiers = [
+    # http://pypi.python.org/pypi?%3Aaction=list_classifiers
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Python",
+]
+keywords = ['version', 'bumpver', 'calver', 'semver', 'versioning', 'bumpversion', 'pep440']
+include = ['LICENSE', "bumpver/py.typed", "CHANGELOG.md"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+click = "^8.0"
+colorama = "^0.4"
+lexid = "^2021.1006"
+toml = "^0.10"
+setuptools = "^60"
+
+[tool.poetry.group.dev.dependencies]
+pretty-traceback = "^2022.1018"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.1.3"
+pytest-cov = "^4.0.0"
+
+[tool.poetry.group.lint.dependencies]
+pre-commit = "^2.20.0"
+
+[tool.poetry.scripts]
+bumpver = 'bumpver.cli:cli'
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.bumpver]
+current_version = "2022.1118"
+version_pattern = "YYYY.BUILD[-TAG]"
+commit_message = "bump {old_version} -> {new_version}"
+commit = true
+tag = true
+push = true
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{pep440_version}"',
+]
+"bumpver/__init__.py" = [
+    '^__version__ = "{version}"$',
+]
+"bumpver/cli.py" = [
+    '@click.version_option(version="{version}")',
+]
+"bumpver/*.py" = [
+    'Copyright (c) 2018-YYYY',
+]
+"LICENSE" = [
+    'Copyright (c) 2018-YYYY',
+]
+"README.md" = [
+    '\[CalVer {version}\]',
+    'img.shields.io/static/v1.svg?label=CalVer&message={version}&color=blue',
+    'Successfully installed bumpver-{pep440_version}',
+]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["tests"]
+
+[tool.black]
+target-version = ["py37"]
+
+[tool.autoflake]
+remove-all-unused-imports = true
+ignore-init-module-imports = true
+remove-duplicate-keys = true
+remove-unused-variables = true
+in-place = true
+recursive = true
+
+[tool.mypy]
+python_version = 3.7
+exclude = ["^tests/"]
+
+[[tool.mypy.overrides]]
+module = []
+ignore_errors = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "#.*pragma: no cover",
+    "^\\s+def __repr__\\(self\\)",
+    "^\\s*raise NotImplementedError",
+    "^\\s*@overload",
+    "^\\s*\\.\\.\\.$",
+    "^if TYPE_CHECKING:$",
+]

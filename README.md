@@ -1,8 +1,6 @@
-<div align="center">
 <p align="center">
-  <img alt="logo" src="https://raw.githubusercontent.com/mbarkhau/bumpver/master/bumpver_128.png">
+  <img alt="logo" src="https://raw.githubusercontent.com/mbarkhau/bumpver/master/bumpver_logo.svg">
 </p>
-</div>
 
 
 # [BumpVer: Automatic Versioning][url_repo]
@@ -26,32 +24,8 @@ Project/Repo:
 [![PyPI Releases][img_pypi]][url_pypi]
 [![PyPI Downloads][img_downloads]][url_downloads]
 
-Code Quality/CI:
-
-[![GitHub Build Status][img_github_build]][url_github_build]
-[![GitLab Build Status][img_gitlab_build]][url_gitlab_build]
-[![Type Checked with mypy][img_mypy]][url_mypy]
-[![Code Coverage][img_codecov]][url_codecov]
-[![Code Style: sjfmt][img_style]][url_style]
-
-
-[img_github_build]: https://github.com/mbarkhau/pycalver/workflows/CI/badge.svg
-[url_github_build]: https://github.com/mbarkhau/pycalver/actions?query=workflow%3ACI
-
-[img_gitlab_build]: https://gitlab.com/mbarkhau/pycalver/badges/master/pipeline.svg
-[url_gitlab_build]: https://gitlab.com/mbarkhau/pycalver/pipelines
-
-[img_codecov]: https://gitlab.com/mbarkhau/pycalver/badges/master/coverage.svg
-[url_codecov]: https://mbarkhau.gitlab.io/pycalver/cov
-
 [img_license]: https://img.shields.io/badge/License-MIT-blue.svg
 [url_license]: https://github.com/mbarkhau/bumpver/blob/master/LICENSE
-
-[img_mypy]: https://img.shields.io/badge/mypy-checked-green.svg
-[url_mypy]: https://mbarkhau.gitlab.io/pycalver/mypycov
-
-[img_style]: https://img.shields.io/badge/code%20style-%20sjfmt-f71.svg
-[url_style]: https://gitlab.com/mbarkhau/straitjacket/
 
 [img_downloads]: https://pepy.tech/badge/bumpver/month
 [url_downloads]: https://pepy.tech/project/bumpver
@@ -66,8 +40,7 @@ Code Quality/CI:
 [url_pyversions]: https://pypi.python.org/pypi/bumpver
 
 <!--
-  $ pip install -U md-toc
-  $ md_toc --in-place --skip-lines 10 github README.md
+  $ pre-commit run md-toc
 -->
 
 <!--TOC-->
@@ -79,8 +52,9 @@ Code Quality/CI:
 - [Example Usage](#example-usage)
   - [Testing a `version_pattern`](#testing-a-version_pattern)
   - [Using `MAJOR`/`MINOR`/`PATCH` (SemVer Parts)](#using-majorminorpatch-semver-parts)
-  - [Auto Increment Parts: `BUILD`/`INC0`/`INC1`](#auto-increment-parts-buildinc0inc1)
+  - [Auto Increment Parts: `INC0`/`INC1`/`BUILD`](#auto-increment-parts-inc0inc1build)
   - [Persistent Parts: `BUILD`/`TAG`/`PYTAG`](#persistent-parts-buildtagpytag)
+  - [Explicit `--set-version`](#explicit---set-version)
   - [Searching for Patterns with `grep`](#searching-for-patterns-with-grep)
 - [Reference](#reference)
   - [Command Line](#command-line)
@@ -96,6 +70,8 @@ Code Quality/CI:
   - [The Current Version](#the-current-version)
   - [Dry Mode](#dry-mode)
   - [VCS Parameters (git/mercurial)](#vcs-parameters-gitmercurial)
+  - [Custom Commit Message](#custom-commit-message)
+- [Contributors](#contributors)
 
 <!--TOC-->
 
@@ -165,7 +141,7 @@ If you are looking for an alternative, BumpVer was heavily influenced by [bumpve
 
 You can override the date used by `bumpver` with the  `--date=<isodate>` option. Adding this every time would be distracting, so the examples assume the following date:
 
-```shell
+```console
 $ date --iso
 2020-10-15
 ```
@@ -175,7 +151,7 @@ $ date --iso
 
 To test a `version_pattern` and how to increment it, you can use `bumpver test`:
 
-```shell
+```console
 $ bumpver test 'v2020.37' 'vYYYY.WW'
 New Version: v2020.41
 ```
@@ -193,7 +169,7 @@ The following example uses all three: `vYYYY.WW[-TAG]`
 literal text   ^    ^   ^
 ```
 
-```shell
+```console
 $ bumpver test 'v2020.37-beta' 'vYYYY.WW[-TAG]'
 New Version: v2020.41-beta
 PEP440     : 2020.41b0
@@ -205,7 +181,7 @@ Here we see the week number changed from 37 to 41. The test command also shows t
 
 To remove the release tag, use the option `--tag=final`.
 
-```shell
+```console
 $ bumpver test 'v2020.37-beta' 'vYYYY.WW[-TAG]' --tag=final
 New Version: v2020.41
 PEP440     : 2020.41
@@ -216,7 +192,7 @@ PEP440     : 2020.41
 A CalVer `version_pattern` may not require any flags to determine which part should be incremented, so long as the date has changed.
 With SemVer you must always specify one of `--major/--minor/--patch`.
 
-```shell
+```console
 $ bumpver test '1.2.3' 'MAJOR.MINOR.PATCH[PYTAGNUM]' --major
 New Version: 2.0.0
 
@@ -235,14 +211,14 @@ New Version: 1.2.4b1
 
 These non date based parts also make sense for a CalVer `version_pattern`, so that you can create multiple releases in the same month. It is common to include e.g. a `PATCH` part.
 
-```shell
+```console
 $ bumpver test '2020.10.0' 'YYYY.MM.PATCH' --patch
 New Version: 2020.10.1
 ```
 
 Without this flag, we would get an error if the date is still in October.
 
-```shell
+```console
 $ date --iso
 2020-10-15
 
@@ -254,14 +230,14 @@ INFO    - Perhaps try: bumpver test --patch
 
 Once the date is in November, the `PATCH` part will roll over back to zero. This happens whenever parts to the left change (in this case the year and month), just as it does if `MAJOR` or `MINOR` were incremented in SemVer.
 
-```shell
+```console
 $ bumpver test '2020.10.1' 'YYYY.MM.PATCH' --date 2020-11-01
 New Version: 2020.11.0
 ```
 
 The rollover to zero will happen even if you use the `--patch` argument, so that your first release in a month will always have a `PATCH` set to 0 instead of 1. You can make the `PATCH` part optional with `[.PATCH]` and always supply the `--patch`  flag in your build script. This will cause the part to be omitted when 0 and added when > 0.
 
-```shell
+```console
 $ bumpver test '2020.9.1' 'YYYY.MM[.PATCH]' --patch
 New Version: 2020.10
 
@@ -275,7 +251,7 @@ New Version: 2020.10.2
 
 With CalVer, the version is based on a calendar date, so you only have to specify such flags if you've already published a release for the current date. Without such a flag, BumpVer will show the error, that the "version did not change".
 
-```shell
+```console
 $ bumpver test 'v2020.41-beta0' 'vYYYY.WW[-TAGNUM]'
 ERROR   - Invalid arguments or pattern, version did not change.
 ERROR   - Invalid version 'v2020.41-beta0' and/or pattern 'vYYYY.WW[-TAGNUM]'.
@@ -283,7 +259,7 @@ ERROR   - Invalid version 'v2020.41-beta0' and/or pattern 'vYYYY.WW[-TAGNUM]'.
 
 In this case you have to change one of the parts that are not based on a calendar date.
 
-```shell
+```console
 $ bumpver test 'v2020.41-beta0' 'vYYYY.WW[-TAGNUM]' --tag-num
 New Version: v2020.41-beta1
 PEP440     : 2020.41b1
@@ -295,7 +271,7 @@ PEP440     : 2020.41
 
 If a pattern is not applicable to a version string, then you will get an error message.
 
-```shell
+```console
 $ bumpver test '2020.37' 'YYYY.MM'     # expected to fail because 37 is not valid for part MM
 ERROR   - Incomplete match '2020.3' for version string '2020.37' with pattern 'YYYY.MM'/'(?P<year_y>[1-9][0-9]{3})\.(?P<month>1[0-2]|[1-9])'
 ERROR   - Invalid version '2020.37' and/or pattern 'YYYY.MM'.
@@ -303,7 +279,7 @@ ERROR   - Invalid version '2020.37' and/or pattern 'YYYY.MM'.
 
 This illustrates that each pattern is internally translated to a regular expression which must match the version string. The `--verbose` flag will show a verbose form of the regular expression, which may help to debug the discrepancy between the pattern and the version.
 
-```shell
+```console
 $ bumpver test 'v2020.37' 'YYYY.WW' --verbose  # missing "v" prefix
 INFO    - Using pattern YYYY.WW
 INFO    - regex = re.compile(r"""
@@ -316,7 +292,7 @@ ERROR   - Invalid version string 'v2020.37' for pattern ...
 
 To fix the above, you can either remove the "v" prefix from the version or add it to the pattern.
 
-```shell
+```console
 $ bumpver test 'v2020.37' 'vYYYY.WW'   # added "v" prefix
 New Version: v2020.41
 PEP440     : 2020.41
@@ -327,7 +303,7 @@ PEP440     : 2020.41
 
 These parts are incremented automatically, and do not use/require a CLI flag: `BUILD`/`INC0`/`INC1`.
 
-```shell
+```console
 $ bumpver test '2020.10.1' 'YYYY.MM.INC0'
 New Version: 2020.10.2
 
@@ -337,7 +313,7 @@ New Version: 2020.11.0
 
 You can make the part optional using the `[PART]` syntax and it will be added/removed as needed.
 
-```shell
+```console
 $ bumpver test '2020.10' 'YYYY.MM[.INC0]'
 New Version: 2020.10.1
 
@@ -347,7 +323,7 @@ New Version: 2020.11
 
 You can the `BUILD` part to [maintain lexical ordering][url_pypi_lexid]  of version numbers. This means that the expression `older < newer` will always be true, whether you are dealing with integers or strings, whether you are using software that understands how to parse version numbers or not.
 
-```shell
+```console
 $ bumpver test '2020.1001' 'YYYY.BUILD'
 New Version: 2020.1002
 
@@ -365,7 +341,7 @@ New Version: 2020.22000
 
 The `BUILD` and `TAG` parts will not rollover/reset. Instead they are carried forward from one version to the next.
 
-```shell
+```console
 $ bumpver test 'v2020.1051-beta' 'vYYYY.BUILD[-TAG]'
 New Version: v2020.1052-beta
 PEP440     : 2020.1052b0
@@ -381,7 +357,7 @@ PEP440     : 2020.1052rc0
 
 To remove a release tag, mark it as final with `--tag=final`.
 
-```shell
+```console
 $ bumpver test 'v2020.1051-beta' 'vYYYY.BUILD[-TAG]' --tag=final
 New Version: v2020.1052
 PEP440     : 2020.1052
@@ -420,7 +396,7 @@ If you want to build a package straight from your git repository,
 without making a release first, you can explictly add git hash to
 the version number using ``GITHASH`` version part.
 
-Let's say your ``setup.cfg`` looks like this: 
+Let's say your ``setup.cfg`` looks like this:
 
 ```ini
 [bumpver]
@@ -431,7 +407,7 @@ version_pattern = "YYYY.BUILD[-TAG][GITHASH]"
 
 Then, to update all configured files, you need to execute this command:
 
-```shell
+```console
 $ bumpver update --no-commit --no-tag --set-version="v202202.1085.8+ged2c3aaf"
 ```
 
@@ -448,7 +424,7 @@ version number makes not much sense.
 
 You can use `bumpver grep` to test and debug entries for your configuration.
 
-```shell
+```console
 $ bumpver grep \
 	'__version__ = "YYYY.MM[-TAGNUM]"' \
 	src/module/__init__.py
@@ -478,7 +454,7 @@ When you write your configuration, you can avoid repeating your version pattern 
 
 Applied to the above example, you can instead write this:
 
-```shell
+```console
 $ bumpver grep \
   --version-pattern "YYYY.MM[-TAGNUM]"  \
   '__version__ = "{version}"' \
@@ -505,7 +481,7 @@ src/module/__init__.py
 
 If you use a version pattern that is not in the PEP440 normalized form (such as the one above), you can nonetheless match version strings in your project files which *are* in the [PEP440 normalized form][url_pep_440]. To do this, you can use the placeholder `{pep440_version}` instead of the `{version}` placeholder.
 
-```shell
+```console
 $ bumpver grep --version-pattern "YYYY.MM[-TAGNUM]" 'version="{pep440_version}"' setup.py
 setup.py
   65:     url="https://github.com/org/project",
@@ -519,7 +495,7 @@ The placeholder `{version}` matches `2020.9-beta1`, while the placeholder `{pep4
 
 As a ~~neat trick~~ further illustration of how the search and replace works, you might wish to keep the year of your copyright headers up to date.
 
-```shell
+```console
 $ bumpver grep 'Copyright (c) 2018-YYYY' src/mymodule/*.py | head
 src/mymodule/__init__.py
    3:
@@ -543,7 +519,7 @@ src/mymodule/*.py
 
 Note that there must be a match for every entry in `file_patterns`. If there is no match, `bumpver` will show an error. This ensures that a pattern is not skipped when your project changes. In this case the side effect is to make sure that every file has a copyright header.
 
-```shell
+```console
 $ bumpver update --dry
 ERROR   - No match for pattern 'Copyright (c) 2018-YYYY Vandelay Industries - All rights reserved.'
 ERROR   -
@@ -564,7 +540,7 @@ ERROR   - No patterns matched for file 'src/mymodule/utils.py'
 
 <!-- BEGIN bumpver --help -->
 
-```
+```console
 $ bumpver --help
 Usage: bumpver [OPTIONS] COMMAND [ARGS]...
 
@@ -587,7 +563,7 @@ Commands:
 
 <!-- BEGIN bumpver update --help -->
 
-```
+```console
 $ bumpver update --help
 Usage: bumpver update [OPTIONS]
 
@@ -623,7 +599,7 @@ Options:
 
 To help with shell script automation, you can use `bumpver show --env`.
 
-```shell
+```console
 $ bumpver show -n --env
 YEAR_Y=2020
 YEAR_G=
@@ -768,19 +744,20 @@ number would run backwards if it was created around New Year.
 
 <!-- BEGIN weeknum_example -->
 
-```sql
-                   YYYY WW UU  GGGG VV
-2020-12-26 (Sat):  2020 51 51  2020 52
-2020-12-27 (Sun):  2020 51 52  2020 52
-2020-12-28 (Mon):  2020 52 52  2020 53
-2020-12-29 (Tue):  2020 52 52  2020 53
-2020-12-30 (Wed):  2020 52 52  2020 53
-2020-12-31 (Thu):  2020 52 52  2020 53
-2021-01-01 (Fri):  2021 00 00  2020 53
-2021-01-02 (Sat):  2021 00 00  2020 53
-2021-01-03 (Sun):  2021 00 01  2020 53
-2021-01-04 (Mon):  2021 01 01  2021 01
-```
+
+|                      | YYYY | WW | UU | GGGG | VV |
+|----------------------|------|----|----|------|----|
+| **2020-12-26 (Sat)** | 2020 | 51 | 51 | 2020 | 52 |
+| **2020-12-27 (Sun)** | 2020 | 51 | 52 | 2020 | 52 |
+| **2020-12-28 (Mon)** | 2020 | 52 | 52 | 2020 | 53 |
+| **2020-12-29 (Tue)** | 2020 | 52 | 52 | 2020 | 53 |
+| **2020-12-30 (Wed)** | 2020 | 52 | 52 | 2020 | 53 |
+| **2020-12-31 (Thu)** | 2020 | 52 | 52 | 2020 | 53 |
+| **2021-01-01 (Fri)** | 2021 | 00 | 00 | 2020 | 53 |
+| **2021-01-02 (Sat)** | 2021 | 00 | 00 | 2020 | 53 |
+| **2021-01-03 (Sun)** | 2021 | 00 | 01 | 2020 | 53 |
+| **2021-01-04 (Mon)** | 2021 | 01 | 01 | 2021 | 01 |
+
 
 <!-- END weeknum_example -->
 
@@ -789,9 +766,9 @@ number would run backwards if it was created around New Year.
 
 ### Configuration Setup
 
-The create an initial configuration for project with `bumpver init`.
+Create an initial configuration for project with `bumpver init`.
 
-```shell
+```console
 $ pip install bumpver
 ...
 Installing collected packages: click toml lexid bumpver
@@ -824,7 +801,7 @@ Exiting because of '-d/--dry'. Would have written to bumpver.toml:
 If you already have configuration file in your project (such as `setup.cfg` or `pyproject.toml`), then `bumpver init` will update that file instead.
 
 ```
-~/myproject
+$ cd ~/myproject
 $ bumpver init
 Updated setup.cfg
 ```
@@ -860,7 +837,7 @@ For the entries in `[bumpver:file_patterns]` you can expect two failure modes:
 
 Most obviously you will see such cases when you first attempt to use `bumpver update`:
 
-```shell
+```console
 $ bumpver update --dry --no-fetch
 INFO    - Old Version: 2020.1001-alpha
 INFO    - New Version: 2020.1002-alpha
@@ -885,7 +862,7 @@ The internally used regular expression is also shown, which you can use to debug
 
 To debug such issues, you can simplify your pattern and see if you can find a match with `bumpver grep` .
 
-```shell
+```console
 $ bumpver grep 'YYYY.BUILD[PYTAGNUM]' setup.py
  45:    name='myproject',
  46:    version='2019.1001b0',
@@ -897,7 +874,7 @@ Here we can see that the pattern for setup.py should be changed to used single q
 
 As with `bumpver update`, if your pattern is not found, `bumpver grep` will show an error message with the regular expression it uses, to help you debug the issue.
 
-```shell
+```console
 $ bumpver grep 'YYYY.BUILD[PYTAGNUM]' setup.py
 ERROR   - Pattern not found: 'YYYY.BUILD[PYTAGNUM]'
 # https://regex101.com/...
@@ -905,7 +882,7 @@ ERROR   - Pattern not found: 'YYYY.BUILD[PYTAGNUM]'
 
 An example of a more complex pattern is one where you want to keep a version badge in your README up to date.
 
-```shell
+```console
 $ bumpver grep 'shields.io/badge/CalVer-YYYY.BUILD[--TAG]-blue' README.md
   61:
   62: [img_version]: https://img.shields.io/badge/CalVer-2020.1001--beta-blue
@@ -918,7 +895,7 @@ $ bumpver grep 'shields.io/badge/CalVer-YYYY.BUILD[--TAG]-blue' README.md
 
 ### Version State
 
-The `current_version` is considered global state and must be stored somewhere. Typically this might be in a `VERSION` file, or some other file which is part of the repository. This creates the risk that parallel branches can have different states. If the `current_version`  were defined only by files in the local checkout, the same version might be generated on different systems for different commits.
+The `current_version` is considered global state and must be stored somewhere. Typically, this might be in a `VERSION` file, or some other file which is part of the repository. This creates the risk that parallel branches can have different states. If the `current_version`  were defined only by files in the local checkout, the same version might be generated on different systems for different commits.
 
 To avoid this issue, `bumpver` treats Git/Mercurial tags as the canonical / [SSOT][url_ssot] for the most recent version and attempts to change this state in the most atomic way possible. This is why some actions of the `bumpver` command can take a few seconds, as it is synchronizing with the remote repository to get the most recent versions and to push any new version tags as soon as possible.
 
@@ -936,7 +913,7 @@ The current version is either
 
 As part of doing `bumpver update` and `bumpver show`, your local tags are updated using `git fetch --tags`/`hg pull`.
 
-```shell
+```console
 $ bumpver show -vv
 2020-10-18T20:20:58.062 DEBUG   bumpver.cli       - Logging configured.
 2020-10-18T20:20:58.065 DEBUG   bumpver.config    - Config Parsed: Config(
@@ -954,9 +931,9 @@ Here we see that:
 - Git had a newer version than we had locally (`2020.1019` vs `2020.1018`).
 - It took 2 seconds to fetch the tags from the remote repository.
 
-The approach of fetching tags before the version is bumped/incremented, helps to reduce the risk that the newest tag is not known locally. This means that it less likely for the same version to be generated by different systems for different commits. This would result in an ambiguous version tag, which may not be the end of the world, but is better to avoid. Typically this might happen if you have a build system where multiple builds are triggered at the same time.
+The approach of fetching tags before the version is bumped/incremented, helps to reduce the risk that the newest tag is not known locally. This means that it less likely for the same version to be generated by different systems for different commits. This would result in an ambiguous version tag, which may not be the end of the world, but is better to avoid. Typically, this might happen if you have a build system where multiple builds are triggered at the same time.
 
-For a small project (with only one maintainer and no automated packaging) this is a non-issue and you can always use `-n/--no-fetch` to skip fetching the tags.
+For a small project (with only one maintainer and no automated packaging) this is a non-issue, and you can always use `-n/--no-fetch` to skip fetching the tags.
 
 
 ### Dry Mode
@@ -1035,7 +1012,7 @@ push = True
 
 If everything looks OK, you can do `bumpver update`.
 
-```shell
+```console
 $ bumpver update --verbose
 INFO    - fetching tags from remote (to turn off use: -n / --no-fetch)
 INFO    - Old Version: 2020.1005
@@ -1059,9 +1036,9 @@ You can also override the config values by passing these command line flags to `
 
 ### Custom Commit Message
 
-In addition to the `commit_message` configuration, you can also override the string used as the the commit message template with the `-c/--commit-message=<TMPL>` parameter:
+In addition to the `commit_message` configuration, you can also override the string used as the commit message template with the `-c/--commit-message=<TMPL>` parameter:
 
-```shell
+```console
 $ bumpver update --tag final --commit-message 'bump version {old_version} -> {new_version} [ci-publish]' --verbose
 INFO    - Old Version: 2021.1005b0
 INFO    - New Version: 2021.1006
@@ -1070,9 +1047,9 @@ INFO    - git tag --annotate 2020.1006 --message 2020.1006
 INFO    - git push origin --follow-tags 2020.1006 HEAD
 ```
 
-As this is a manual operation (rather than a long lived configuration option), you can use the placeholders `OLD` and `NEW` for convenience, instead of the more verbose `{old_version}` and `{new_version}`.
+As this is a manual operation (rather than a long-lived configuration option), you can use the placeholders `OLD` and `NEW` for convenience, instead of the more verbose `{old_version}` and `{new_version}`.
 
-```shell
+```console
 $ bumpver update -f -t final -c '[final-version] OLD -> NEW'
 ...
 INFO    - Old Version: 1.2.0b2

@@ -1,75 +1,211 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push: {}
+  pull_request: {}
+
 
 jobs:
-
-  build-ubuntu:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Cache Conda Envs
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/miniconda3
-          build/*.txt
-        key: ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'Makefile*') }}
-        restore-keys: |
-          ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'Makefile*') }}
-
-    - name: make conda
-      run:
-        if [[ -e build/envs.txt ]]; then touch build/envs.txt; fi;
-        if [[ -e build/deps.txt ]]; then touch build/deps.txt; fi;
-        make conda
-
-    - name: make lint
-      run: make lint
-
-    - name: make mypy
-      run: make mypy
-
-    - name: make test
-      run: make test
-
-    - name: make test_compat
-      run: make test_compat
-
-  build-macos:
-
-    runs-on: macos-latest
+  lint:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.10']
+    runs-on: ${{ matrix.os }}
+    env:
+      POETRY_HOME: /opt/poetry
+      POETRY_CONFIG_DIR: /opt/poetry/.config
+      POETRY_VIRTUALENVS_PATH: /opt/poetry-venvs
+      PRE_COMMIT_HOME: /opt/pre-commit
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - name: Cache Conda Envs
-      uses: actions/cache@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache Poetry and project dependencies
+      id: deps-cache
+      uses: actions/cache@v3
       with:
         path: |
-          ~/miniconda3
-          build/*.txt
-        key: ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'Makefile*') }}
-        restore-keys: |
-          ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'Makefile*') }}
+          ${{ env.POETRY_HOME }}
+          ${{ env.POETRY_VIRTUALENVS_PATH }}
+        key: lint-${{ matrix.os }}-python-${{ matrix.python-version }}-poetry-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: lint-${{ matrix.os }}-python-${{ matrix.python-version }}-poetry-
 
-    - name: brew install mercurial
+    - name: Install Poetry
+      if: steps.deps-cache.outputs.cache-hit != 'true'
+      run: |
+        python -m venv "${POETRY_HOME}"
+        "${POETRY_HOME}/bin/pip" install poetry==1.2.1
+        "${POETRY_HOME}"/bin/poetry --version
+
+    - name: Add Poetry to PATH
+      run: echo "${POETRY_HOME}/bin" >> $GITHUB_PATH
+
+    - name: Install dependencies
+      if: steps.cache-poetry.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --sync --only lint
+
+    - name: Cache pre-commit environments
+      id: cache-pre-commit
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.PRE_COMMIT_HOME }}
+        key: lint-${{ matrix.os }}-python-${{ matrix.python-version }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+        restore-keys: lint-${{ matrix.os }}-python-${{ matrix.python-version }}-pre-commit-
+
+    - name: Prepare pre-commit envs
+      run: |
+        poetry run pre-commit validate-config
+        poetry run pre-commit install-hooks
+        poetry run pre-commit gc
+
+    - name: Lint
+      run: |
+        poetry run pre-commit run --all-files
+
+  test-ubuntu:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.7', '3.8', '3.9', '3.10', 3.11-dev, pypy3.7]
+    runs-on: ${{ matrix.os }}
+    env:
+      POETRY_HOME: /opt/poetry
+      POETRY_CONFIG_DIR: /opt/poetry/.config
+      POETRY_VIRTUALENVS_PATH: /opt/poetry-venvs
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache Poetry and project dependencies
+      id: deps-cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.POETRY_HOME }}
+          ${{ env.POETRY_VIRTUALENVS_PATH }}
+        key: test-${{ matrix.os }}-python-${{ matrix.python-version }}-poetry-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: test-${{ matrix.os }}-python-${{ matrix.python-version }}-poetry-
+
+    - name: Install Poetry
+      if: steps.deps-cache.outputs.cache-hit != 'true'
+      run: |
+        python -m venv "${POETRY_HOME}"
+        "${POETRY_HOME}/bin/pip" install poetry==1.2.1
+        "${POETRY_HOME}"/bin/poetry --version
+
+    - name: Add Poetry to PATH
+      run: echo "${POETRY_HOME}/bin" >> $GITHUB_PATH
+
+    - name: Install dependencies
+      if: steps.cache-poetry.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --sync --without lint
+
+    - name: Test
+      run: |
+        poetry run pytest --cov bumpver --cov-report term-missing
+
+  test-macos:
+    strategy:
+      matrix:
+        os: [macos-latest]
+        python-version: ['3.7', '3.8', '3.9', '3.10', 3.11-dev, pypy3.7]
+    runs-on: ${{ matrix.os }}
+    env:
+      POETRY_HOME: /usr/local/opt/poetry
+      POETRY_CONFIG_DIR: /usr/local/opt/poetry/.config
+      POETRY_VIRTUALENVS_PATH: /usr/local/opt/poetry-venvs
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache Poetry and project dependencies
+      id: deps-cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.POETRY_HOME }}
+          ${{ env.POETRY_VIRTUALENVS_PATH }}
+        key: test-${{ matrix.os }}-python-${{ matrix.python-version }}-poetry-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: test-${{ matrix.os }}-python-${{ matrix.python-version }}-poetry-
+
+    - name: Install Poetry
+      if: steps.deps-cache.outputs.cache-hit != 'true'
+      run: |
+        python -m venv "${{ env.POETRY_HOME }}"
+        "${{ env.POETRY_HOME }}/bin/pip" install poetry==1.2.1
+        "${{ env.POETRY_HOME }}"/bin/poetry --version
+
+    - name: Add Poetry to PATH
+      run: echo "${{ env.POETRY_HOME }}/bin" >> $GITHUB_PATH
+
+    - name: Install mercurial
       run: brew install mercurial
 
-    - name: make conda
-      run:
-        if [[ -e build/envs.txt ]]; then touch build/envs.txt; fi;
-        if [[ -e build/deps.txt ]]; then touch build/deps.txt; fi;
-        make conda
+    - name: Install dependencies
+      if: steps.cache-poetry.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --sync --without lint
 
-    - name: make lint
-      run: make lint
+    - name: Test
+      run: |
+        poetry run pytest --cov bumpver --cov-report term-missing
 
-    - name: make mypy
-      run: make mypy
+  test-windows:
+    strategy:
+      matrix:
+        os: [windows-latest]
+        python-version: ['3.7', '3.8', '3.9', '3.10', 3.11-dev, pypy3.7]
+    runs-on: ${{ matrix.os }}
+    env:
+      POETRY_HOME: ..\poetry
+      POETRY_CONFIG_DIR: ..\poetry\.config
+      POETRY_VIRTUALENVS_PATH: ..\poetry-venvs
+    steps:
+    - uses: actions/checkout@v3
 
-    - name: make test
-      run: make test
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache Poetry and project dependencies
+      id: deps-cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.POETRY_HOME }}
+          ${{ env.POETRY_VIRTUALENVS_PATH }}
+        key: test-${{ matrix.os }}-python-${{ matrix.python-version }}-poetry-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: test-${{ matrix.os }}-python-${{ matrix.python-version }}-poetry-
+
+    - name: Install Poetry
+      if: steps.deps-cache.outputs.cache-hit != 'true'
+      run: |
+        python -m venv ${{ env.POETRY_HOME }}
+        & "${{ env.POETRY_HOME }}\Scripts\pip" install poetry==1.2.1
+        & "${{ env.POETRY_HOME }}\Scripts\poetry" --version
+
+    - name: Add Poetry to PATH
+      run: |
+        echo "$((Get-Item "${{ env.POETRY_HOME }}").FullName)\Scripts" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Install dependencies
+      if: steps.cache-poetry.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --sync --without lint
+
+    - name: Test
+      run: |
+        poetry run pytest --cov bumpver --cov-report term-missing
