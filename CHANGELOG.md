@@ -1,5 +1,15 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2022.1119
+
+- Fix [#190][gh_i190]: Allow multiple patterns on the same line
+
+- Fix [#182][gh_i182]: Use quotes for vcs commands
+
+[gh_i190]: https://github.com/mbarkhau/bumpver/issues/190
+[gh_i182]: https://github.com/mbarkhau/bumpver/issues/182
+
+
 ## BumpVer 2022.1118
 
 - Fix [#181][gh_i181]: Enable use of ``^$`` charachters to restrict
