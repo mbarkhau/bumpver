@@ -282,21 +282,12 @@ def normalize_pattern(version_pattern: str, raw_pattern: str) -> str:
     return normalized_pattern
 
 
-def _replace_pattern_parts(pattern: str) -> str:
-    # The pattern is escaped, so that everything besides the format
-    # string variables is treated literally.
-    while True:
-        new_pattern, _n = re.subn(r"([^\\]|^)\[", r"\1(?:", pattern)
-        new_pattern, _m = re.subn(r"([^\\]|^)\]", r"\1)?" , new_pattern)
-        pattern = new_pattern
-        if _n + _m == 0:
-            break
+SortKey         = typ.Tuple[int, int]
+PostitionedPart = typ.Tuple[int, int, str]
 
-    SortKey         = typ.Tuple[int, int]
-    PostitionedPart = typ.Tuple[int, int, str]
-    part_patterns_by_index: typ.Dict[SortKey, PostitionedPart] = {}
 
-    used_fields = set()
+def _iter_part_patterns(pattern: str) -> typ.Iterator[typ.Tuple[SortKey, PostitionedPart]]:
+    used_fields: typ.Set[str] = set()
     for part_name, part_pattern in PART_PATTERNS.items():
         end_idx = 0
         while True:
@@ -311,9 +302,23 @@ def _replace_pattern_parts(pattern: str) -> str:
                 named_part_pattern = f"(?P<{field}>{part_pattern})"
             used_fields.add(field)
 
-            end_idx  = start_idx + len(part_name)
-            sort_key = (-end_idx, -len(part_name))
-            part_patterns_by_index[sort_key] = (start_idx, end_idx, named_part_pattern)
+            end_idx         = start_idx + len(part_name)
+            sort_key        = (-end_idx, -len(part_name))
+            positioned_part = (start_idx, end_idx, named_part_pattern)
+            yield (sort_key, positioned_part)
+
+
+def _replace_pattern_parts(pattern: str) -> str:
+    # The pattern is escaped, so that everything besides the format
+    # string variables is treated literally.
+    while True:
+        new_pattern, _n = re.subn(r"([^\\]|^)\[", r"\1(?:", pattern)
+        new_pattern, _m = re.subn(r"([^\\]|^)\]", r"\1)?" , new_pattern)
+        pattern = new_pattern
+        if _n + _m == 0:
+            break
+
+    part_patterns_by_index: typ.Dict[SortKey, PostitionedPart] = dict(_iter_part_patterns(pattern))
 
     # NOTE (mb 2020-09-17): The sorting is done so that we process items:
     #   - right before left
