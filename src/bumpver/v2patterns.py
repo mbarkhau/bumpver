@@ -296,11 +296,21 @@ def _replace_pattern_parts(pattern: str) -> str:
     PostitionedPart = typ.Tuple[int, int, str]
     part_patterns_by_index: typ.Dict[SortKey, PostitionedPart] = {}
 
+    used_fields = set()
     for part_name, part_pattern in PART_PATTERNS.items():
-        start_idx = pattern.find(part_name)
-        if start_idx >= 0:
+        end_idx = 0
+        while True:
+            start_idx = pattern.find(part_name, end_idx)
+            if start_idx < 0:
+                break
+
             field              = PATTERN_PART_FIELDS[part_name]
-            named_part_pattern = f"(?P<{field}>{part_pattern})"
+            if field in used_fields:
+                named_part_pattern = f"(?P<{field}_{len(used_fields)}>{part_pattern})"
+            else:
+                named_part_pattern = f"(?P<{field}>{part_pattern})"
+            used_fields.add(field)
+
             end_idx            = start_idx + len(part_name)
             sort_key           = (-end_idx, -len(part_name))
             part_patterns_by_index[sort_key] = (start_idx, end_idx, named_part_pattern)
