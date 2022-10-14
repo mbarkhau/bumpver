@@ -59,7 +59,9 @@ test_compat: $(COMPAT_TEST_FILES)
 		env_py=$${env_pys[i]}; \
 		$${env_py} -m pip install --upgrade build/test_wheel/*.whl; \
 		ENABLE_BACKTRACE=0 PYTHONPATH="" ENV=$${ENV-dev} \
-			$${env_py} -m pytest --verbose compat_test/; \
+			$${env_py} -m pytest \
+			-k "$${PYTEST_FILTER-$${FLTR}}" \
+			--verbose compat_test/; \
 	done;
 
 	rm -rf compat_test/
