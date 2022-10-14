@@ -215,7 +215,7 @@ def parse_field_values_to_vinfo(field_values: FieldValues) -> version.V2VersionI
     """
     # pylint:disable=dangerous-default-value; We don't mutate args, mypy would fail if we did.
     for key in field_values:
-        assert key in VALID_FIELD_KEYS, key
+        assert any(key.startswith(fkey) for fkey in VALID_FIELD_KEYS), key
 
     cinfo = parse_field_values_to_cinfo(field_values)
 
