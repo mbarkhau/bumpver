@@ -304,15 +304,15 @@ def _replace_pattern_parts(pattern: str) -> str:
             if start_idx < 0:
                 break
 
-            field              = PATTERN_PART_FIELDS[part_name]
+            field = PATTERN_PART_FIELDS[part_name]
             if field in used_fields:
                 named_part_pattern = f"(?P<{field}_{len(used_fields)}>{part_pattern})"
             else:
                 named_part_pattern = f"(?P<{field}>{part_pattern})"
             used_fields.add(field)
 
-            end_idx            = start_idx + len(part_name)
-            sort_key           = (-end_idx, -len(part_name))
+            end_idx  = start_idx + len(part_name)
+            sort_key = (-end_idx, -len(part_name))
             part_patterns_by_index[sort_key] = (start_idx, end_idx, named_part_pattern)
 
     # NOTE (mb 2020-09-17): The sorting is done so that we process items:
