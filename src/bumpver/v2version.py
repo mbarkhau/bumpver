@@ -661,14 +661,15 @@ def _reset_rollover_fields(
 
 
 def _incr_numeric(
-    raw_pattern: str,
-    old_vinfo  : version.V2VersionInfo,
-    cur_vinfo  : version.V2VersionInfo,
-    major      : bool,
-    minor      : bool,
-    patch      : bool,
-    tag        : typ.Optional[str],
-    tag_num    : bool,
+    raw_pattern   : str,
+    old_vinfo     : version.V2VersionInfo,
+    cur_vinfo     : version.V2VersionInfo,
+    major         : bool,
+    minor         : bool,
+    patch         : bool,
+    tag           : typ.Optional[str],
+    tag_num       : bool,
+    pin_increments: bool,
 ) -> version.V2VersionInfo:
     """Increment (and reset to zero) non CalVer parts.
 
@@ -685,6 +686,7 @@ def _incr_numeric(
     ...     patch=True,
     ...     tag='beta',
     ...     tag_num=False,
+    ...     pin_increments=False,
     ... )
     >>> (new_vinfo.major, new_vinfo.minor, new_vinfo.patch, new_vinfo.tag, new_vinfo.pytag, new_vinfo.num)
     (1, 2, 4, 'beta', 'b', 0)
@@ -704,8 +706,9 @@ def _incr_numeric(
         pytag     = version.PEP440_TAG_BY_TAG[tag]
         cur_vinfo = cur_vinfo._replace(pytag=pytag)
 
-    cur_vinfo = cur_vinfo._replace(inc0=cur_vinfo.inc0 + 1)
-    cur_vinfo = cur_vinfo._replace(inc1=cur_vinfo.inc1 + 1)
+    if not pin_increments:
+        cur_vinfo = cur_vinfo._replace(inc0=cur_vinfo.inc0 + 1)
+        cur_vinfo = cur_vinfo._replace(inc1=cur_vinfo.inc1 + 1)
 
     # prevent truncation of leading zeros
     if int(cur_vinfo.bid) < 1000:
@@ -738,13 +741,14 @@ def incr(
     old_version: str,
     raw_pattern: str = "vYYYY0M.BUILD[-TAG]",
     *,
-    major     : bool = False,
-    minor     : bool = False,
-    patch     : bool = False,
-    tag       : typ.Optional[str] = None,
-    tag_num   : bool = False,
-    pin_date  : bool = False,
-    maybe_date: typ.Optional[dt.date] = None,
+    major         : bool = False,
+    minor         : bool = False,
+    patch         : bool = False,
+    tag           : typ.Optional[str] = None,
+    tag_num       : bool = False,
+    pin_increments: bool = False,
+    pin_date      : bool = False,
+    maybe_date    : typ.Optional[dt.date] = None,
 ) -> typ.Optional[str]:
     """Increment version string.
 
@@ -784,6 +788,7 @@ def incr(
         patch=patch,
         tag=tag,
         tag_num=tag_num,
+        pin_increments=pin_increments,
     )
 
     new_version = format_version(cur_vinfo, raw_pattern)
