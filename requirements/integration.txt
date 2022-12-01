@@ -37,6 +37,7 @@ pytest-cov
 # https://github.com/pytest-dev/pytest-html/blob/master/CHANGES.rst
 # pytest-html 2.0+ doesn't support python2.7
 pytest-html<2.0
+py
 
 readme_renderer[md]
 twine
