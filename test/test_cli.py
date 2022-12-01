@@ -156,6 +156,33 @@ def test_incr_pin_date(runner):
     assert "Version: v2017.22000-alpha\n" in result.output
 
 
+@pytest.mark.parametrize(
+    "version_pattern, old_version, new_version",
+    [
+        ("vYYYY.INC0[-PATCH]", "v2017.0", "v2017.0-1"),
+        ("vYYYY.INC0[-PATCH]", "v2017.0-1", "v2017.0-2"),
+        ("vYYYY.INC1[-PATCH]", "v2017.1", "v2017.1-1"),
+        ("vYYYY.INC1[-PATCH]", "v2017.1-1", "v2017.1-2"),
+    ],
+)
+def test_incr_pin_increments(runner, version_pattern, old_version, new_version):
+    result = runner.invoke(
+        cli.cli,
+        [
+            'test',
+            "-vv",
+            "--pin-increments",
+            "--patch",
+            "--date",
+            "2017-12-01",
+            old_version,
+            version_pattern,
+        ],
+    )
+    assert result.exit_code == 0
+    assert f"Version: {new_version}\n" in result.output
+
+
 def test_incr_semver(runner):
     semver_patterns = [
         "{semver}",
