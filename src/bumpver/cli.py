@@ -225,6 +225,12 @@ def version_options(function: typ.Callable) -> typ.Callable:
             help="Increment release tag number (rc1, rc2, rc3..).",
         ),
         click.option(
+            "--pin-increments",
+            is_flag=True,
+            default=False,
+            help="Leave the auto-increments INC0 and INC1 unchanged.",
+        ),
+        click.option(
             "--pin-date", is_flag=True, default=False, help="Leave date components unchanged."
         ),
         click.option(
@@ -261,17 +267,18 @@ def cli(verbose: int = 0) -> None:
 @verbose_option
 @version_options
 def test(
-    old_version: str,
-    pattern    : str,
-    verbose    : int = 0,
-    major      : bool = False,
-    minor      : bool = False,
-    patch      : bool = False,
-    tag        : str = None,
-    tag_num    : bool = False,
-    pin_date   : bool = False,
-    date       : typ.Optional[str] = None,
-    set_version: typ.Optional[str] = None,
+    old_version   : str,
+    pattern       : str,
+    verbose       : int = 0,
+    major         : bool = False,
+    minor         : bool = False,
+    patch         : bool = False,
+    tag           : str = None,
+    tag_num       : bool = False,
+    pin_increments: bool = False,
+    pin_date      : bool = False,
+    date          : typ.Optional[str] = None,
+    set_version   : typ.Optional[str] = None,
 ) -> None:
     """Increment a version number for demo purposes."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
@@ -291,6 +298,7 @@ def test(
             patch=patch,
             tag=tag,
             tag_num=tag_num,
+            pin_increments=pin_increments,
             pin_date=pin_date,
             maybe_date=maybe_date,
         )
@@ -521,13 +529,14 @@ def incr_dispatch(
     old_version: str,
     raw_pattern: str,
     *,
-    major     : bool = False,
-    minor     : bool = False,
-    patch     : bool = False,
-    tag       : str = None,
-    tag_num   : bool = False,
-    pin_date  : bool = False,
-    maybe_date: typ.Optional[dt.date] = None,
+    major         : bool = False,
+    minor         : bool = False,
+    patch         : bool = False,
+    tag           : str = None,
+    tag_num       : bool = False,
+    pin_increments: bool = False,
+    pin_date      : bool = False,
+    maybe_date    : typ.Optional[dt.date] = None,
 ) -> typ.Optional[str]:
     v1_parts    = list(v1patterns.PART_PATTERNS) + list(v1patterns.FULL_PART_FORMATS)
     has_v1_part = any("{" + part + "}" in raw_pattern for part in v1_parts)
@@ -562,6 +571,7 @@ def incr_dispatch(
             patch=patch,
             tag=tag,
             tag_num=tag_num,
+            pin_increments=pin_increments,
             pin_date=pin_date,
             maybe_date=maybe_date,
         )
@@ -749,6 +759,7 @@ def update(
     patch         : bool = False,
     tag           : typ.Optional[str] = None,
     tag_num       : bool = False,
+    pin_increments: bool = False,
     pin_date      : bool = False,
     date          : typ.Optional[str] = None,
     set_version   : typ.Optional[str] = None,
@@ -787,6 +798,7 @@ def update(
             patch=patch,
             tag=tag,
             tag_num=tag_num,
+            pin_increments=pin_increments,
             pin_date=pin_date,
             maybe_date=maybe_date,
         )

@@ -1,5 +1,15 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2022.1120
+
+- Fix [#196][gh_i196]: Add `--pin-increments`.
+
+[gh_i196]: https://github.com/mbarkhau/bumpver/issues/196
+
+Thank you [Markus Holtermann](https://github.com/MarkusH) for
+this contribution.
+
+
 ## BumpVer 2022.1119
 
 - Fix [#190][gh_i190]: Allow multiple patterns on the same line

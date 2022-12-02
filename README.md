@@ -605,6 +605,7 @@ Options:
   --date <ISODATE>                Set explicit date in format YYYY-0M-0D (e.g.
                                   2021-05-13).
   --pin-date                      Leave date components unchanged.
+  --pin-increments                Leave the auto-increments INC0 and INC1
   --tag-num                       Increment release tag number (rc1, rc2,
                                   rc3..).
   -t, --tag <NAME>                Override release tag of current_version. Valid
