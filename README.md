@@ -609,7 +609,7 @@ Options:
   --tag-num                       Increment release tag number (rc1, rc2,
                                   rc3..).
   -t, --tag <NAME>                Override release tag of current_version. Valid
-                                  options are: alpha, beta, rc, post, final.
+                                  options are: alpha, beta, dev, rc, post, final.
   -p, --patch                     Increment PATCH component.
   -m, --minor                     Increment MINOR component.
   --major                         Increment MAJOR component.
@@ -644,22 +644,22 @@ final
 
 [url_calver_org_scheme]: https://calver.org/#scheme
 
-|    part    |     range / example(s)    |                     info                    |
-|------------|---------------------------|---------------------------------------------|
-| `MAJOR`    | 0..9, 10..99, 100..       | `bumpver update --major`                    |
-| `MINOR`    | 0..9, 10..99, 100..       | `bumpver update --minor`                    |
-| `PATCH`    | 0..9, 10..99, 100..       | `bumpver update --patch`                    |
-| `TAG`      | alpha, beta, rc, post     | `--tag=<tag>`                               |
-| `PYTAG`    | a, b, rc, post            | `--tag=<tag>`                               |
-| `NUM`      | 0, 1, 2...                | `-r/--tag-num`                              |
-| `YYYY`     | 2019, 2020...             | Full year, based on `strftime('%Y')`        |
-| `YY`       | 18, 19..99, 0, 1          | Short year, based on `int(strftime('%y'))`  |
-| `MM`       | 9, 10, 11, 12             | Month, based on `int(strftime('%m'))`       |
-| `DD`       | 1, 2, 3..31               | Day, based on `int(strftime('%d'))`         |
-| `BUILD`    | 1001, 1002 .. 1999, 22000 | build number (maintains lexical order)      |
-| `INC0`     | 0, 1, 2...                | 0-based auto incrementing number            |
-| `INC1`     | 1, 2...                   | 1-based auto incrementing number            |
-| `PYTAGNUM` | a0, a1, rc0, ...          | `PYTAG` + `NUM` (no white-space in between) |
+|    part    | range / example(s)         |                     info                    |
+|------------|----------------------------|---------------------------------------------|
+| `MAJOR`    | 0..9, 10..99, 100..        | `bumpver update --major`                    |
+| `MINOR`    | 0..9, 10..99, 100..        | `bumpver update --minor`                    |
+| `PATCH`    | 0..9, 10..99, 100..        | `bumpver update --patch`                    |
+| `TAG`      | dev, alpha, beta, rc, post | `--tag=<tag>`                               |
+| `PYTAG`    | a, b, rc, post             | `--tag=<tag>`                               |
+| `NUM`      | 0, 1, 2...                 | `-r/--tag-num`                              |
+| `YYYY`     | 2019, 2020...              | Full year, based on `strftime('%Y')`        |
+| `YY`       | 18, 19..99, 0, 1           | Short year, based on `int(strftime('%y'))`  |
+| `MM`       | 9, 10, 11, 12              | Month, based on `int(strftime('%m'))`       |
+| `DD`       | 1, 2, 3..31                | Day, based on `int(strftime('%d'))`         |
+| `BUILD`    | 1001, 1002 .. 1999, 22000  | build number (maintains lexical order)      |
+| `INC0`     | 0, 1, 2...                 | 0-based auto incrementing number            |
+| `INC1`     | 1, 2...                    | 1-based auto incrementing number            |
+| `PYTAGNUM` | a0, a1, rc0, ...           | `PYTAG` + `NUM` (no white-space in between) |
 
 
 The following are also available, but you should review the [Normalization Caveats](#normalization-caveats) before you decide to use them.
