@@ -68,7 +68,7 @@ setuptools.setup(
     author="Manuel Barkhau",
     author_email="mbarkhau@gmail.com",
     url="https://github.com/mbarkhau/bumpver",
-    version="2022.1120",
+    version="2023.1121",
     keywords="version bumpver calver semver versioning bumpversion pep440",
     description="Bump version numbers in project files.",
     long_description=long_description,
