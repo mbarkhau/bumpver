@@ -1,5 +1,12 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2023.1121
+
+- Fix [#200][gh_i200]: Fix compatability with packaging 23.0.
+
+[gh_i200]: https://github.com/mbarkhau/bumpver/issues/200
+
+
 ## BumpVer 2022.1120
 
 - Fix [#196][gh_i196]: Add `--pin-increments`.

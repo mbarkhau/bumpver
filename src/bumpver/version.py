@@ -11,9 +11,15 @@ MaybeInt = typ.Optional[int]
 
 def parse_version(version: str) -> typ.Any:
     # pylint: disable=import-outside-toplevel; lazy import to speed up --help
-    import pkg_resources
 
-    return pkg_resources.parse_version(version)
+    try:
+        import pkg_resources
+
+        return pkg_resources.parse_version(version)
+    except (ImportError, pkg_resources.extern.packaging.version.InvalidVersion):
+        import looseversion
+
+        return looseversion.LooseVersion(version)
 
 
 class V1CalendarInfo(typ.NamedTuple):
