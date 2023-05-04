@@ -262,9 +262,7 @@ def test_dev_tag(runner):
     old_version = "0.1.0"
     new_version = "0.1.1dev0"
 
-    result = runner.invoke(
-        cli.cli, ['test', "-vv", old_version, SEMVER, "--patch", "--tag", "dev"]
-    )
+    result = runner.invoke(cli.cli, ['test', "-vv", old_version, SEMVER, "--patch", "--tag", "dev"])
     assert result.exit_code == 0
     assert f"Version: {new_version}\n" in result.output
 
