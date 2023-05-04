@@ -16,7 +16,7 @@ def parse_version(version: str) -> typ.Any:
         import pkg_resources
 
         return pkg_resources.parse_version(version)
-    except (ImportError, pkg_resources.extern.packaging.version.InvalidVersion):
+    except (ImportError, ValueError):
         import looseversion
 
         return looseversion.LooseVersion(version)
