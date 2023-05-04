@@ -3,8 +3,12 @@
 ## BumpVer 2023.1121
 
 - Fix [#200][gh_i200]: Fix compatability with packaging 23.0.
+- Fix [#203][gh_i203]: Add dev to the list of valid release tags
 
 [gh_i200]: https://github.com/mbarkhau/bumpver/issues/200
+[gh_i203]: https://github.com/mbarkhau/bumpver/issues/203
+
+Thank you [Sharon Yogev](https://github.com/sharonyogev) for your contribution.
 
 
 ## BumpVer 2022.1120
