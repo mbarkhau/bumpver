@@ -258,6 +258,15 @@ def test_incr_tag(runner):
     assert f"Version: {new_version}\n" in result.output
 
 
+def test_dev_tag(runner):
+    old_version = "0.1.0"
+    new_version = "0.1.1dev0"
+
+    result = runner.invoke(cli.cli, ['test', "-vv", old_version, SEMVER, "--patch", "--tag", "dev"])
+    assert result.exit_code == 0
+    assert f"Version: {new_version}\n" in result.output
+
+
 def test_incr_tag_num(runner):
     old_version = "0.1.0b0"
     new_version = "0.1.0b1"
