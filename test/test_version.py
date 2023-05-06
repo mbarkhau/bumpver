@@ -66,7 +66,7 @@ def test_bump_random(monkeypatch):
     for _ in range(1000):
         cur_date += dt.timedelta(days=int((1 + random.random()) ** 10))
         new_version = v1version.incr(
-            cur_version, tag=random.choice([None, "alpha", "beta", "rc", "final", "post"])
+            cur_version, tag=random.choice([None, "dev", "alpha", "beta", "rc", "final", "post"])
         )
         assert cur_version < new_version
         cur_version = new_version
@@ -263,7 +263,7 @@ def test_v2_format_version():
     assert result == '__version__ = "2007.33"'
 
 
-WEEK_PATTERN_TEXT_CASES = [
+WEEK_PATTERN_TEST_CASES = [
     ("YYYYWW.PATCH", True),
     ("YYYYUU.PATCH", True),
     ("GGGGVV.PATCH", True),
@@ -291,6 +291,23 @@ WEEK_PATTERN_TEXT_CASES = [
 ]
 
 
-@pytest.mark.parametrize("pattern, expected", WEEK_PATTERN_TEXT_CASES)
+@pytest.mark.parametrize("pattern, expected", WEEK_PATTERN_TEST_CASES)
 def test_is_valid_week_pattern(pattern, expected):
     assert v2version.is_valid_week_pattern(pattern) == expected
+
+
+PEP440_TEST_CASES = [
+    ("v2017.54321"       , "2017.54321"),
+    ("v201808.0123-alpha", "201808.123a0"),
+    ("v201811.0007-beta" , "201811.7b0"),
+    ("v2020.1003-alpha"  , "2020.1003a0"),
+    ("v2020.1003-beta"   , "2020.1003b0"),
+    ("v2020.1003-dev"    , "2020.1003.dev0"),
+    ("v2017q1.54321"     , "v2017q1.54321"),
+    ("1.2.3"             , "1.2.3"),
+]
+
+
+@pytest.mark.parametrize("version_str, expected", PEP440_TEST_CASES)
+def test_to_pep440(version_str, expected):
+    assert version.to_pep440(version_str) == expected
