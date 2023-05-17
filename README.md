@@ -572,8 +572,8 @@ Usage: bumpver [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --version      Show the version and exit.
-  --help         Show this message and exit.
   -v, --verbose  Control log level. -vv for debug level.
+  -h, --help     Show this message and exit.
 
 Commands:
   grep    Search file(s) for a version pattern.
@@ -594,22 +594,27 @@ Usage: bumpver update [OPTIONS]
   Update project files with the incremented version string.
 
 Options:
-  -d, --dry                       Display diff of changes, don't rewrite files.
+  -d, --dry                       Display diff of changes, don't rewrite
+                                  files.
   -f, --fetch / -n, --no-fetch    Sync tags from remote origin.
   -v, --verbose                   Control log level. -vv for debug level.
   --allow-dirty                   Commit even when working directory is has
-                                  uncomitted changes. (WARNING: The commit will
-                                  still be aborted if there are uncomitted to
-                                  files with version strings.
+                                  uncomitted changes. (WARNING: The commit
+                                  will still be aborted if there are
+                                  uncomitted to files with version strings.
+  --ignore-vcs-tag                Ignore VCS tag invariant and update version
+                                  anyway.
   --set-version <VERSION>         Set version explicitly.
   --date <ISODATE>                Set explicit date in format YYYY-0M-0D (e.g.
-                                  2021-05-13).
+                                  2023-05-18).
   --pin-date                      Leave date components unchanged.
   --pin-increments                Leave the auto-increments INC0 and INC1
+                                  unchanged.
   --tag-num                       Increment release tag number (rc1, rc2,
                                   rc3..).
-  -t, --tag <NAME>                Override release tag of current_version. Valid
-                                  options are: alpha, beta, dev, rc, post, final.
+  -t, --tag <NAME>                Override release tag of current_version.
+                                  Valid options are: alpha, beta, dev, rc,
+                                  post, final.
   -p, --patch                     Increment PATCH component.
   -m, --minor                     Increment MINOR component.
   --major                         Increment MAJOR component.
@@ -617,7 +622,7 @@ Options:
   --commit / --no-commit          Create a commit with all updated files.
   --tag-commit / --no-tag-commit  Tag the newly created commit.
   --push / --no-push              Push to the default remote.
-  --help                          Show this message and exit.
+  -h, --help                      Show this message and exit.
 ```
 
 <!-- END bumpver update --help -->
@@ -729,24 +734,24 @@ If you wish to avoid this, you should use a pattern which maintains lexicographi
 
 <!-- BEGIN pattern_examples -->
 
-|             pattern             |               examples              | PEP440 | lexico. |
-|---------------------------------|-------------------------------------|--------|---------|
-| `MAJOR.MINOR.PATCH[PYTAGNUM]`   | `0.13.10          0.16.10rc1`       | yes    | no      |
-| `MAJOR.MINOR[.PATCH[PYTAGNUM]]` | `1.11             0.3.0b5`          | yes    | no      |
-| `YYYY.BUILD[PYTAGNUM]`          | `2020.1031        2020.1148a0`      | yes    | yes     |
-| `YYYY.BUILD[-TAG]`              | `2021.1393-beta   2022.1279`        | no     | yes     |
-| `YYYY.INC0[PYTAGNUM]`           | `2020.10          2021.12b2`        | yes    | no      |
-| `YYYY0M.PATCH[-TAG]`            | `202005.12        202210.15-beta`   | no     | no¹     |
-| `YYYY0M.BUILD[-TAG]`            | `202106.1071      202106.1075-beta` | no     | yes     |
-| `YYYY.0M`                       | `2020.02          2022.09`          | no     | yes     |
-| `YYYY.MM`                       | `2020.8           2020.10`          | yes    | no      |
-| `YYYY.WW`                       | `2020.8           2021.14`          | yes    | no      |
-| `YYYY.MM.PATCH[PYTAGNUM]`       | `2020.3.12b0      2021.6.19b0`      | yes    | no      |
-| `YYYY.0M.PATCH[PYTAGNUM]`       | `2020.10.15b0     2022.07.7b0`      | no     | no¹     |
-| `YYYY.MM.INC0`                  | `2021.6.2         2022.8.9`         | yes    | no      |
-| `YYYY.MM.DD`                    | `2020.5.18        2021.8.2`         | yes    | no      |
-| `YYYY.0M.0D`                    | `2020.08.24       2022.05.03`       | no     | yes     |
-| `YY.0M.PATCH`                   | `21.04.2          21.11.12`         | no     | no²     |
+| pattern                         | examples                          | PEP440 | lexico. |
+|---------------------------------|-----------------------------------|--------|---------|
+| `MAJOR.MINOR.PATCH[PYTAGNUM]`   | `0.13.10          0.16.10`        | yes    | no      |
+| `MAJOR.MINOR[.PATCH[PYTAGNUM]]` | `0.11.15          0.16.18`        | yes    | no      |
+| `YYYY.BUILD[PYTAGNUM]`          | `2020.1031        2020.1406`      | yes    | yes     |
+| `YYYY.BUILD[-TAG]`              | `2021.1393-beta   2022.1279`      | no     | yes     |
+| `YYYY.INC0[PYTAGNUM]`           | `2020.4b0         2020.16`        | yes    | no      |
+| `YYYY0M.PATCH[-TAG]`            | `202210.10        202211.13-beta` | no     | no¹     |
+| `YYYY0M.BUILD[-TAG]`            | `202005.1269-beta 202206.1056`    | no     | yes     |
+| `YYYY.0M`                       | `2020.01          2021.04`        | no     | yes     |
+| `YYYY.MM`                       | `2020.2           2022.2`         | yes    | no      |
+| `YYYY.WW`                       | `2020.33          2020.39`        | yes    | no      |
+| `YYYY.MM.PATCH[PYTAGNUM]`       | `2022.3.1b0       2022.11.15b0`   | yes    | no      |
+| `YYYY.0M.PATCH[PYTAGNUM]`       | `2020.03.2        2022.02.4`      | no     | no¹     |
+| `YYYY.MM.INC0`                  | `2020.7.10        2021.7.7`       | yes    | no      |
+| `YYYY.MM.DD`                    | `2020.8.9         2020.8.20`      | yes    | no      |
+| `YYYY.0M.0D`                    | `2020.11.02       2022.05.03`     | no     | yes     |
+| `YY.0M.PATCH`                   | `20.05.12         22.03.5`        | no     | no²     |
 
 <!-- END pattern_examples -->
 
@@ -769,7 +774,7 @@ number would run backwards if it was created around New Year.
 
 <!-- BEGIN weeknum_example -->
 
-```sql
+```
                    YYYY WW UU  GGGG VV
 2020-12-26 (Sat):  2020 51 51  2020 52
 2020-12-27 (Sun):  2020 51 52  2020 52

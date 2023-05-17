@@ -1295,3 +1295,32 @@ def test_get_latest_vcs_version_tag(runner):
     _, cfg = config.init()
     latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
     assert latest_version == "0.1.10"
+
+def test_ignore_vcs_tag(runner, monkeypatch):
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val("bumpver.toml", push="false")
+    _update_config_val("bumpver.toml", current_version='"0.1.8"')
+    _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH"')
+
+    _vcs_init("git", files=["bumpver.toml"])
+    _, cfg = config.init()
+
+    # mock latest vcs tag 0.2.0 but cfg.current_version is 0.1.8
+    monkeypatch.setattr(cli, "get_latest_vcs_version_tag", lambda cfg, fetch: "0.2.0")
+    assert cfg.current_version == "0.1.8"
+    assert cli.get_latest_vcs_version_tag(cfg, fetch=False) == "0.2.0"
+    
+    result = runner.invoke(cli.cli, ['update', "--set-version", "0.1.9"])
+    assert result.exit_code == 1
+
+    result = runner.invoke(cli.cli, ['update', "-vv", "--ignore-vcs-tag", "--dry", "--set-version", "0.1.9"])
+    assert result.exit_code == 0
+
+    out_lines = set(result.output.splitlines())
+    assert '-current_version = "0.1.8"' in out_lines
+    assert '+current_version = "0.1.9"' in out_lines
+    
+    latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
+    assert latest_version == "0.2.0"
