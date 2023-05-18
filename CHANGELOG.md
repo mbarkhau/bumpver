@@ -1,6 +1,6 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
-## BumpVer 2023.1123
+## BumpVer 2023.1124
 
 - Fix [#208][gh_i208]: Fix handling of versions with PEP440 epoch.
 
