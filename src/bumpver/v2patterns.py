@@ -239,7 +239,7 @@ def _convert_to_pep440(version_pattern: str) -> str:
     pep440_pattern = pep440_pattern.replace(r"\[", "")
     pep440_pattern = pep440_pattern.replace(r"\]", "")
 
-    pep440_pattern, _ = re.subn(r"[^a-zA-Z0-9\.\[\]]", "", pep440_pattern)
+    pep440_pattern, _ = re.subn(r"[^a-zA-Z0-9\.\!\[\]]", "", pep440_pattern)
 
     part_names = list(PATTERN_PART_FIELDS.keys())
     part_names.sort(key=len, reverse=True)

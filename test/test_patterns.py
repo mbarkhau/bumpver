@@ -251,6 +251,24 @@ def test_v2_patterns(pattern_str, line, expected):
     assert result_val == expected, (pattern_str, line, pattern.regexp.pattern)
 
 
+def test_epoch_pattern():
+    raw_pattern = v2patterns.normalize_pattern("v1!MAJOR.MINOR.PATCH", "{version}")
+    pattern     = v2patterns.compile_pattern(raw_pattern)
+
+    result     = pattern.regexp.search('current_version = "v1!2.1.5"')
+    result_val = None if result is None else result.group(0)
+    assert result_val == "v1!2.1.5"
+
+
+def test_epoch_pep440_pattern():
+    raw_pep440_pattern = v2patterns.normalize_pattern("v1!MAJOR.MINOR.PATCH", "{pep440_version}")
+    pep440_pattern     = v2patterns.compile_pattern(raw_pep440_pattern)
+
+    result     = pep440_pattern.regexp.search('version = "1!2.1.5"')
+    result_val = None if result is None else result.group(0)
+    assert result_val == "1!2.1.5"
+
+
 CLI_MAIN_FIXTURE = """
 @click.group()
 @click.version_option(version="v201812.0123-beta")
