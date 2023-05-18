@@ -1,12 +1,22 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2023.1123
+
+- Fix [#208][gh_i208]: Fix handling of versions with PEP440 epoch.
+
+[gh_i208]: https://github.com/mbarkhau/bumpver/issues/208
+
+Thank you [Wen Kokke](https://github.com/wenkokke) for the issue report.
+
+
 ## BumpVer 2023.1122
 
-- Fix [#207][gh_i207]: Add --ignore-vcs-tag for old version support purpose
+- Fix [#207][gh_i207]: Add --ignore-vcs-tag to support bumping older versions
 
 [gh_i207]: https://github.com/mbarkhau/bumpver/issues/207
 
 Thank you [Jusong Yu](https://github.com/unkcpz) for your contribution.
+
 
 ## BumpVer 2023.1121
 
