@@ -1296,6 +1296,7 @@ def test_get_latest_vcs_version_tag(runner):
     latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
     assert latest_version == "0.1.10"
 
+
 def test_ignore_vcs_tag(runner, monkeypatch):
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
@@ -1311,16 +1312,18 @@ def test_ignore_vcs_tag(runner, monkeypatch):
     monkeypatch.setattr(cli, "get_latest_vcs_version_tag", lambda cfg, fetch: "0.2.0")
     assert cfg.current_version == "0.1.8"
     assert cli.get_latest_vcs_version_tag(cfg, fetch=False) == "0.2.0"
-    
+
     result = runner.invoke(cli.cli, ['update', "--set-version", "0.1.9"])
     assert result.exit_code == 1
 
-    result = runner.invoke(cli.cli, ['update', "-vv", "--ignore-vcs-tag", "--dry", "--set-version", "0.1.9"])
+    result = runner.invoke(
+        cli.cli, ['update', "-vv", "--ignore-vcs-tag", "--dry", "--set-version", "0.1.9"]
+    )
     assert result.exit_code == 0
 
     out_lines = set(result.output.splitlines())
     assert '-current_version = "0.1.8"' in out_lines
     assert '+current_version = "0.1.9"' in out_lines
-    
+
     latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
     assert latest_version == "0.2.0"

@@ -731,9 +731,7 @@ def _parse_vcs_options(
     "--ignore-vcs-tag",
     default=False,
     is_flag=True,
-    help=(
-        "Ignore VCS tag invariant and update version anyway."
-    ),
+    help="Ignore VCS tag invariant and update version anyway.",
 )
 @version_options
 @click.option(
