@@ -1,5 +1,13 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2023.1122
+
+- Fix [#207][gh_i207]: Add --ignore-vcs-tag for old version support purpose
+
+[gh_i207]: https://github.com/mbarkhau/bumpver/issues/207
+
+Thank you [Jusong Yu](https://github.com/unkcpz) for your contribution.
+
 ## BumpVer 2023.1121
 
 - Fix [#200][gh_i200]: Fix compatability with packaging 23.0.

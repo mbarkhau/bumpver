@@ -520,6 +520,7 @@ def _is_valid_version(raw_pattern: str, old_version: str, new_version: str) -> b
     if version.parse_version(new_version) <= version.parse_version(old_version):
         logger.error("Invariant violated: New version must be greater than old version ")
         logger.error(f"  Failed Invariant: '{new_version}' > '{old_version}'")
+        logger.error("If the invariant is from vcs tags try '--ignore-vcs-tag' option.")
         return False
     else:
         return True
@@ -726,6 +727,12 @@ def _parse_vcs_options(
         "to files with version strings."
     ),
 )
+@click.option(
+    "--ignore-vcs-tag",
+    default=False,
+    is_flag=True,
+    help="Ignore VCS tag invariant and update version anyway.",
+)
 @version_options
 @click.option(
     "-c",
@@ -752,6 +759,7 @@ def _parse_vcs_options(
 def update(
     dry           : bool = False,
     allow_dirty   : bool = False,
+    ignore_vcs_tag: bool = False,
     fetch         : bool = True,
     verbose       : int = 0,
     major         : bool = False,
@@ -786,7 +794,8 @@ def update(
         logger.warning(f"Invalid argument: {ex}")
         sys.exit(1)
 
-    cfg = _update_cfg_from_vcs(cfg, fetch)
+    if not ignore_vcs_tag:
+        cfg = _update_cfg_from_vcs(cfg, fetch)
 
     old_version = cfg.current_version
     if set_version is None:
