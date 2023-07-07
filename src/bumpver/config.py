@@ -34,6 +34,7 @@ FilePatternsItem = typ.Tuple[str, typ.List[Pattern]]
 SUPPORTED_CONFIGS = ["setup.cfg", "pyproject.toml", "pycalver.toml", "bumpver.toml"]
 
 DEFAULT_COMMIT_MESSAGE = "bump version to {new_version}"
+DEFAULT_TAG_MESSAGE    = "{new_version}"
 
 
 class ProjectContext(typ.NamedTuple):
@@ -125,6 +126,7 @@ class Config(typ.NamedTuple):
     version_pattern: str
     pep440_version : str
     commit_message : str
+    tag_message    : str
 
     commit        : bool
     tag           : bool
@@ -144,6 +146,7 @@ def _debug_str(cfg: Config) -> str:
         f"\n    version_pattern='{cfg.version_pattern}',",
         f"\n    pep440_version='{cfg.pep440_version}',",
         f"\n    commit_message='{cfg.commit_message}',",
+        f"\n    tag_message='{cfg.tag_message}',",
         f"\n    commit={cfg.commit},",
         f"\n    tag={cfg.tag},",
         f"\n    push={cfg.push},",
@@ -364,6 +367,9 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     commit_message: str = raw_cfg.get('commit_message', DEFAULT_COMMIT_MESSAGE)
     commit_message = raw_cfg['commit_message'] = commit_message.strip("'\" ")
 
+    tag_message: str = raw_cfg.get('tag_message', DEFAULT_TAG_MESSAGE)
+    tag_message = raw_cfg['tag_message'] = tag_message.strip("'\" ")
+
     current_version: str = raw_cfg['current_version']
     current_version = raw_cfg['current_version'] = current_version.strip("'\" ")
 
@@ -398,6 +404,7 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
         version_pattern=version_pattern,
         pep440_version=pep440_version,
         commit_message=commit_message,
+        tag_message=tag_message,
         commit=commit,
         tag=tag,
         push=push,
@@ -500,6 +507,7 @@ DEFAULT_CONFIGPARSER_BASE_TMPL = """
 current_version = "{initial_version}"
 version_pattern = "YYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
+tag_message = "{{new_version}}"
 commit = True
 tag = True
 push = True
@@ -540,6 +548,7 @@ DEFAULT_PYPROJECT_TOML_BASE_TMPL = """
 current_version = "{initial_version}"
 version_pattern = "YYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
+tag_message = "{{new_version}}"
 commit = true
 tag = true
 push = true
@@ -553,6 +562,7 @@ DEFAULT_BUMPVER_TOML_BASE_TMPL = """
 current_version = "{initial_version}"
 version_pattern = "YYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
+tag_message = "{{new_version}}"
 commit = true
 tag = true
 push = true

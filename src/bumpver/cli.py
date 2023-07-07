@@ -582,6 +582,7 @@ def _update(
     cfg           : config.Config,
     new_version   : str,
     commit_message: str,
+    tag_message   : str,
     allow_dirty   : bool = False,
 ) -> None:
     vcs_api: typ.Optional[vcs.VCSAPI] = None
@@ -609,17 +610,18 @@ def _update(
         sys.exit(1)
 
     if vcs_api:
-        vcs.commit(cfg, vcs_api, filepaths, new_version, commit_message)
+        vcs.commit(cfg, vcs_api, filepaths, new_version, commit_message, tag_message)
 
 
 def _try_update(
     cfg           : config.Config,
     new_version   : str,
     commit_message: str,
+    tag_message   : str,
     allow_dirty   : bool = False,
 ) -> None:
     try:
-        _update(cfg, new_version, commit_message, allow_dirty)
+        _update(cfg, new_version, commit_message, tag_message, allow_dirty)
     except sp.CalledProcessError as ex:
         logger.error(f"Error running subcommand: {ex.cmd}")
         if ex.stdout:
@@ -713,6 +715,10 @@ def _parse_vcs_options(
     return cfg
 
 
+def _sub_msg_template(message: str) -> str:
+    return re.sub(r"\b(OLD|NEW)\b", r"{\1_VERSION}", message)
+
+
 @cli.command()
 @dry_option
 @fetch_option
@@ -740,6 +746,12 @@ def _parse_vcs_options(
     default=None,
     metavar="<TMPL>",
     help="Set commit message template.",
+)
+@click.option(
+    "--tag-message",
+    default=None,
+    metavar="<TMPL>",
+    help="Set tag message template.",
 )
 @click.option(
     "--commit/--no-commit",
@@ -772,6 +784,7 @@ def update(
     date          : typ.Optional[str] = None,
     set_version   : typ.Optional[str] = None,
     commit_message: typ.Optional[str] = None,
+    tag_message   : typ.Optional[str] = None,
     commit        : typ.Optional[bool] = None,
     tag_commit    : typ.Optional[bool] = None,
     push          : typ.Optional[bool] = None,
@@ -833,9 +846,11 @@ def update(
     if commit_message is None:
         commit_msg_template = cfg.commit_message
     else:
-        commit_msg_template, _ = re.subn(r"\b(OLD|NEW)\b", r"{\1_VERSION}", commit_message)
+        commit_msg_template = _sub_msg_template(commit_message)
 
-    commit_message_kwargs = {
+    tag_msg_template = cfg.tag_message if tag_message is None else _sub_msg_template(tag_message)
+
+    tag_and_commit_message_kwargs = {
         'new_version'       : new_version,
         'old_version'       : old_version,
         'NEW_VERSION'       : new_version,
@@ -843,12 +858,14 @@ def update(
         'new_version_pep440': version.to_pep440(new_version),
         'old_version_pep440': version.to_pep440(old_version),
     }
-    try_commit_message = commit_msg_template.format(**commit_message_kwargs)
+
+    try_commit_message = commit_msg_template.format(**tag_and_commit_message_kwargs)
+    try_tag_message    = tag_msg_template.format(**tag_and_commit_message_kwargs)
 
     if dry:
         return
 
-    _try_update(cfg, new_version, try_commit_message, allow_dirty)
+    _try_update(cfg, new_version, try_commit_message, try_tag_message, allow_dirty)
 
 
 if __name__ == '__main__':
