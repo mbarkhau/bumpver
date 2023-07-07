@@ -51,6 +51,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'add_path'    : "git add --update '{path}'",
         'commit'      : "git commit --message '{message}'",
         'tag'         : "git tag --annotate {tag} --message '{message}'",
+        'tag_light'   : "git tag {tag}",
         'push_tag'    : "git push {remote} --follow-tags {tag} HEAD",
         'show_remotes': "git config --get remote.origin.url",
         'ls_branches' : "git branch -vv",
@@ -192,8 +193,13 @@ class VCSAPI:
                 os.unlink(tmp_file.name)
 
     def tag(self, tag_name: str, tag_message: str) -> None:
-        """Create an annotated tag."""
-        self('tag', tag=tag_name, message=tag_message)
+        """Create a tag."""
+        if tag_message == "" and self.name == 'git':
+            # Lightweight
+            self('tag_light', tag=tag_name)
+        else:
+            # Annotated
+            self('tag', tag=tag_name, message=tag_message)
 
     def push(self, tag_name: str) -> None:
         """Push changes to origin."""
