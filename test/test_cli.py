@@ -1144,6 +1144,184 @@ def test_cli_commit_message(runner, caplog):
     assert expected in commits[1]
 
 
+def test_hg_tag_message(runner, caplog):
+    _add_project_files("README.md", "setup.cfg")
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    tag_message = """
+    "bump: {old_version} ({old_version_pep440}) -> {new_version} ({new_version_pep440})"
+    """
+
+    _update_config_val(
+        "setup.cfg",
+        current_version='"v2019.1001-alpha"',
+        version_pattern="vYYYY.BUILD[-TAG]",
+        tag_message=tag_message.strip(),
+    )
+
+    _vcs_init("hg", ["README.md", "setup.cfg"])
+    assert len(caplog.records) > 0
+
+    cmd = [
+        'update',
+        "-vv",
+        "--pin-date",
+        "--tag",
+        "beta",
+    ]
+
+    result = runner.invoke(cli.cli, cmd)
+    assert result.exit_code == 0
+
+    tags = shell("hg", "tags").decode("utf-8")
+
+    expected_tag = "v2019.1002-beta"
+    assert expected_tag in tags
+
+    messages = shell("hg", "tags", "--template", "{desc}").decode("utf-8")
+
+    expected_message = "bump: v2019.1001-alpha (2019.1001a0) -> v2019.1002-beta (2019.1002b0)"
+    assert expected_message in messages
+
+
+def test_git_tag_message_annotated(runner, caplog):
+    _add_project_files("README.md", "setup.cfg")
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    tag_message = """
+    "bump: {old_version} ({old_version_pep440}) -> {new_version} ({new_version_pep440})"
+    """
+
+    _update_config_val(
+        "setup.cfg",
+        current_version='"v2019.1001-alpha"',
+        version_pattern="vYYYY.BUILD[-TAG]",
+        tag_message=tag_message.strip(),
+    )
+
+    _vcs_init("git", ["README.md", "setup.cfg"])
+    assert len(caplog.records) > 0
+
+    cmd = [
+        'update',
+        "-vv",
+        "--pin-date",
+        "--tag",
+        "beta",
+    ]
+
+    result = runner.invoke(cli.cli, cmd)
+    assert result.exit_code == 0
+
+    tags = shell("git", "tag", "--list").decode("utf-8")
+
+    expected_tag = "v2019.1002-beta"
+    assert expected_tag in tags
+
+    objecttype = (
+        shell("git", "tag", "--list", expected_tag, "--format=%(objecttype)")
+        .decode("utf-8")
+        .strip()
+    )
+
+    expected_type = "tag"
+    assert objecttype == expected_type
+
+    message = (
+        shell("git", "tag", "--list", expected_tag, "--format=%(contents:subject)")
+        .decode("utf-8")
+        .strip()
+    )
+
+    expected_message = "bump: v2019.1001-alpha (2019.1001a0) -> v2019.1002-beta (2019.1002b0)"
+    assert expected_message == message
+
+
+def test_git_tag_message_lightweight(runner, caplog):
+    _add_project_files("README.md", "setup.cfg")
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val(
+        "setup.cfg",
+        current_version='"v2019.1001-alpha"',
+        version_pattern="vYYYY.BUILD[-TAG]",
+        tag_message='""',
+    )
+
+    _vcs_init("git", ["README.md", "setup.cfg"])
+    assert len(caplog.records) > 0
+
+    cmd = [
+        'update',
+        "-vv",
+        "--pin-date",
+        "--tag",
+        "beta",
+    ]
+
+    result = runner.invoke(cli.cli, cmd)
+    assert result.exit_code == 0
+
+    tags = shell("git", "tag", "--list").decode("utf-8")
+
+    expected_tag = "v2019.1002-beta"
+    assert expected_tag in tags
+
+    objecttype = (
+        shell("git", "tag", "--list", expected_tag, "--format=%(objecttype)")
+        .decode("utf-8")
+        .strip()
+    )
+
+    expected_type = "commit"
+    assert objecttype == expected_type
+
+
+def test_cli_tag_message(runner, caplog):
+    _add_project_files("README.md", "setup.cfg")
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val(
+        "setup.cfg",
+        current_version='"v2019.1001-alpha"',
+        version_pattern="vYYYY.BUILD[-TAG]",
+    )
+
+    _vcs_init("git", ["README.md", "setup.cfg"])
+    assert len(caplog.records) > 0
+
+    cmd = [
+        'update',
+        "-vv",
+        "--pin-date",
+        "--tag",
+        "beta",
+        "--tag-message",
+        "my custom message (OLD -> NEW)",
+    ]
+
+    result = runner.invoke(cli.cli, cmd)
+    assert result.exit_code == 0
+
+    tags = shell("git", "tag", "--list").decode("utf-8")
+
+    expected_tag = "v2019.1002-beta"
+    assert expected_tag in tags
+
+    message = (
+        shell("git", "tag", "--list", expected_tag, "--format=%(contents:subject)")
+        .decode("utf-8")
+        .strip()
+    )
+
+    expected_message = "my custom message (v2019.1001-alpha -> v2019.1002-beta)"
+    assert expected_message == message
+
+
 def test_grep(runner):
     _add_project_files("README.md")
 
