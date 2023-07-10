@@ -606,7 +606,7 @@ Options:
                                   anyway.
   --set-version <VERSION>         Set version explicitly.
   --date <ISODATE>                Set explicit date in format YYYY-0M-0D (e.g.
-                                  2023-05-18).
+                                  2023-07-10).
   --pin-date                      Leave date components unchanged.
   --pin-increments                Leave the auto-increments INC0 and INC1
                                   unchanged.
@@ -619,6 +619,7 @@ Options:
   -m, --minor                     Increment MINOR component.
   --major                         Increment MAJOR component.
   -c, --commit-message <TMPL>     Set commit message template.
+  --tag-message <TMPL>            Set tag message template.
   --commit / --no-commit          Create a commit with all updated files.
   --tag-commit / --no-tag-commit  Tag the newly created commit.
   --push / --no-push              Push to the default remote.
@@ -813,6 +814,7 @@ Exiting because of '-d/--dry'. Would have written to bumpver.toml:
     current_version = "2020.1001a0"
     version_pattern = "YYYY.BUILD[PYTAGNUM]"
     commit_message = "bump version to {new_version}"
+    tag_message = "{new_version}"
     commit = true
     tag = true
     push = true
@@ -842,6 +844,7 @@ Your `setup.cfg` may now look something like this:
 current_version = "2019.1001-alpha"
 version_pattern = "YYYY.BUILD[-TAG]"
 commit_message = "bump version to {new_version}"
+tag_message = "{new_version}"
 commit = True
 tag = True
 push = True
@@ -1021,6 +1024,7 @@ The configuration for these steps can be done with the following parameters:
 |    Parameter     |   Type   |               Description               |
 |------------------|----------|-----------------------------------------|
 | `commit_message` | string¹  | Template for commit message in step 4.  |
+| `tag_message`    | string¹  | Template for tag message in step 5.     |
 | `commit`         | boolean  | Create a commit with all updated files. |
 | `tag`            | boolean² | Tag the newly created commit.           |
 | `push`           | boolean² | Push to the default remote.             |
@@ -1034,6 +1038,7 @@ An example configuration might look like this:
 [bumpver]
 ...
 commit_message = "bump version to {new_version}"
+tag_message = "{new_version}"
 commit = True
 tag = True
 push = True
@@ -1072,7 +1077,7 @@ $ bumpver update --tag final --commit-message 'bump version {old_version} -> {ne
 INFO    - Old Version: 2021.1005b0
 INFO    - New Version: 2021.1006
 INFO    - git commit --message 'bump version 2020.1005b0 -> 2021.1006 [ci-publish]'
-INFO    - git tag --annotate 2020.1006 --message 2020.1006
+INFO    - git tag --annotate 2020.1006 --message '2020.1006'
 INFO    - git push origin --follow-tags 2020.1006 HEAD
 ```
 
@@ -1084,6 +1089,33 @@ $ bumpver update -f -t final -c '[final-version] OLD -> NEW'
 INFO    - Old Version: 1.2.0b2
 INFO    - New Version: 1.2.0
 INFO    - git commit --message '[final-version] 1.2.0b2 -> 1.2.0'
+...
+```
+
+
+### Custom Tag Message
+
+Analogue to the custom commit message it is also possible to provide a tag message template by using the `--tag-message=<TMPL>` parameter in addition to the `tag_message` configuration:
+
+```shell
+$ bumpver update -f -t final --tag-message 'release NEW'
+INFO    - Old Version: 1.2.0b2
+INFO    - New Version: 1.2.0
+...
+INFO    - git tag --annotate 1.2.0 --message 'release 1.2.0'
+...
+```
+
+You can use the same placeholders as in the `--commit-message` template.
+
+If an empty tag message is provided, bumpver uses a lightweight tag in Git. Otherwise, it utilizes an annotated Git tag. You can read more about Git tagging [here](https://git-scm.com/book/en/v2/Git-Basics-Tagging).
+
+```shell
+$ bumpver update -f -t final --tag-message ''
+INFO    - Old Version: 1.2.0b2
+INFO    - New Version: 1.2.0
+...
+INFO    - git tag 1.2.0
 ...
 ```
 
