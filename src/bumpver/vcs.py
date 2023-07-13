@@ -50,7 +50,8 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'status'      : "git status --porcelain",
         'add_path'    : "git add --update '{path}'",
         'commit'      : "git commit --message '{message}'",
-        'tag'         : "git tag --annotate {tag} --message {tag}",
+        'tag'         : "git tag --annotate {tag} --message '{message}'",
+        'tag_light'   : "git tag {tag}",
         'push_tag'    : "git push {remote} --follow-tags {tag} HEAD",
         'show_remotes': "git config --get remote.origin.url",
         'ls_branches' : "git branch -vv",
@@ -60,9 +61,9 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'fetch'       : "hg pull",
         'ls_tags'     : "hg tags",
         'status'      : "hg status -umard",
-        'add_path'    : "hg add {path}",
-        'commit'      : "hg commit --logfile {path}",
-        'tag'         : "hg tag {tag} --message {tag}",
+        'add_path'    : "hg add '{path}'",
+        'commit'      : "hg commit --logfile '{path}'",
+        'tag'         : "hg tag {tag} --message '{message}'",
         'push_tag'    : "hg push {tag}",
         'show_remotes': "hg paths",
     },
@@ -191,9 +192,14 @@ class VCSAPI:
             finally:
                 os.unlink(tmp_file.name)
 
-    def tag(self, tag_name: str) -> None:
-        """Create an annotated tag."""
-        self('tag', tag=tag_name)
+    def tag(self, tag_name: str, tag_message: str) -> None:
+        """Create a tag."""
+        if tag_message == "" and self.name == 'git':
+            # Lightweight
+            self('tag_light', tag=tag_name)
+        else:
+            # Annotated
+            self('tag', tag=tag_name, message=tag_message)
 
     def push(self, tag_name: str) -> None:
         """Push changes to origin."""
@@ -247,6 +253,7 @@ def commit(
     filepaths     : typ.Set[str],
     new_version   : str,
     commit_message: str,
+    tag_message   : str,
 ) -> None:
     if cfg.commit:
         for filepath in filepaths:
@@ -255,7 +262,7 @@ def commit(
         vcs_api.commit(commit_message)
 
     if cfg.commit and cfg.tag:
-        vcs_api.tag(new_version)
+        vcs_api.tag(new_version, tag_message)
 
     if cfg.commit and cfg.push:
         vcs_api.push(new_version)

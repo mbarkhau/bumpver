@@ -91,6 +91,7 @@ NEW_PATTERN_CFG_FIXTURE = """
 current_version = "v201808.1456-beta"
 version_pattern = "vYYYY0M.BUILD[-TAG]"
 commit_message = "bump version to {new_version}"
+tag_message = "release {new_version}"
 commit = True
 tag = True
 push = True
@@ -205,6 +206,7 @@ def test_parse_v2_cfg():
     cfg     = config._parse_config(raw_cfg)
     assert cfg.current_version == "v201808.1456-beta"
     assert cfg.commit_message  == "bump version to {new_version}"
+    assert cfg.tag_message     == "release {new_version}"
     assert cfg.commit is True
     assert cfg.tag    is True
     assert cfg.push   is True
