@@ -1182,7 +1182,7 @@ def test_hg_tag_message(runner, caplog):
     latest_changeset = shell("hg", "log", "-l", "1").decode("utf-8")
 
     expected_message = "bump: v2019.1001-alpha (2019.1001a0) -> v2019.1002-beta (2019.1002b0)"
-    assert expected_message in latest_changeset.split("summery:", maxsplit=1)[-1]
+    assert expected_message in latest_changeset.split("summery:", 1)[-1]
 
 
 def test_git_tag_message_annotated(runner, caplog):
