@@ -1,5 +1,15 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2023.1125
+
+- Add [#185][gh_i185]: Add `--tag-message=<TMPL>` parameter and `tag_message` configuration option.
+
+[gh_i185]: https://github.com/mbarkhau/bumpver/issues/185
+
+Thank you [Sven Lohrmann
+](https://github.com/malnvenshorn) for this contribution.
+
+
 ## BumpVer 2023.1124
 
 - Fix [#208][gh_i208]: Fix handling of versions with PEP440 epoch.
