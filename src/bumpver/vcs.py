@@ -75,14 +75,14 @@ Env = typ.Dict[str, str]
 class VCSAPI:
     """Absraction for git and mercurial."""
 
-    def __init__(self, name: str, subcommands: typ.Dict[str, str] = None):
+    def __init__(self, name: str, subcommands: typ.Optional[typ.Dict[str, str]] = None):
         self.name = name
         if subcommands is None:
             self.subcommands = VCS_SUBCOMMANDS_BY_NAME[name]
         else:
             self.subcommands = subcommands
 
-    def __call__(self, cmd_name: str, env: Env = None, **kwargs: str) -> str:
+    def __call__(self, cmd_name: str, env: typ.Optional[Env] = None, **kwargs: str) -> str:
         """Invoke subcommand and return output."""
         cmd_tmpl = self.subcommands[cmd_name]
         cmd_str  = cmd_tmpl.format(**kwargs)

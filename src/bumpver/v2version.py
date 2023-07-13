@@ -35,7 +35,7 @@ def _is_cal_gt(left: CalInfo, right: CalInfo) -> bool:
     return lvals > rvals
 
 
-def cal_info(date: dt.date = None) -> version.V2CalendarInfo:
+def cal_info(date: typ.Optional[dt.date] = None) -> version.V2CalendarInfo:
     """Generate calendar components for current date.
 
     >>> import datetime as dt

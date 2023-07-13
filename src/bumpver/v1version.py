@@ -47,7 +47,7 @@ def _ver_to_cal_info(vnfo: version.V1VersionInfo) -> version.V1CalendarInfo:
     )
 
 
-def cal_info(date: dt.date = None) -> version.V1CalendarInfo:
+def cal_info(date: typ.Optional[dt.date] = None) -> version.V1CalendarInfo:
     """Generate calendar components for current date.
 
     >>> from datetime import date

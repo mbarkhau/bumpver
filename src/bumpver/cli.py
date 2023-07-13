@@ -37,7 +37,7 @@ except ImportError:
     pass  # no need to fail because of missing dev dependency
 
 
-click.disable_unicode_literals_warning = True  # type: ignore[attr-defined]
+click.disable_unicode_literals_warning = True
 
 logger = logging.getLogger("bumpver.cli")
 
@@ -273,7 +273,7 @@ def test(
     major         : bool = False,
     minor         : bool = False,
     patch         : bool = False,
-    tag           : str = None,
+    tag           : typ.Optional[str] = None,
     tag_num       : bool = False,
     pin_increments: bool = False,
     pin_date      : bool = False,
@@ -533,7 +533,7 @@ def incr_dispatch(
     major         : bool = False,
     minor         : bool = False,
     patch         : bool = False,
-    tag           : str = None,
+    tag           : typ.Optional[str] = None,
     tag_num       : bool = False,
     pin_increments: bool = False,
     pin_date      : bool = False,
