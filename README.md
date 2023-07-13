@@ -420,7 +420,7 @@ If you want to build a package straight from your git repository,
 without making a release first, you can explictly add git hash to
 the version number using ``GITHASH`` version part.
 
-Let's say your ``setup.cfg`` looks like this: 
+Let's say your ``setup.cfg`` looks like this:
 
 ```ini
 [bumpver]
@@ -926,9 +926,7 @@ $ bumpver grep 'shields.io/badge/CalVer-YYYY.BUILD[--TAG]-blue' README.md
 
 The `current_version` is considered global state and must be stored somewhere. Typically this might be in a `VERSION` file, or some other file which is part of the repository. This creates the risk that parallel branches can have different states. If the `current_version`  were defined only by files in the local checkout, the same version might be generated on different systems for different commits.
 
-To avoid this issue, `bumpver` treats Git/Mercurial tags as the canonical / [SSOT][url_ssot] for the most recent version and attempts to change this state in the most atomic way possible. This is why some actions of the `bumpver` command can take a few seconds, as it is synchronizing with the remote repository to get the most recent versions and to push any new version tags as soon as possible.
-
-[url_ssot]: https://en.wikipedia.org/wiki/Single_source_of_truth
+To avoid this issue, `bumpver` treats Git/Mercurial tags as a second source for the most recent version and attempts to change this state in the most atomic way possible. This is why some actions of the `bumpver` command can take a few seconds, as it is synchronizing with the remote repository to get the most recent versions and to push any new version tags as soon as possible.
 
 
 ### The Current Version
@@ -936,7 +934,9 @@ To avoid this issue, `bumpver` treats Git/Mercurial tags as the canonical / [SSO
 The current version is either
 
  - Typically: The largest Git/Mercurial tag which matches the `version_pattern` from your config, sorted using [`pkg_resources.parse_version`][url_setuptools_pkg_resources].
- - Rarely: Before any tags have been created, the value of `current_version` in `bumpver.toml` / `setup.cfg` / `pyproject.toml`.
+ - Rarely: Before any tags have been created or if the working dir version is considered newer¹, the value of `current_version` in `bumpver.toml` / `setup.cfg` / `pyproject.toml`.
+
+ ¹ E.g. after using `bumpver update` with the `--no-tag-commit` flag
 
 [url_setuptools_pkg_resources]: https://setuptools.readthedocs.io/en/latest/pkg_resources.html#parsing-utilities
 
