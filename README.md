@@ -1095,7 +1095,7 @@ INFO    - git commit --message '[final-version] 1.2.0b2 -> 1.2.0'
 
 ### Custom Tag Message
 
-Analogue to the custom commit message it is also possible to provide a tag message template by using the `--tag-message=<TMPL>` parameter in addition to the `tag_message` configuration:
+Similarly to `--commit-message` you can provide a tag message template by using the `--tag-message=<TMPL>` parameter or the `tag_message` configuration:
 
 ```shell
 $ bumpver update -f -t final --tag-message 'release NEW'
