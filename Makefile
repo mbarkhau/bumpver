@@ -57,7 +57,7 @@ test_compat: $(COMPAT_TEST_FILES)
 	IFS=' ' read -r -a env_pys <<< "$(CONDA_ENV_BIN_PYTHON_PATHS)"; \
 	for i in $${!env_pys[@]}; do \
 		env_py=$${env_pys[i]}; \
-		$${env_py} -m pip uninstall --yes bumpver;
+		$${env_py} -m pip uninstall --yes bumpver; \
 		$${env_py} -m pip install --upgrade build/test_wheel/*.whl; \
 		ENABLE_BACKTRACE=0 PYTHONPATH="" ENV=$${ENV-dev} \
 			$${env_py} -m pytest \
