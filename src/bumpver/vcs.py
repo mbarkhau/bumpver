@@ -279,11 +279,18 @@ def get_tags(fetch: bool, scope: str) -> typ.List[str]:
     try:
         vcs_api = get_vcs_api()
         logger.debug(f"vcs found: {vcs_api.name}")
+
         if fetch:
             logger.info("fetching tags from remote (to turn off use: -n / --no-fetch)")
             vcs_api.fetch()
-        use_branch_scope = vcs_api.name == 'git' and scope == config.TagScope.BRANCH
-        return vcs_api.ls_tags_branch() if use_branch_scope else vcs_api.ls_tags()
+
+        branch_scope = scope == config.TagScope.BRANCH
+
+        if branch_scope and not vcs_api.name == 'git':
+            logger.error("Branch scope for tags is only supported with Git")
+            sys.exit(1)
+
+        return vcs_api.ls_tags_branch() if branch_scope else vcs_api.ls_tags()
     except OSError:
         logger.debug("No vcs found")
         return []
