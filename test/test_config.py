@@ -7,6 +7,8 @@ from __future__ import unicode_literals
 import io
 from test import util
 
+import pytest
+
 from bumpver import config
 
 # pylint:disable=redefined-outer-name ; pytest fixtures
@@ -104,6 +106,12 @@ setup.cfg =
     current_version = "{version}"
 src/project/*.py =
     Copyright (c) 2018-YYYY
+"""
+
+MINIMAL_CFG_FIXTURE = """
+[bumpver]
+current_version = "v201808.1456-beta"
+version_pattern = "vYYYY0M.BUILD[-TAG]"
 """
 
 
@@ -219,6 +227,26 @@ def test_parse_v2_cfg():
     assert raw_patterns_by_path["setup.py"] == ["vYYYY0M.BUILD[-TAG]", "YYYY0M.BLD[PYTAGNUM]"]
     assert raw_patterns_by_path["setup.cfg"] == ['current_version = "vYYYY0M.BUILD[-TAG]"']
     assert raw_patterns_by_path["src/project/*.py"] == ["Copyright (c) 2018-YYYY"]
+
+
+@pytest.mark.parametrize("tag_scope", [e.value for e in list(config.TagScope)])
+def test_parse_tag_scope_cfg(tag_scope):
+    buf = mk_buf(f"{MINIMAL_CFG_FIXTURE}\ntag_scope={tag_scope}")
+
+    raw_cfg = config._parse_cfg(buf)
+    cfg     = config._parse_config(raw_cfg)
+
+    assert cfg.tag_scope == tag_scope
+
+
+@pytest.mark.parametrize("tag_scope", ['foobar'])
+def test_parse_tag_scope_cfg_invalid_value(tag_scope):
+    buf = mk_buf(f"{MINIMAL_CFG_FIXTURE}\ntag_scope={tag_scope}")
+
+    raw_cfg = config._parse_cfg(buf)
+
+    with pytest.raises(ValueError):
+        config._parse_config(raw_cfg)
 
 
 def test_parse_default_toml():

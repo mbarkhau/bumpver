@@ -44,17 +44,18 @@ BRANCH_RE = re.compile(BRANCH_PATTERN, flags=re.VERBOSE)
 
 VCS_SUBCOMMANDS_BY_NAME = {
     'git': {
-        'is_usable'   : "git rev-parse --git-dir",
-        'fetch'       : "git fetch",
-        'ls_tags'     : "git tag --list",
-        'status'      : "git status --porcelain",
-        'add_path'    : "git add --update '{path}'",
-        'commit'      : "git commit --message '{message}'",
-        'tag'         : "git tag --annotate {tag} --message '{message}'",
-        'tag_light'   : "git tag {tag}",
-        'push_tag'    : "git push {remote} --follow-tags {tag} HEAD",
-        'show_remotes': "git config --get remote.origin.url",
-        'ls_branches' : "git branch -vv",
+        'is_usable'     : "git rev-parse --git-dir",
+        'fetch'         : "git fetch",
+        'ls_tags'       : "git tag --list",
+        'ls_tags_branch': "git tag --list --merged",
+        'status'        : "git status --porcelain",
+        'add_path'      : "git add --update '{path}'",
+        'commit'        : "git commit --message '{message}'",
+        'tag'           : "git tag --annotate {tag} --message '{message}'",
+        'tag_light'     : "git tag {tag}",
+        'push_tag'      : "git push {remote} --follow-tags {tag} HEAD",
+        'show_remotes'  : "git config --get remote.origin.url",
+        'ls_branches'   : "git branch -vv",
     },
     'hg': {
         'is_usable'   : "hg root",
@@ -153,6 +154,12 @@ class VCSAPI:
         """List vcs tags on all branches."""
         ls_tag_lines = self('ls_tags').splitlines()
         logger.debug(f"ls_tags output {ls_tag_lines}")
+        return [line.strip().split(" ", 1)[0] for line in ls_tag_lines]
+
+    def ls_tags_branch(self) -> typ.List[str]:
+        """List vcs tags on all branches."""
+        ls_tag_lines = self('ls_tags_branch').splitlines()
+        logger.debug(f"ls_tags_branch output {ls_tag_lines}")
         return [line.strip().split(" ", 1)[0] for line in ls_tag_lines]
 
     def add(self, path: str) -> None:
@@ -268,14 +275,15 @@ def commit(
         vcs_api.push(new_version)
 
 
-def get_tags(fetch: bool) -> typ.List[str]:
+def get_tags(fetch: bool, scope: str) -> typ.List[str]:
     try:
         vcs_api = get_vcs_api()
         logger.debug(f"vcs found: {vcs_api.name}")
         if fetch:
             logger.info("fetching tags from remote (to turn off use: -n / --no-fetch)")
             vcs_api.fetch()
-        return vcs_api.ls_tags()
+        use_branch_scope = vcs_api.name == 'git' and scope == config.TagScope.BRANCH
+        return vcs_api.ls_tags_branch() if use_branch_scope else vcs_api.ls_tags()
     except OSError:
         logger.debug("No vcs found")
         return []
