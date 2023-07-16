@@ -693,7 +693,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 
     latest_version_pep440 = version.to_pep440(latest_version_tag)
 
-    scope_str = f"({cfg.tag_scope})" if not cfg.tag_scope == config.TagScope.DEFAULT else ""
+    scope_str = f"({cfg.tag_scope.value})" if not cfg.tag_scope == config.TagScope.DEFAULT else ""
     logger.info(f"Latest version from VCS tag: {latest_version_tag} {scope_str}")
 
     if cfg.tag_scope == config.TagScope.DEFAULT:
