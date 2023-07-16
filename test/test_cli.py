@@ -348,7 +348,7 @@ def test_novcs_nocfg_init(runner, caplog):
 
     base_str = config.DEFAULT_BUMPVER_TOML_BASE_TMPL.format(
         initial_version=config._initial_version(),
-        default_tag_scope=config.DEFAULT_TAG_SCOPE,
+        default_tag_scope=config.DEFAULT_TAG_SCOPE.value,
     )
     assert base_str                          in cfg_content
     assert config.DEFAULT_TOML_README_MD_STR in cfg_content
@@ -380,7 +380,7 @@ def test_novcs_setupcfg_init(runner):
 
     base_str = config.DEFAULT_CONFIGPARSER_BASE_TMPL.format(
         initial_version=config._initial_version(),
-        default_tag_scope=config.DEFAULT_TAG_SCOPE,
+        default_tag_scope=config.DEFAULT_TAG_SCOPE.value,
     )
     assert base_str                                  in cfg_content
     assert config.DEFAULT_CONFIGPARSER_README_MD_STR in cfg_content
@@ -420,7 +420,7 @@ def test_novcs_pyproject_init(runner, caplog):
 
     base_str = config.DEFAULT_PYPROJECT_TOML_BASE_TMPL.format(
         initial_version=config._initial_version(),
-        default_tag_scope=config.DEFAULT_TAG_SCOPE,
+        default_tag_scope=config.DEFAULT_TAG_SCOPE.value,
     )
     assert base_str                          in cfg_content
     assert config.DEFAULT_TOML_README_MD_STR in cfg_content
@@ -1468,7 +1468,7 @@ def test_get_latest_vcs_version_tag(runner, tag_scope, expected_version):
     _update_config_val("bumpver.toml", push="false")
     _update_config_val("bumpver.toml", current_version='"0.1.8"')
     _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH[PYTAGNUM]"')
-    _update_config_val("bumpver.toml", tag_scope=f'"{tag_scope}"')
+    _update_config_val("bumpver.toml", tag_scope=f'"{tag_scope.value}"')
 
     _vcs_init("git", files=["bumpver.toml"])
 
@@ -1538,7 +1538,7 @@ def test_version_uniqueness_conflict(runner, caplog):
     _update_config_val("bumpver.toml", push="false")
     _update_config_val("bumpver.toml", current_version='"0.1.8"')
     _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH[PYTAGNUM]"')
-    _update_config_val("bumpver.toml", tag_scope=f'"{config.TagScope.BRANCH}"')
+    _update_config_val("bumpver.toml", tag_scope=f'"{config.TagScope.BRANCH.value}"')
 
     _vcs_init("git", files=["bumpver.toml"])
 

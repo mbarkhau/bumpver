@@ -733,7 +733,7 @@ def _parse_vcs_options(
     if push is not None:
         cfg = cfg._replace(push=push)
     if tag_scope is not None:
-        cfg = cfg._replace(tag_scope=tag_scope)
+        cfg = cfg._replace(tag_scope=config.TagScope(tag_scope))
 
     return cfg
 

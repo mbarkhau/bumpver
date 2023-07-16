@@ -136,7 +136,7 @@ class Config(typ.NamedTuple):
     pep440_version : str
     commit_message : str
     tag_message    : str
-    tag_scope      : str
+    tag_scope      : TagScope
 
     commit        : bool
     tag           : bool
@@ -157,7 +157,7 @@ def _debug_str(cfg: Config) -> str:
         f"\n    pep440_version='{cfg.pep440_version}',",
         f"\n    commit_message='{cfg.commit_message}',",
         f"\n    tag_message='{cfg.tag_message}',",
-        f"\n    tag_scope='{cfg.tag_scope}',",
+        f"\n    tag_scope='{cfg.tag_scope.value}',",
         f"\n    commit={cfg.commit},",
         f"\n    tag={cfg.tag},",
         f"\n    push={cfg.push},",
@@ -395,8 +395,9 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
 
     file_patterns = _compile_file_patterns(raw_cfg, is_new_pattern)
 
-    tag_scope: str = raw_cfg.get('tag_scope', DEFAULT_TAG_SCOPE).lower()
-    tag_scope = raw_cfg['tag_tag_scope'] = tag_scope.strip("'\" ")
+    if 'tag_scope' in raw_cfg:
+        raw_cfg['tag_scope'] = raw_cfg['tag_scope'].strip("'\" ").lower()
+    tag_scope: TagScope = TagScope(raw_cfg.get('tag_scope', DEFAULT_TAG_SCOPE))
 
     commit = raw_cfg['commit']
     tag    = raw_cfg['tag']
@@ -676,7 +677,7 @@ def default_config(ctx: ProjectContext) -> str:
 
     cfg_str = base_tmpl.format(
         initial_version=_initial_version(),
-        default_tag_scope=DEFAULT_TAG_SCOPE,
+        default_tag_scope=DEFAULT_TAG_SCOPE.value,
     )
 
     for filename, default_str in default_pattern_strs_by_filename.items():

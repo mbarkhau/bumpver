@@ -275,7 +275,7 @@ def commit(
         vcs_api.push(new_version)
 
 
-def get_tags(fetch: bool, scope: str) -> typ.List[str]:
+def get_tags(fetch: bool, scope: config.TagScope) -> typ.List[str]:
     try:
         vcs_api = get_vcs_api()
         logger.debug(f"vcs found: {vcs_api.name}")
