@@ -861,7 +861,7 @@ def update(
         _log_no_change('update', cfg.version_pattern)
         sys.exit(1)
 
-    uniqueness_check = cfg.tag_scope == config.TagScope.BRANCH and not ignore_vcs_tag
+    uniqueness_check = cfg.tag_scope == config.TagScope.BRANCH or set_version is not None
 
     if not _is_valid_version(
         cfg.version_pattern, old_version, new_version, unique=uniqueness_check
