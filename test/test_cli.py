@@ -1456,6 +1456,7 @@ def test_rollover(version_pattern, old_version, expected, kwargs):
 @pytest.mark.parametrize(
     "tag_scope, expected_version",
     [
+        (None, "0.2.1"),
         (config.TagScope.GLOBAL, "0.2.1"),
         (config.TagScope.BRANCH, "0.1.10"),
         (config.TagScope.DEFAULT, "0.2.1"),
@@ -1468,7 +1469,9 @@ def test_get_latest_vcs_version_tag(runner, tag_scope, expected_version):
     _update_config_val("bumpver.toml", push="false")
     _update_config_val("bumpver.toml", current_version='"0.1.8"')
     _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH[PYTAGNUM]"')
-    _update_config_val("bumpver.toml", tag_scope=f'"{tag_scope.value}"')
+
+    if tag_scope is not None:
+        _update_config_val("bumpver.toml", tag_scope=f'"{tag_scope.value}"')
 
     _vcs_init("git", files=["bumpver.toml"])
 
@@ -1531,7 +1534,7 @@ def test_ignore_vcs_tag(runner, monkeypatch):
     assert latest_version == "0.2.0"
 
 
-def test_version_uniqueness_conflict(runner, caplog):
+def test_git_tag_scope_branch_version_conflict(runner, caplog):
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
