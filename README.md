@@ -948,7 +948,7 @@ The current version depends on the configured `tag_scope` and is either
 
 ¹ Only supported for Git
 
-- Before any tags have been created `bumper` will always default to the value of `current_version` in `bumpver.toml` / `setup.cfg` / `pyproject.toml`.
+- Before any tags have been created `bumpver` will always default to the value of `current_version` in `bumpver.toml` / `setup.cfg` / `pyproject.toml`.
 - Only Git/Mercurial tags which matches the `version_pattern` from your config will be considered and sorted using [`pkg_resources.parse_version`][url_setuptools_pkg_resources].
 
 [url_setuptools_pkg_resources]: https://setuptools.readthedocs.io/en/latest/pkg_resources.html#parsing-utilities
