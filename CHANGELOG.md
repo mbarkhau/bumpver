@@ -2,13 +2,15 @@
 
 ## BumpVer 2023.1125
 
+- Add [#188][gh_i188]: Add `--tag-scope=<SCOPE>` to support separate versioning for branches.
 - Add [#185][gh_i185]: Add `--tag-message=<TMPL>` parameter and `tag_message` configuration option.
-- Fix [#209][gh_i209]: Make `--no-tag-commit` ommit `--follow-tags`
+- Fix [#209][gh_i209]: Make `--no-tag-commit` ommit `--follow-tags`.
 
+[gh_i188]: https://github.com/mbarkhau/bumpver/issues/188
 [gh_i185]: https://github.com/mbarkhau/bumpver/issues/185
 [gh_i209]: https://github.com/mbarkhau/bumpver/issues/209
 
-Thank you [Sven Lohrmann](https://github.com/malnvenshorn) for your contribution.
+Thank you [Sven Lohrmann](https://github.com/malnvenshorn) for your contributions.
 Thank you [tardis4500](https://github.com/tardis4500) for the issue report.
 
 
