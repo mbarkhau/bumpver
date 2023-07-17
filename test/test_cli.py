@@ -1512,7 +1512,8 @@ def test_get_latest_vcs_version_tag(runner, vcs_name, tag_scope, expected_versio
     assert latest_version == expected_version
 
 
-def test_ignore_vcs_tag(runner, monkeypatch):
+@pytest.mark.parametrize("vcs_name", ['git', 'hg'])
+def test_ignore_vcs_tag(runner, monkeypatch, vcs_name):
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
@@ -1520,7 +1521,7 @@ def test_ignore_vcs_tag(runner, monkeypatch):
     _update_config_val("bumpver.toml", current_version='"0.1.8"')
     _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH"')
 
-    _vcs_init("git", files=["bumpver.toml"])
+    _vcs_init(vcs_name, files=["bumpver.toml"])
     _, cfg = config.init()
 
     # mock latest vcs tag 0.2.0 but cfg.current_version is 0.1.8
@@ -1544,7 +1545,8 @@ def test_ignore_vcs_tag(runner, monkeypatch):
     assert latest_version == "0.2.0"
 
 
-def test_git_tag_scope_branch_version_conflict(runner, caplog):
+@pytest.mark.parametrize("vcs_name", ['git', 'hg'])
+def test_git_tag_scope_branch_version_conflict(runner, caplog, vcs_name):
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
@@ -1553,7 +1555,7 @@ def test_git_tag_scope_branch_version_conflict(runner, caplog):
     _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH[PYTAGNUM]"')
     _update_config_val("bumpver.toml", tag_scope=f'"{config.TagScope.BRANCH.value}"')
 
-    _vcs_init("git", files=["bumpver.toml"])
+    _vcs_init(vcs_name, files=["bumpver.toml"])
 
     result = runner.invoke(cli.cli, ['update', "--patch"])
     assert result.exit_code == 0
@@ -1562,8 +1564,11 @@ def test_git_tag_scope_branch_version_conflict(runner, caplog):
     latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
     assert latest_version == "0.1.9"
 
-    shell("git", "branch", "dev")
-    shell("git", "checkout", "dev")
+    if vcs_name == 'git':
+        shell("git", "branch", "dev")
+        shell("git", "checkout", "dev")
+    else:
+        shell("hg", "branch", "dev")
 
     result = runner.invoke(cli.cli, ['update', "--minor", "--tag=beta"])
     assert result.exit_code == 0
@@ -1572,7 +1577,10 @@ def test_git_tag_scope_branch_version_conflict(runner, caplog):
     latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
     assert latest_version == "0.2.0b0"
 
-    shell("git", "checkout", "master")
+    if vcs_name == 'git':
+        shell("git", "checkout", "master")
+    else:
+        shell("hg", "update", "default")
 
     result = runner.invoke(cli.cli, ['update', "--minor", "--tag=beta"])
     assert result.exit_code == 1
