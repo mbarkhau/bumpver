@@ -1,3 +1,4 @@
+import os
 import io
 import sys
 import shlex
@@ -48,7 +49,9 @@ def print_diff(old_content, new_content):
 
 
 def update_md_code_output(content, command):
-    output_data = sp.check_output(shlex.split(command))
+    env = os.environ.copy()
+    env['PATH'] = sys.executable.rsplit(os.sep, 1)[0] + os.pathsep + env['PATH']
+    output_data = sp.check_output(shlex.split(command), env=env)
     output      = output_data.decode("utf-8")
 
     replacement = "\n\n```\n" + "$ " + command + "\n" + output + "```\n\n"

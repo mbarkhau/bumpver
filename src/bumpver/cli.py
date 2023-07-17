@@ -794,7 +794,7 @@ def _sub_msg_template(message: str) -> str:
 @click.option(
     "--tag-scope",
     default=None,
-    metavar="<SCOPE>",
+    metavar="[default|global|branch]",
     type=click.Choice([e.value for e in config.TagScope]),
     help="Tag scope for the current version.",
 )
