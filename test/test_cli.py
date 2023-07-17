@@ -1453,16 +1453,20 @@ def test_rollover(version_pattern, old_version, expected, kwargs):
         assert new_version == expected
 
 
-@pytest.mark.parametrize(
-    "tag_scope, expected_version",
-    [
-        (None, "0.2.1"),
-        (config.TagScope.GLOBAL, "0.2.1"),
-        (config.TagScope.BRANCH, "0.1.10"),
-        (config.TagScope.DEFAULT, "0.2.1"),
-    ],
-)
-def test_get_latest_vcs_version_tag(runner, tag_scope, expected_version):
+VCS_VERSION_TAG_CASES = [
+    ("git", None, "0.2.1"),
+    ("git", config.TagScope.GLOBAL, "0.2.1"),
+    ("git", config.TagScope.BRANCH, "0.1.10"),
+    ("git", config.TagScope.DEFAULT, "0.2.1"),
+    ("hg", None, "0.2.1"),
+    ("hg", config.TagScope.GLOBAL, "0.2.1"),
+    ("hg", config.TagScope.BRANCH, "0.1.10"),
+    ("hg", config.TagScope.DEFAULT, "0.2.1"),
+]
+
+
+@pytest.mark.parametrize("vcs_name, tag_scope, expected_version", VCS_VERSION_TAG_CASES)
+def test_get_latest_vcs_version_tag(runner, vcs_name, tag_scope, expected_version):
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
@@ -1473,7 +1477,7 @@ def test_get_latest_vcs_version_tag(runner, tag_scope, expected_version):
     if tag_scope is not None:
         _update_config_val("bumpver.toml", tag_scope=f'"{tag_scope.value}"')
 
-    _vcs_init("git", files=["bumpver.toml"])
+    _vcs_init(vcs_name, files=["bumpver.toml"])
 
     result = runner.invoke(cli.cli, ['update', "--patch"])
     assert result.exit_code == 0
@@ -1482,8 +1486,11 @@ def test_get_latest_vcs_version_tag(runner, tag_scope, expected_version):
     latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
     assert latest_version == "0.1.9"
 
-    shell("git", "branch", "dev")
-    shell("git", "checkout", "dev")
+    if vcs_name == 'git':
+        shell("git", "branch", "dev")
+        shell("git", "checkout", "dev")
+    else:
+        shell("hg", "branch", "dev")
 
     result = runner.invoke(cli.cli, ['update', "--minor", "--tag=beta"])
     assert result.exit_code == 0
@@ -1492,7 +1499,10 @@ def test_get_latest_vcs_version_tag(runner, tag_scope, expected_version):
     latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
     assert latest_version == "0.2.0b0"
 
-    shell("git", "checkout", "master")
+    if vcs_name == 'git':
+        shell("git", "checkout", "master")
+    else:
+        shell("hg", "update", "default")
 
     result = runner.invoke(cli.cli, ['update', "--patch", "--tag=final"])
     assert result.exit_code == 0

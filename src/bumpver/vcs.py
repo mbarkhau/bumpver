@@ -59,16 +59,18 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'ls_branches'   : "git branch -vv",
     },
     'hg': {
-        'is_usable'   : "hg root",
-        'fetch'       : "hg pull",
-        'ls_tags'     : "hg tags",
-        'status'      : "hg status -umard",
-        'add_path'    : "hg add '{path}'",
-        'commit'      : "hg commit --logfile '{path}'",
-        'tag'         : "hg tag {tag} --message '{message}'",
-        'push_tag'    : "hg push {tag}",
-        'push'        : "hg push",
-        'show_remotes': "hg paths",
+        'is_usable'     : "hg root",
+        'fetch'         : "hg pull",
+        'ls_tags'       : "hg tags",
+        'ls_tags_branch': "hg log --branch . --rev='tag()' --template='{{tags}}\\n'",
+        'status'        : "hg status -umard",
+        'add_path'      : "hg add '{path}'",
+        'commit'        : "hg commit --logfile '{path}'",
+        'tag'           : "hg tag {tag} --message '{message}'",
+        'tag_light'     : "hg tag {tag}",
+        'push_tag'      : "hg push {tag}",
+        'push'          : "hg push",
+        'show_remotes'  : "hg paths",
     },
 }
 
@@ -203,12 +205,12 @@ class VCSAPI:
 
     def tag(self, tag_name: str, tag_message: str) -> None:
         """Create a tag."""
-        if tag_message == "" and self.name == 'git':
-            # Lightweight
-            self('tag_light', tag=tag_name)
-        else:
+        if tag_message:
             # Annotated
             self('tag', tag=tag_name, message=tag_message)
+        else:
+            # Lightweight
+            self('tag_light', tag=tag_name)
 
     def push_tag(self, tag_name: str) -> None:
         """Push changes to origin."""
@@ -297,11 +299,10 @@ def get_tags(fetch: bool, scope: config.TagScope) -> typ.List[str]:
 
         branch_scope = scope == config.TagScope.BRANCH
 
-        if branch_scope and not vcs_api.name == 'git':
-            logger.error("Branch scope for tags is only supported with Git")
-            sys.exit(1)
-
-        return vcs_api.ls_tags_branch() if branch_scope else vcs_api.ls_tags()
+        if branch_scope:
+            return vcs_api.ls_tags_branch()
+        else:
+            return vcs_api.ls_tags()
     except OSError:
         logger.debug("No vcs found")
         return []

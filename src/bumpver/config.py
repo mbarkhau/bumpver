@@ -6,11 +6,11 @@
 """Parse bumpver.toml, setup.cfg or pyproject.toml files."""
 
 import re
+import enum
 import typing as typ
 import logging
 import datetime as dt
 import configparser
-from enum import Enum
 
 import toml
 import pathlib2 as pl
@@ -35,7 +35,7 @@ FilePatternsItem = typ.Tuple[str, typ.List[Pattern]]
 SUPPORTED_CONFIGS = ["setup.cfg", "pyproject.toml", "pycalver.toml", "bumpver.toml"]
 
 
-class TagScope(str, Enum):
+class TagScope(str, enum.Enum):
     DEFAULT = "default"
     GLOBAL  = "global"
     BRANCH  = "branch"

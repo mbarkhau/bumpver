@@ -941,12 +941,10 @@ To avoid this issue, `bumpver` treats Git/Mercurial tags as a second source, dep
 The current version depends on the configured `tag_scope` and is either
 
 | `tag_scope =` |	`current_version =`                                 |
-| ------------- | --------------------------------------------------- |
+|---------------|-----------------------------------------------------|
 | `default`     |	`max(config.current_version, max(global_vcs_tags))` |
 | `global`      | `max(global_vcs_tags)`                              |
-| `branch¹`     | `max(branch_vcs_tags)`                              |
-
-¹ Only supported for Git
+| `branch`      | `max(branch_vcs_tags)`                              |
 
 - Before any tags have been created `bumpver` will always default to the value of `current_version` in `bumpver.toml` / `setup.cfg` / `pyproject.toml`.
 - Only Git/Mercurial tags which matches the `version_pattern` from your config will be considered and sorted using [`pkg_resources.parse_version`][url_setuptools_pkg_resources].
