@@ -54,6 +54,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'tag'           : "git tag --annotate {tag} --message '{message}'",
         'tag_light'     : "git tag {tag}",
         'push_tag'      : "git push {remote} --follow-tags {tag} HEAD",
+        'push'          : "git push {remote} HEAD",
         'show_remotes'  : "git config --get remote.origin.url",
         'ls_branches'   : "git branch -vv",
     },
@@ -66,6 +67,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'commit'      : "hg commit --logfile '{path}'",
         'tag'         : "hg tag {tag} --message '{message}'",
         'push_tag'    : "hg push {tag}",
+        'push'        : "hg push",
         'show_remotes': "hg paths",
     },
 }
@@ -208,11 +210,17 @@ class VCSAPI:
             # Annotated
             self('tag', tag=tag_name, message=tag_message)
 
-    def push(self, tag_name: str) -> None:
+    def push_tag(self, tag_name: str) -> None:
         """Push changes to origin."""
         remote = self.get_remote()
         if remote:
             self('push_tag', tag=tag_name, remote=remote)
+
+    def push(self) -> None:
+        """Push changes to origin."""
+        remote = self.get_remote()
+        if remote:
+            self('push', remote=remote)
 
     def __repr__(self) -> str:
         """Generate string representation."""
@@ -269,10 +277,13 @@ def commit(
         vcs_api.commit(commit_message)
 
     if cfg.commit and cfg.tag:
-        vcs_api.tag(new_version, tag_message)
+        vcs_api.tag(tag_name=new_version, tag_message=tag_message)
 
     if cfg.commit and cfg.push:
-        vcs_api.push(new_version)
+        if cfg.tag:
+            vcs_api.push_tag(tag_name=new_version)
+        else:
+            vcs_api.push()
 
 
 def get_tags(fetch: bool, scope: config.TagScope) -> typ.List[str]:
