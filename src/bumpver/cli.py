@@ -506,8 +506,18 @@ def _print_diff(cfg: config.Config, new_version: str) -> None:
         sys.exit(1)
 
 
-def _is_valid_version(raw_pattern: str, old_version: str, new_version: str) -> bool:
+def _parse_version_tags(
+    all_tags: typ.List[str], version_pattern: str, is_new_pattern: bool
+) -> typ.List[str]:
+    version_parser = v2version if is_new_pattern else v1version
+    return [tag for tag in all_tags if version_parser.is_valid(tag, version_pattern)]
+
+
+def _is_valid_version(
+    raw_pattern: str, old_version: str, new_version: str, unique: bool = False
+) -> bool:
     is_new_pattern = "{" not in raw_pattern and "}" not in raw_pattern
+
     try:
         if is_new_pattern:
             v2version.parse_version_info(new_version, raw_pattern)
@@ -522,8 +532,16 @@ def _is_valid_version(raw_pattern: str, old_version: str, new_version: str) -> b
         logger.error(f"  Failed Invariant: '{new_version}' > '{old_version}'")
         logger.error("If the invariant is from vcs tags try '--ignore-vcs-tag' option.")
         return False
-    else:
-        return True
+
+    if unique:
+        all_tags     = vcs.get_tags(fetch=False, scope=config.TagScope.GLOBAL)
+        version_tags = _parse_version_tags(all_tags, raw_pattern, is_new_pattern)
+
+        if new_version in version_tags:
+            logger.error("Invariant violated: New version must be unique accross all branches")
+            return False
+
+    return True
 
 
 def incr_dispatch(
@@ -654,12 +672,8 @@ def init(verbose: int = 0, dry: bool = False) -> None:
 
 
 def get_latest_vcs_version_tag(cfg: config.Config, fetch: bool) -> typ.Optional[str]:
-    all_tags = vcs.get_tags(fetch=fetch)
-
-    if cfg.is_new_pattern:
-        version_tags = [tag for tag in all_tags if v2version.is_valid(tag, cfg.version_pattern)]
-    else:
-        version_tags = [tag for tag in all_tags if v1version.is_valid(tag, cfg.version_pattern)]
+    all_tags     = vcs.get_tags(fetch=fetch, scope=cfg.tag_scope)
+    version_tags = _parse_version_tags(all_tags, cfg.version_pattern, cfg.is_new_pattern)
 
     if version_tags:
         version_tags.sort(key=version.parse_version, reverse=True)
@@ -672,21 +686,26 @@ def get_latest_vcs_version_tag(cfg: config.Config, fetch: bool) -> typ.Optional[
 
 def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
     latest_version_tag = get_latest_vcs_version_tag(cfg, fetch)
+
     if latest_version_tag is None:
         logger.debug("no vcs tags found")
         return cfg
-    else:
-        latest_version_pep440 = version.to_pep440(latest_version_tag)
+
+    latest_version_pep440 = version.to_pep440(latest_version_tag)
+
+    scope_str = f"({cfg.tag_scope.value})" if not cfg.tag_scope == config.TagScope.DEFAULT else ""
+    logger.info(f"Latest version from VCS tag: {latest_version_tag} {scope_str}")
+
+    if cfg.tag_scope == config.TagScope.DEFAULT:
+        logger.info(f"Working dir version        : {cfg.current_version}")
         if version.parse_version(latest_version_tag) <= version.parse_version(cfg.current_version):
             # current_version already newer/up-to-date
             return cfg
-        else:
-            logger.info(f"Working dir version        : {cfg.current_version}")
-            logger.info(f"Latest version from VCS tag: {latest_version_tag}")
-            return cfg._replace(
-                current_version=latest_version_tag,
-                pep440_version=latest_version_pep440,
-            )
+
+    return cfg._replace(
+        current_version=latest_version_tag,
+        pep440_version=latest_version_pep440,
+    )
 
 
 def _parse_vcs_options(
@@ -694,6 +713,7 @@ def _parse_vcs_options(
     commit    : typ.Optional[bool] = None,
     tag_commit: typ.Optional[bool] = None,
     push      : typ.Optional[bool] = None,
+    tag_scope : typ.Optional[str] = None,
 ) -> config.Config:
     if commit is False and tag_commit:
         raise ValueError("--no-commit and --tag-commit cannot be used at the same time")
@@ -712,6 +732,9 @@ def _parse_vcs_options(
         cfg = cfg._replace(tag=tag_commit)
     if push is not None:
         cfg = cfg._replace(push=push)
+    if tag_scope is not None:
+        cfg = cfg._replace(tag_scope=config.TagScope(tag_scope))
+
     return cfg
 
 
@@ -768,6 +791,13 @@ def _sub_msg_template(message: str) -> str:
     default=None,
     help="Push to the default remote.",
 )
+@click.option(
+    "--tag-scope",
+    default=None,
+    metavar="[default|global|branch]",
+    type=click.Choice([e.value for e in config.TagScope]),
+    help="Tag scope for the current version.",
+)
 def update(
     dry           : bool = False,
     allow_dirty   : bool = False,
@@ -788,6 +818,7 @@ def update(
     commit        : typ.Optional[bool] = None,
     tag_commit    : typ.Optional[bool] = None,
     push          : typ.Optional[bool] = None,
+    tag_scope     : typ.Optional[str] = None,
 ) -> None:
     """Update project files with the incremented version string."""
     verbose = max(_VERBOSE, verbose)
@@ -802,7 +833,7 @@ def update(
         sys.exit(1)
 
     try:
-        cfg = _parse_vcs_options(cfg, commit, tag_commit, push)
+        cfg = _parse_vcs_options(cfg, commit, tag_commit, push, tag_scope)
     except ValueError as ex:
         logger.warning(f"Invalid argument: {ex}")
         sys.exit(1)
@@ -831,10 +862,13 @@ def update(
         _log_no_change('update', cfg.version_pattern)
         sys.exit(1)
 
-    if not _is_valid_version(cfg.version_pattern, old_version, new_version):
+    uniqueness_check = cfg.tag_scope == config.TagScope.BRANCH or set_version is not None
+
+    if not _is_valid_version(
+        cfg.version_pattern, old_version, new_version, unique=uniqueness_check
+    ):
         if set_version:
             logger.error(f"Invalid argument --set-version='{set_version}'")
-
         sys.exit(1)
 
     logger.info(f"Old Version: {old_version}")

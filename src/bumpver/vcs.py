@@ -44,30 +44,33 @@ BRANCH_RE = re.compile(BRANCH_PATTERN, flags=re.VERBOSE)
 
 VCS_SUBCOMMANDS_BY_NAME = {
     'git': {
-        'is_usable'   : "git rev-parse --git-dir",
-        'fetch'       : "git fetch",
-        'ls_tags'     : "git tag --list",
-        'status'      : "git status --porcelain",
-        'add_path'    : "git add --update '{path}'",
-        'commit'      : "git commit --message '{message}'",
-        'tag'         : "git tag --annotate {tag} --message '{message}'",
-        'tag_light'   : "git tag {tag}",
-        'push_tag'    : "git push {remote} --follow-tags {tag} HEAD",
-        'push'        : "git push {remote} HEAD",
-        'show_remotes': "git config --get remote.origin.url",
-        'ls_branches' : "git branch -vv",
+        'is_usable'     : "git rev-parse --git-dir",
+        'fetch'         : "git fetch",
+        'ls_tags'       : "git tag --list",
+        'ls_tags_branch': "git tag --list --merged",
+        'status'        : "git status --porcelain",
+        'add_path'      : "git add --update '{path}'",
+        'commit'        : "git commit --message '{message}'",
+        'tag'           : "git tag --annotate {tag} --message '{message}'",
+        'tag_light'     : "git tag {tag}",
+        'push_tag'      : "git push {remote} --follow-tags {tag} HEAD",
+        'push'          : "git push {remote} HEAD",
+        'show_remotes'  : "git config --get remote.origin.url",
+        'ls_branches'   : "git branch -vv",
     },
     'hg': {
-        'is_usable'   : "hg root",
-        'fetch'       : "hg pull",
-        'ls_tags'     : "hg tags",
-        'status'      : "hg status -umard",
-        'add_path'    : "hg add '{path}'",
-        'commit'      : "hg commit --logfile '{path}'",
-        'tag'         : "hg tag {tag} --message '{message}'",
-        'push_tag'    : "hg push {tag}",
-        'push'        : "hg push",
-        'show_remotes': "hg paths",
+        'is_usable'     : "hg root",
+        'fetch'         : "hg pull",
+        'ls_tags'       : "hg tags",
+        'ls_tags_branch': "hg log --branch . --rev='tag()' --template='{{tags}}\\n'",
+        'status'        : "hg status -umard",
+        'add_path'      : "hg add '{path}'",
+        'commit'        : "hg commit --logfile '{path}'",
+        'tag'           : "hg tag {tag} --message '{message}'",
+        'tag_light'     : "hg tag {tag}",
+        'push_tag'      : "hg push {tag}",
+        'push'          : "hg push",
+        'show_remotes'  : "hg paths",
     },
 }
 
@@ -157,6 +160,12 @@ class VCSAPI:
         logger.debug(f"ls_tags output {ls_tag_lines}")
         return [line.strip().split(" ", 1)[0] for line in ls_tag_lines]
 
+    def ls_tags_branch(self) -> typ.List[str]:
+        """List vcs tags on all branches."""
+        ls_tag_lines = self('ls_tags_branch').splitlines()
+        logger.debug(f"ls_tags_branch output {ls_tag_lines}")
+        return [line.strip().split(" ", 1)[0] for line in ls_tag_lines]
+
     def add(self, path: str) -> None:
         """Add updates to be included in next commit."""
         try:
@@ -196,12 +205,12 @@ class VCSAPI:
 
     def tag(self, tag_name: str, tag_message: str) -> None:
         """Create a tag."""
-        if tag_message == "" and self.name == 'git':
-            # Lightweight
-            self('tag_light', tag=tag_name)
-        else:
+        if tag_message:
             # Annotated
             self('tag', tag=tag_name, message=tag_message)
+        else:
+            # Lightweight
+            self('tag_light', tag=tag_name)
 
     def push_tag(self, tag_name: str) -> None:
         """Push changes to origin."""
@@ -279,14 +288,21 @@ def commit(
             vcs_api.push()
 
 
-def get_tags(fetch: bool) -> typ.List[str]:
+def get_tags(fetch: bool, scope: config.TagScope) -> typ.List[str]:
     try:
         vcs_api = get_vcs_api()
         logger.debug(f"vcs found: {vcs_api.name}")
+
         if fetch:
             logger.info("fetching tags from remote (to turn off use: -n / --no-fetch)")
             vcs_api.fetch()
-        return vcs_api.ls_tags()
+
+        branch_scope = scope == config.TagScope.BRANCH
+
+        if branch_scope:
+            return vcs_api.ls_tags_branch()
+        else:
+            return vcs_api.ls_tags()
     except OSError:
         logger.debug("No vcs found")
         return []

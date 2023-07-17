@@ -347,7 +347,8 @@ def test_novcs_nocfg_init(runner, caplog):
         cfg_content = fobj.read()
 
     base_str = config.DEFAULT_BUMPVER_TOML_BASE_TMPL.format(
-        initial_version=config._initial_version()
+        initial_version=config._initial_version(),
+        default_tag_scope=config.DEFAULT_TAG_SCOPE.value,
     )
     assert base_str                          in cfg_content
     assert config.DEFAULT_TOML_README_MD_STR in cfg_content
@@ -378,7 +379,8 @@ def test_novcs_setupcfg_init(runner):
         cfg_content = fobj.read()
 
     base_str = config.DEFAULT_CONFIGPARSER_BASE_TMPL.format(
-        initial_version=config._initial_version()
+        initial_version=config._initial_version(),
+        default_tag_scope=config.DEFAULT_TAG_SCOPE.value,
     )
     assert base_str                                  in cfg_content
     assert config.DEFAULT_CONFIGPARSER_README_MD_STR in cfg_content
@@ -417,7 +419,8 @@ def test_novcs_pyproject_init(runner, caplog):
         cfg_content = fobj.read()
 
     base_str = config.DEFAULT_PYPROJECT_TOML_BASE_TMPL.format(
-        initial_version=config._initial_version()
+        initial_version=config._initial_version(),
+        default_tag_scope=config.DEFAULT_TAG_SCOPE.value,
     )
     assert base_str                          in cfg_content
     assert config.DEFAULT_TOML_README_MD_STR in cfg_content
@@ -1450,15 +1453,31 @@ def test_rollover(version_pattern, old_version, expected, kwargs):
         assert new_version == expected
 
 
-def test_get_latest_vcs_version_tag(runner):
+VCS_VERSION_TAG_CASES = [
+    ("git", None, "0.2.1"),
+    ("git", config.TagScope.GLOBAL, "0.2.1"),
+    ("git", config.TagScope.BRANCH, "0.1.10"),
+    ("git", config.TagScope.DEFAULT, "0.2.1"),
+    ("hg", None, "0.2.1"),
+    ("hg", config.TagScope.GLOBAL, "0.2.1"),
+    ("hg", config.TagScope.BRANCH, "0.1.10"),
+    ("hg", config.TagScope.DEFAULT, "0.2.1"),
+]
+
+
+@pytest.mark.parametrize("vcs_name, tag_scope, expected_version", VCS_VERSION_TAG_CASES)
+def test_get_latest_vcs_version_tag(runner, vcs_name, tag_scope, expected_version):
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
     _update_config_val("bumpver.toml", push="false")
     _update_config_val("bumpver.toml", current_version='"0.1.8"')
-    _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH"')
+    _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH[PYTAGNUM]"')
 
-    _vcs_init("git", files=["bumpver.toml"])
+    if tag_scope is not None:
+        _update_config_val("bumpver.toml", tag_scope=f'"{tag_scope.value}"')
+
+    _vcs_init(vcs_name, files=["bumpver.toml"])
 
     result = runner.invoke(cli.cli, ['update', "--patch"])
     assert result.exit_code == 0
@@ -1467,15 +1486,34 @@ def test_get_latest_vcs_version_tag(runner):
     latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
     assert latest_version == "0.1.9"
 
-    result = runner.invoke(cli.cli, ['update', "--patch"])
+    if vcs_name == 'git':
+        shell("git", "branch", "dev")
+        shell("git", "checkout", "dev")
+    else:
+        shell("hg", "branch", "dev")
+
+    result = runner.invoke(cli.cli, ['update', "--minor", "--tag=beta"])
     assert result.exit_code == 0
 
     _, cfg = config.init()
     latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
-    assert latest_version == "0.1.10"
+    assert latest_version == "0.2.0b0"
+
+    if vcs_name == 'git':
+        shell("git", "checkout", "master")
+    else:
+        shell("hg", "update", "default")
+
+    result = runner.invoke(cli.cli, ['update', "--patch", "--tag=final"])
+    assert result.exit_code == 0
+
+    _, cfg = config.init()
+    latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
+    assert latest_version == expected_version
 
 
-def test_ignore_vcs_tag(runner, monkeypatch):
+@pytest.mark.parametrize("vcs_name", ['git', 'hg'])
+def test_ignore_vcs_tag(runner, monkeypatch, vcs_name):
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
@@ -1483,7 +1521,7 @@ def test_ignore_vcs_tag(runner, monkeypatch):
     _update_config_val("bumpver.toml", current_version='"0.1.8"')
     _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH"')
 
-    _vcs_init("git", files=["bumpver.toml"])
+    _vcs_init(vcs_name, files=["bumpver.toml"])
     _, cfg = config.init()
 
     # mock latest vcs tag 0.2.0 but cfg.current_version is 0.1.8
@@ -1505,3 +1543,47 @@ def test_ignore_vcs_tag(runner, monkeypatch):
 
     latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
     assert latest_version == "0.2.0"
+
+
+@pytest.mark.parametrize("vcs_name", ['git', 'hg'])
+def test_git_tag_scope_branch_version_conflict(runner, caplog, vcs_name):
+    result = runner.invoke(cli.cli, ['init', "-vv"])
+    assert result.exit_code == 0
+
+    _update_config_val("bumpver.toml", push="false")
+    _update_config_val("bumpver.toml", current_version='"0.1.8"')
+    _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH[PYTAGNUM]"')
+    _update_config_val("bumpver.toml", tag_scope=f'"{config.TagScope.BRANCH.value}"')
+
+    _vcs_init(vcs_name, files=["bumpver.toml"])
+
+    result = runner.invoke(cli.cli, ['update', "--patch"])
+    assert result.exit_code == 0
+
+    _, cfg = config.init()
+    latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
+    assert latest_version == "0.1.9"
+
+    if vcs_name == 'git':
+        shell("git", "branch", "dev")
+        shell("git", "checkout", "dev")
+    else:
+        shell("hg", "branch", "dev")
+
+    result = runner.invoke(cli.cli, ['update', "--minor", "--tag=beta"])
+    assert result.exit_code == 0
+
+    _, cfg = config.init()
+    latest_version = cli.get_latest_vcs_version_tag(cfg, fetch=False)
+    assert latest_version == "0.2.0b0"
+
+    if vcs_name == 'git':
+        shell("git", "checkout", "master")
+    else:
+        shell("hg", "update", "default")
+
+    result = runner.invoke(cli.cli, ['update', "--minor", "--tag=beta"])
+    assert result.exit_code == 1
+
+    error_message = "Invariant violated: New version must be unique accross all branches"
+    assert any(error_message in r.message for r in caplog.records)

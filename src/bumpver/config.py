@@ -6,6 +6,7 @@
 """Parse bumpver.toml, setup.cfg or pyproject.toml files."""
 
 import re
+import enum
 import typing as typ
 import logging
 import datetime as dt
@@ -33,6 +34,14 @@ FilePatternsItem = typ.Tuple[str, typ.List[Pattern]]
 
 SUPPORTED_CONFIGS = ["setup.cfg", "pyproject.toml", "pycalver.toml", "bumpver.toml"]
 
+
+class TagScope(str, enum.Enum):
+    DEFAULT = "default"
+    GLOBAL  = "global"
+    BRANCH  = "branch"
+
+
+DEFAULT_TAG_SCOPE      = TagScope.DEFAULT
 DEFAULT_COMMIT_MESSAGE = "bump version to {new_version}"
 DEFAULT_TAG_MESSAGE    = "{new_version}"
 
@@ -127,6 +136,7 @@ class Config(typ.NamedTuple):
     pep440_version : str
     commit_message : str
     tag_message    : str
+    tag_scope      : TagScope
 
     commit        : bool
     tag           : bool
@@ -147,6 +157,7 @@ def _debug_str(cfg: Config) -> str:
         f"\n    pep440_version='{cfg.pep440_version}',",
         f"\n    commit_message='{cfg.commit_message}',",
         f"\n    tag_message='{cfg.tag_message}',",
+        f"\n    tag_scope='{cfg.tag_scope.value}',",
         f"\n    commit={cfg.commit},",
         f"\n    tag={cfg.tag},",
         f"\n    push={cfg.push},",
@@ -384,6 +395,10 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
 
     file_patterns = _compile_file_patterns(raw_cfg, is_new_pattern)
 
+    if 'tag_scope' in raw_cfg:
+        raw_cfg['tag_scope'] = raw_cfg['tag_scope'].strip("'\" ").lower()
+    tag_scope: TagScope = TagScope(raw_cfg.get('tag_scope', DEFAULT_TAG_SCOPE))
+
     commit = raw_cfg['commit']
     tag    = raw_cfg['tag']
     push   = raw_cfg['push']
@@ -399,12 +414,16 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     if push and not commit:
         raise ValueError("commit=True required if push=True")
 
+    if tag_scope not in list(TagScope):
+        raise ValueError("invalid value for tag_scope")
+
     cfg = Config(
         current_version=current_version,
         version_pattern=version_pattern,
         pep440_version=pep440_version,
         commit_message=commit_message,
         tag_message=tag_message,
+        tag_scope=tag_scope,
         commit=commit,
         tag=tag,
         push=push,
@@ -508,6 +527,7 @@ current_version = "{initial_version}"
 version_pattern = "YYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
 tag_message = "{{new_version}}"
+tag_scope = "{default_tag_scope}"
 commit = True
 tag = True
 push = True
@@ -549,6 +569,7 @@ current_version = "{initial_version}"
 version_pattern = "YYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
 tag_message = "{{new_version}}"
+tag_scope = "{default_tag_scope}"
 commit = true
 tag = true
 push = true
@@ -563,6 +584,7 @@ current_version = "{initial_version}"
 version_pattern = "YYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
 tag_message = "{{new_version}}"
+tag_scope = "{default_tag_scope}"
 commit = true
 tag = true
 push = true
@@ -653,7 +675,10 @@ def default_config(ctx: ProjectContext) -> str:
     else:
         raise ValueError(f"Invalid config_format='{fmt}', must be either 'toml' or 'cfg'.")
 
-    cfg_str = base_tmpl.format(initial_version=_initial_version())
+    cfg_str = base_tmpl.format(
+        initial_version=_initial_version(),
+        default_tag_scope=DEFAULT_TAG_SCOPE.value,
+    )
 
     for filename, default_str in default_pattern_strs_by_filename.items():
         if (ctx.path / filename).exists():
