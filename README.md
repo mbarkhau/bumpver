@@ -623,6 +623,8 @@ Options:
   --commit / --no-commit          Create a commit with all updated files.
   --tag-commit / --no-tag-commit  Tag the newly created commit.
   --push / --no-push              Push to the default remote.
+  --tag-scope [default|global|branch]
+                                  Tag scope for the current version.
   -h, --help                      Show this message and exit.
 ```
 
@@ -815,6 +817,7 @@ Exiting because of '-d/--dry'. Would have written to bumpver.toml:
     version_pattern = "YYYY.BUILD[PYTAGNUM]"
     commit_message = "bump version to {new_version}"
     tag_message = "{new_version}"
+    tag_scope = "default"
     commit = true
     tag = true
     push = true
@@ -845,6 +848,7 @@ current_version = "2019.1001-alpha"
 version_pattern = "YYYY.BUILD[-TAG]"
 commit_message = "bump version to {new_version}"
 tag_message = "{new_version}"
+tag_scope = "default"
 commit = True
 tag = True
 push = True
@@ -929,17 +933,23 @@ $ bumpver grep 'shields.io/badge/CalVer-YYYY.BUILD[--TAG]-blue' README.md
 
 The `current_version` is considered global state and must be stored somewhere. Typically this might be in a `VERSION` file, or some other file which is part of the repository. This creates the risk that parallel branches can have different states. If the `current_version`  were defined only by files in the local checkout, the same version might be generated on different systems for different commits.
 
-To avoid this issue, `bumpver` treats Git/Mercurial tags as a second source for the most recent version and attempts to change this state in the most atomic way possible. This is why some actions of the `bumpver` command can take a few seconds, as it is synchronizing with the remote repository to get the most recent versions and to push any new version tags as soon as possible.
+To avoid this issue, `bumpver` treats Git/Mercurial tags as a second source, depending on the `tag_scope` option, for the most recent version and attempts to change this state in the most atomic way possible. This is why some actions of the `bumpver` command can take a few seconds, as it is synchronizing with the remote repository to get the most recent versions and to push any new version tags as soon as possible.
 
 
 ### The Current Version
 
-The current version is either
+The current version depends on the configured `tag_scope` and is either
 
- - Typically: The largest Git/Mercurial tag which matches the `version_pattern` from your config, sorted using [`pkg_resources.parse_version`][url_setuptools_pkg_resources].
- - Rarely: Before any tags have been created or if the working dir version is considered newer¹, the value of `current_version` in `bumpver.toml` / `setup.cfg` / `pyproject.toml`.
+| `tag_scope =` |	`current_version =`                                 |
+| ------------- | --------------------------------------------------- |
+| `default`     |	`max(config.current_version, max(global_vcs_tags))` |
+| `global`      | `max(global_vcs_tags)`                              |
+| `branch¹`     | `max(branch_vcs_tags)`                              |
 
- ¹ E.g. after using `bumpver update` with the `--no-tag-commit` flag
+¹ Only supported for Git
+
+- Before any tags have been created `bumper` will always default to the value of `current_version` in `bumpver.toml` / `setup.cfg` / `pyproject.toml`.
+- Only Git/Mercurial tags which matches the `version_pattern` from your config will be considered and sorted using [`pkg_resources.parse_version`][url_setuptools_pkg_resources].
 
 [url_setuptools_pkg_resources]: https://setuptools.readthedocs.io/en/latest/pkg_resources.html#parsing-utilities
 
@@ -1011,23 +1021,25 @@ INFO    - New Version: 2019.1002-beta
 
 The individual steps performed by `bumpver update`:
 
-0. Check that you have no local changes that are uncommitted.
-1. *Fetch* the most recent global VCS tags from origin.
-2. Generate the updated version string.
-3. Replace version strings in all files configured in `file_patterns`.
-4. *Commit* the updated files.
-5. *Tag* the new commit.
-6. *Push* the new commit and tag.
+1. *Fetch* VCS tags from origin.
+2. Get most recent version.
+3. Generate the updated version string.
+4. Check that you have no local changes that are uncommitted.
+5. Replace version strings in all files configured in `file_patterns`.
+6. *Commit* the updated files.
+7. *Tag* the new commit.
+8. *Push* the new commit and tag.
 
 The configuration for these steps can be done with the following parameters:
 
-|    Parameter     |   Type   |               Description               |
-|------------------|----------|-----------------------------------------|
-| `commit_message` | string¹  | Template for commit message in step 4.  |
-| `tag_message`    | string¹  | Template for tag message in step 5.     |
-| `commit`         | boolean  | Create a commit with all updated files. |
-| `tag`            | boolean² | Tag the newly created commit.           |
-| `push`           | boolean² | Push to the default remote.             |
+|    Parameter     |   Type   |                 Description                |
+|------------------|----------|--------------------------------------------|
+| `tag_scope`      | string   | Scope for the `current_version` in step 2. |
+| `commit_message` | string¹  | Template for commit message in step 6.     |
+| `tag_message`    | string¹  | Template for tag message in step 7.        |
+| `commit`         | boolean  | Create a commit with all updated files.    |
+| `tag`            | boolean² | Tag the newly created commit.              |
+| `push`           | boolean² | Push to the default remote.                |
 
 - ¹ Available placeholders for the `commit_message`: `{new_version}`, `{old_version}`, `{new_version_pep440}`, `{old_version_pep440}`
 - ² Requires `commit = True`
