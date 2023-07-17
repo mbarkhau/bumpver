@@ -22,7 +22,7 @@ Project/Repo:
 
 [![MIT License][img_license]][url_license]
 [![Supported Python Versions][img_pyversions]][url_pyversions]
-[![CalVer 2023.1124][img_version]][url_version]
+[![CalVer 2023.1125][img_version]][url_version]
 [![PyPI Releases][img_pypi]][url_pypi]
 [![PyPI Downloads][img_downloads]][url_downloads]
 
@@ -56,7 +56,7 @@ Code Quality/CI:
 [img_downloads]: https://pepy.tech/badge/bumpver/month
 [url_downloads]: https://pepy.tech/project/bumpver
 
-[img_version]: https://img.shields.io/static/v1.svg?label=CalVer&message=2023.1124&color=blue
+[img_version]: https://img.shields.io/static/v1.svg?label=CalVer&message=2023.1125&color=blue
 [url_version]: https://pypi.org/project/bumpver/
 
 [img_pypi]: https://img.shields.io/badge/PyPI-wheels-green.svg
@@ -804,7 +804,7 @@ The create an initial configuration for project with `bumpver init`.
 $ pip install bumpver
 ...
 Installing collected packages: click toml lexid bumpver
-Successfully installed bumpver-2023.1124
+Successfully installed bumpver-2023.1125
 
 $ cd myproject
 ~/myproject/
