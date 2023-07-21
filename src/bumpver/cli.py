@@ -807,11 +807,13 @@ def _sub_msg_template(message: str) -> str:
 @click.option(
     "--pre-commit-hook",
     type=click.Path(exists=True),
+    metavar="<PATH>",
     help="Custom script that runs before the commit step",
 )
 @click.option(
     "--post-commit-hook",
     type=click.Path(exists=True),
+    metavar="<PATH>",
     help="Custom script that runs after the commit step is completed",
 )
 def update(
