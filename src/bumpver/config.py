@@ -138,6 +138,9 @@ class Config(typ.NamedTuple):
     tag_message    : str
     tag_scope      : TagScope
 
+    pre_commit_hook : str
+    post_commit_hook: str
+
     commit        : bool
     tag           : bool
     push          : bool
@@ -158,6 +161,8 @@ def _debug_str(cfg: Config) -> str:
         f"\n    commit_message='{cfg.commit_message}',",
         f"\n    tag_message='{cfg.tag_message}',",
         f"\n    tag_scope='{cfg.tag_scope.value}',",
+        f"\n    pre_commit_hook={cfg.pre_commit_hook},",
+        f"\n    post_commit_hook={cfg.post_commit_hook},",
         f"\n    commit={cfg.commit},",
         f"\n    tag={cfg.tag},",
         f"\n    push={cfg.push},",
@@ -372,6 +377,12 @@ def _validate_version_with_pattern(
             raise ValueError(errmsg)
 
 
+def _parse_cfg_strings(raw_cfg: RawConfig, key: str, default: str) -> str:
+    if key in raw_cfg:
+        raw_cfg[key] = raw_cfg[key].strip("'\" ")
+    return raw_cfg.get(key, default)
+
+
 def _parse_config(raw_cfg: RawConfig) -> Config:
     """Parse configuration which was loaded from an .ini/.cfg or .toml file."""
 
@@ -395,9 +406,10 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
 
     file_patterns = _compile_file_patterns(raw_cfg, is_new_pattern)
 
-    if 'tag_scope' in raw_cfg:
-        raw_cfg['tag_scope'] = raw_cfg['tag_scope'].strip("'\" ").lower()
-    tag_scope: TagScope = TagScope(raw_cfg.get('tag_scope', DEFAULT_TAG_SCOPE))
+    tag_scope: TagScope = TagScope(_parse_cfg_strings(raw_cfg, 'tag_scope', DEFAULT_TAG_SCOPE))
+
+    pre_commit_hook : str = _parse_cfg_strings(raw_cfg, 'pre_commit_hook' , "")
+    post_commit_hook: str = _parse_cfg_strings(raw_cfg, 'post_commit_hook', "")
 
     commit = raw_cfg['commit']
     tag    = raw_cfg['tag']
@@ -415,7 +427,15 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
         raise ValueError("commit=True required if push=True")
 
     if tag_scope not in list(TagScope):
-        raise ValueError("invalid value for tag_scope")
+        raise ValueError("Invalid value for tag_scope")
+
+    if pre_commit_hook and not pl.Path(pre_commit_hook).exists():
+        errmsg = f"Invalid value for pre_commit_hook: path '{pre_commit_hook}' does not exist"
+        raise ValueError(errmsg)
+
+    if post_commit_hook and not pl.Path(post_commit_hook).exists():
+        errmsg = f"Invalid value for post_commit_hook: Path '{post_commit_hook}' does not exist"
+        raise ValueError(errmsg)
 
     cfg = Config(
         current_version=current_version,
@@ -424,6 +444,8 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
         commit_message=commit_message,
         tag_message=tag_message,
         tag_scope=tag_scope,
+        pre_commit_hook=pre_commit_hook,
+        post_commit_hook=post_commit_hook,
         commit=commit,
         tag=tag,
         push=push,
@@ -528,6 +550,8 @@ version_pattern = "YYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
 tag_message = "{{new_version}}"
 tag_scope = "{default_tag_scope}"
+pre_commit_hook = ""
+post_commit_hook = ""
 commit = True
 tag = True
 push = True
@@ -570,6 +594,8 @@ version_pattern = "YYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
 tag_message = "{{new_version}}"
 tag_scope = "{default_tag_scope}"
+pre_commit_hook = ""
+post_commit_hook = ""
 commit = true
 tag = true
 push = true
@@ -585,6 +611,8 @@ version_pattern = "YYYY.BUILD[-TAG]"
 commit_message = "bump version {{old_version}} -> {{new_version}}"
 tag_message = "{{new_version}}"
 tag_scope = "{default_tag_scope}"
+pre_commit_hook = ""
+post_commit_hook = ""
 commit = true
 tag = true
 push = true

@@ -24,6 +24,7 @@ import logging
 import tempfile
 import subprocess as sp
 
+from . import hooks
 from . import config
 
 logger = logging.getLogger("bumpver.vcs")
@@ -273,10 +274,18 @@ def commit(
     tag_message   : str,
 ) -> None:
     if cfg.commit:
+        if cfg.pre_commit_hook:
+            logger.info(f"Run pre-commit hook: {cfg.pre_commit_hook}")
+            hooks.run(cfg.pre_commit_hook, cfg.current_version, new_version)
+
         for filepath in filepaths:
             vcs_api.add(filepath)
 
         vcs_api.commit(commit_message)
+
+        if cfg.post_commit_hook:
+            logger.info(f"Run post-commit hook: {cfg.post_commit_hook}")
+            hooks.run(cfg.post_commit_hook, cfg.current_version, new_version)
 
     if cfg.commit and cfg.tag:
         vcs_api.tag(tag_name=new_version, tag_message=tag_message)

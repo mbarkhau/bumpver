@@ -709,11 +709,13 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
 
 
 def _parse_vcs_options(
-    cfg       : config.Config,
-    commit    : typ.Optional[bool] = None,
-    tag_commit: typ.Optional[bool] = None,
-    push      : typ.Optional[bool] = None,
-    tag_scope : typ.Optional[str] = None,
+    cfg             : config.Config,
+    commit          : typ.Optional[bool] = None,
+    tag_commit      : typ.Optional[bool] = None,
+    push            : typ.Optional[bool] = None,
+    tag_scope       : typ.Optional[str] = None,
+    pre_commit_hook : typ.Optional[str] = None,
+    post_commit_hook: typ.Optional[str] = None,
 ) -> config.Config:
     if commit is False and tag_commit:
         raise ValueError("--no-commit and --tag-commit cannot be used at the same time")
@@ -734,6 +736,10 @@ def _parse_vcs_options(
         cfg = cfg._replace(push=push)
     if tag_scope is not None:
         cfg = cfg._replace(tag_scope=config.TagScope(tag_scope))
+    if pre_commit_hook is not None:
+        cfg = cfg._replace(pre_commit_hook=pre_commit_hook)
+    if post_commit_hook is not None:
+        cfg = cfg._replace(post_commit_hook=post_commit_hook)
 
     return cfg
 
@@ -798,27 +804,39 @@ def _sub_msg_template(message: str) -> str:
     type=click.Choice([e.value for e in config.TagScope]),
     help="Tag scope for the current version.",
 )
+@click.option(
+    "--pre-commit-hook",
+    type=click.Path(exists=True),
+    help="Custom script that runs before the commit step",
+)
+@click.option(
+    "--post-commit-hook",
+    type=click.Path(exists=True),
+    help="Custom script that runs after the commit step is completed",
+)
 def update(
-    dry           : bool = False,
-    allow_dirty   : bool = False,
-    ignore_vcs_tag: bool = False,
-    fetch         : bool = True,
-    verbose       : int = 0,
-    major         : bool = False,
-    minor         : bool = False,
-    patch         : bool = False,
-    tag           : typ.Optional[str] = None,
-    tag_num       : bool = False,
-    pin_increments: bool = False,
-    pin_date      : bool = False,
-    date          : typ.Optional[str] = None,
-    set_version   : typ.Optional[str] = None,
-    commit_message: typ.Optional[str] = None,
-    tag_message   : typ.Optional[str] = None,
-    commit        : typ.Optional[bool] = None,
-    tag_commit    : typ.Optional[bool] = None,
-    push          : typ.Optional[bool] = None,
-    tag_scope     : typ.Optional[str] = None,
+    dry             : bool = False,
+    allow_dirty     : bool = False,
+    ignore_vcs_tag  : bool = False,
+    fetch           : bool = True,
+    verbose         : int = 0,
+    major           : bool = False,
+    minor           : bool = False,
+    patch           : bool = False,
+    tag             : typ.Optional[str] = None,
+    tag_num         : bool = False,
+    pin_increments  : bool = False,
+    pin_date        : bool = False,
+    date            : typ.Optional[str] = None,
+    set_version     : typ.Optional[str] = None,
+    commit_message  : typ.Optional[str] = None,
+    tag_message     : typ.Optional[str] = None,
+    commit          : typ.Optional[bool] = None,
+    tag_commit      : typ.Optional[bool] = None,
+    push            : typ.Optional[bool] = None,
+    tag_scope       : typ.Optional[str] = None,
+    pre_commit_hook : typ.Optional[str] = None,
+    post_commit_hook: typ.Optional[str] = None,
 ) -> None:
     """Update project files with the incremented version string."""
     verbose = max(_VERBOSE, verbose)
@@ -833,7 +851,9 @@ def update(
         sys.exit(1)
 
     try:
-        cfg = _parse_vcs_options(cfg, commit, tag_commit, push, tag_scope)
+        cfg = _parse_vcs_options(
+            cfg, commit, tag_commit, push, tag_scope, pre_commit_hook, post_commit_hook
+        )
     except ValueError as ex:
         logger.warning(f"Invalid argument: {ex}")
         sys.exit(1)

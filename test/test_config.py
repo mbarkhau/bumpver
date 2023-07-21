@@ -459,3 +459,34 @@ def test_parse_invalid_version(tmpdir):
 
     cfg = config.parse(ctx)
     assert cfg is None
+
+
+def test_parse_commit_hooks():
+    hooks_path = util.FIXTURES_DIR / "hooks"
+
+    buf = mk_buf(
+        "\n".join(
+            [
+                MINIMAL_CFG_FIXTURE,
+                f"pre_commit_hook='{str(hooks_path)}/pre_commit_hook.py'",
+                f"post_commit_hook='{str(hooks_path)}/post_commit_hook.py'",
+            ]
+        )
+    )
+
+    raw_cfg = config._parse_cfg(buf)
+    cfg     = config._parse_config(raw_cfg)
+    assert cfg
+
+    assert cfg.pre_commit_hook  == f"{str(hooks_path)}/pre_commit_hook.py"
+    assert cfg.post_commit_hook == f"{str(hooks_path)}/post_commit_hook.py"
+
+
+def test_parse_commit_hooks_invalid():
+    buf = mk_buf(f"{MINIMAL_CFG_FIXTURE}\npre_commit_hook='foobar.py'")
+
+    raw_cfg = config._parse_cfg(buf)
+
+    with pytest.raises(ValueError) as err:
+        config._parse_config(raw_cfg)
+        assert "'foobar.py' does not exist" in err.message

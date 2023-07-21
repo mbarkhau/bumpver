@@ -7,9 +7,11 @@ from __future__ import unicode_literals
 import io
 import os
 import re
+import stat
 import time
 import shlex
 import shutil
+import logging
 import datetime as dt
 import subprocess as sp
 
@@ -49,6 +51,16 @@ CALVER_TOML_FIXTURE = """
 PYPROJECT_TOML_FIXTURE = """
 [build-system]
 requires = ["setuptools", "wheel"]
+"""
+
+PRE_COMMIT_HOOK_FIXTURE = """#!/usr/bin/env python
+from os import environ
+print("I'm a pre commit hook. The old version was: " + environ.get('BUMPVER_OLD_VERSION'))
+"""
+
+POST_COMMIT_HOOK_FIXTURE = """#!/usr/bin/env python
+from os import environ
+print("I'm a post commit hook. The new version is: " + environ.get('BUMPVER_NEW_VERSION'))
 """
 
 ENV = {
@@ -304,6 +316,20 @@ def _add_project_files(*files):
     if "bumpver.toml" in files:
         with pl.Path("bumpver.toml").open(mode="wt", encoding="utf-8") as fobj:
             fobj.write(CALVER_TOML_FIXTURE)
+
+    if "pre_commit_hook.py" in files:
+        path = pl.Path("pre_commit_hook.py")
+        with path.open(mode="wt", encoding="utf-8") as fobj:
+            fobj.write(PRE_COMMIT_HOOK_FIXTURE)
+        pstat = path.stat()
+        path.chmod(pstat.st_mode | stat.S_IXUSR)
+
+    if "post_commit_hook.py" in files:
+        path = pl.Path("post_commit_hook.py")
+        with path.open(mode="wt", encoding="utf-8") as fobj:
+            fobj.write(POST_COMMIT_HOOK_FIXTURE)
+        pstat = path.stat()
+        path.chmod(pstat.st_mode | stat.S_IXUSR)
 
 
 def _update_config_val(filename, **kwargs):
@@ -1587,3 +1613,61 @@ def test_git_tag_scope_branch_version_conflict(runner, caplog, vcs_name):
 
     error_message = "Invariant violated: New version must be unique accross all branches"
     assert any(error_message in r.message for r in caplog.records)
+
+
+def test_commit_hook_execution(runner, caplog):
+    _add_project_files("pre_commit_hook.py", "post_commit_hook.py")
+    result = runner.invoke(cli.cli, ['init'])
+    assert result.exit_code == 0
+
+    _update_config_val("bumpver.toml", push="false")
+    _update_config_val("bumpver.toml", current_version='"0.1.0"')
+    _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH"')
+
+    _vcs_init("git", files=["bumpver.toml", "pre_commit_hook.py", "post_commit_hook.py"])
+
+    cmd = [
+        'update',
+        '--minor',
+        '--pre-commit-hook',
+        "pre_commit_hook.py",
+        '--post-commit-hook',
+        "post_commit_hook.py",
+    ]
+
+    caplog.set_level(logging.INFO)
+    result = runner.invoke(cli.cli, cmd)
+    assert result.exit_code == 0
+
+    pre_commit_msg = "I'm a pre commit hook. The old version was: 0.1.0"
+    assert any(pre_commit_msg in r.message for r in caplog.records)
+
+    post_commit_msg = "I'm a post commit hook. The new version is: 0.2.0"
+    assert any(post_commit_msg in r.message for r in caplog.records)
+
+
+def test_commit_hook_execution_fail(runner, caplog):
+    _add_project_files("pre_commit_hook.py")
+    result = runner.invoke(cli.cli, ['init'])
+    assert result.exit_code == 0
+
+    _update_config_val("bumpver.toml", push="false")
+
+    path = pl.Path("pre_commit_hook.py")
+    with path.open(mode="a", encoding="utf-8") as fobj:
+        fobj.write("exit(1)")
+
+    _vcs_init("git", files=["bumpver.toml", "pre_commit_hook.py"])
+
+    cmd = [
+        'update',
+        '--pre-commit-hook',
+        "pre_commit_hook.py",
+    ]
+
+    result = runner.invoke(cli.cli, cmd)
+    assert result.exit_code == 1
+    assert len(caplog.records) > 0
+
+    log_msg = caplog.records[0].message
+    assert "Script exited with an error. Stopping" in log_msg
