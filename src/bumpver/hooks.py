@@ -26,7 +26,7 @@ def run(path: str, old_version: str, new_version: str) -> None:
         proc.wait()
     except IOError as err:
         logger.error(f"\t{err}")
-        logger.error("Script exited with error. Stopping")
+        logger.error("Script exited with an error. Stopping")
         sys.exit(1)
 
     if proc.returncode != 0:
