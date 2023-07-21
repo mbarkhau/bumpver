@@ -430,7 +430,7 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
         raise ValueError("Invalid value for tag_scope")
 
     if pre_commit_hook and not pl.Path(pre_commit_hook).exists():
-        errmsg = f"Invalid value for pre_commit_hook: path '{pre_commit_hook}' does not exist"
+        errmsg = f"Invalid value for pre_commit_hook: Path '{pre_commit_hook}' does not exist"
         raise ValueError(errmsg)
 
     if post_commit_hook and not pl.Path(post_commit_hook).exists():
