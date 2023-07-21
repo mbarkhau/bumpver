@@ -482,8 +482,9 @@ def test_parse_commit_hooks():
     assert cfg.post_commit_hook == f"{str(hooks_path)}/post_commit_hook.py"
 
 
-def test_parse_commit_hooks_invalid():
-    buf = mk_buf(f"{MINIMAL_CFG_FIXTURE}\npre_commit_hook='foobar.py'")
+@pytest.mark.parametrize("hook", ['pre_commit_hook', 'post_commit_hook'])
+def test_parse_commit_hooks_invalid(hook):
+    buf = mk_buf(f"{MINIMAL_CFG_FIXTURE}\n{hook}='foobar.py'")
 
     raw_cfg = config._parse_cfg(buf)
 
