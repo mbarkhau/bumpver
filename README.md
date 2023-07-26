@@ -625,6 +625,10 @@ Options:
   --push / --no-push              Push to the default remote.
   --tag-scope [default|global|branch]
                                   Tag scope for the current version.
+  --pre-commit-hook <PATH>        Custom script that runs before the commit
+                                  step
+  --post-commit-hook <PATH>       Custom script that runs after the commit
+                                  step is completed
   -h, --help                      Show this message and exit.
 ```
 
@@ -818,6 +822,8 @@ Exiting because of '-d/--dry'. Would have written to bumpver.toml:
     commit_message = "bump version to {new_version}"
     tag_message = "{new_version}"
     tag_scope = "default"
+    pre_commit_hook = ""
+    post_commit_hook = ""
     commit = true
     tag = true
     push = true
@@ -849,6 +855,8 @@ version_pattern = "YYYY.BUILD[-TAG]"
 commit_message = "bump version to {new_version}"
 tag_message = "{new_version}"
 tag_scope = "default"
+pre_commit_hook = ""
+post_commit_hook = ""
 commit = True
 tag = True
 push = True
@@ -1019,27 +1027,31 @@ INFO    - New Version: 2019.1002-beta
 
 The individual steps performed by `bumpver update`:
 
-1. *Fetch* VCS tags from origin.
-2. Get most recent version.
-3. Generate the updated version string.
-4. Check that you have no local changes that are uncommitted.
-5. Replace version strings in all files configured in `file_patterns`.
-6. *Commit* the updated files.
-7. *Tag* the new commit.
-8. *Push* the new commit and tag.
+ 1. *Fetch* VCS tags from origin.
+ 2. Get most recent version.
+ 3. Generate the updated version string.
+ 4. Check that you have no local changes that are uncommitted.
+ 5. Replace version strings in all files configured in `file_patterns`.
+ 6. Run pre-commit hook.
+ 7. *Commit* the updated files.
+ 8. Run post-commit hook.
+ 9. *Tag* the new commit.
+10. *Push* the new commit and tag.
 
 The configuration for these steps can be done with the following parameters:
 
-|    Parameter     |   Type   |                 Description                |
-|------------------|----------|--------------------------------------------|
-| `tag_scope`      | string   | Scope for the `current_version` in step 2. |
-| `commit_message` | string¹  | Template for commit message in step 6.     |
-| `tag_message`    | string¹  | Template for tag message in step 7.        |
-| `commit`         | boolean  | Create a commit with all updated files.    |
-| `tag`            | boolean² | Tag the newly created commit.              |
-| `push`           | boolean² | Push to the default remote.                |
+|      Parameter     |   Type   |                 Description                |
+|--------------------|----------|--------------------------------------------|
+| `tag_scope`        | string   | Scope for the `current_version` in step 2. |
+| `commit_message`   | string¹  | Template for commit message in step 6.     |
+| `tag_message`      | string¹  | Template for tag message in step 9.        |
+| `pre_commit_hook`  | string²  | Path to the pre-commit script.             |
+| `commit`           | boolean  | Create a commit with all updated files.    |
+| `post_commit_hook` | string²  | Path to the post-commit script.            |
+| `tag`              | boolean² | Tag the newly created commit.              |
+| `push`             | boolean² | Push to the default remote.                |
 
-- ¹ Available placeholders for the `commit_message`: `{new_version}`, `{old_version}`, `{new_version_pep440}`, `{old_version_pep440}`
+- ¹ Available template placeholders: `{new_version}`, `{old_version}`, `{new_version_pep440}`, `{old_version_pep440}`
 - ² Requires `commit = True`
 
 An example configuration might look like this:
@@ -1049,6 +1061,9 @@ An example configuration might look like this:
 ...
 commit_message = "bump version to {new_version}"
 tag_message = "{new_version}"
+tag_scope = "default"
+pre_commit_hook = "scripts/run_checks.sh"
+post_commit_hook = "scripts/update_changelog.sh"
 commit = True
 tag = True
 push = True
@@ -1061,7 +1076,11 @@ $ bumpver update --verbose
 INFO    - fetching tags from remote (to turn off use: -n / --no-fetch)
 INFO    - Old Version: 2020.1005
 INFO    - New Version: 2020.1006
+INFO    - Run pre-commit hook: scripts/run_checks.sh
+INFO    - 	...
 INFO    - git commit --message 'bump version to 2020.1006'
+INFO    - Run post-commit hook: scripts/update_changelog.sh
+INFO    - 	...
 INFO    - git tag --annotate 2020.1006 --message 2020.1006
 INFO    - git push origin --follow-tags 2020.1006 HEAD
 ```
@@ -1127,6 +1146,44 @@ INFO    - New Version: 1.2.0
 ...
 INFO    - git tag 1.2.0
 ...
+```
+
+
+### Pre/Post-Commit Hooks
+
+`Bumpver` allows you to run custom scripts *before* and *after* the commit step using the `--pre-commit-hook=<PATH>` and `--post-commit-hook=<PATH>` parameter, respectively their configuration counterparts `pre_commit_hook` and `post_commit_hook`. Both options require `commit=True` to be set and the `<PATH>` must be either absolute or relative to the working dir.
+
+If a script fails (exits with a `return_code!=0`) `bumpver` aborts and all subsequent steps won't be executed, e.g. *commit*, *tag* and *push*.
+
+For your convenience there are two environment variables available which can be used in the scripts: `BUMPVER_OLD_VERSION` and `BUMPVER_NEW_VERSION`.
+
+Example:
+```python
+#!/usr/bin/env python
+# File path: scripts/print_new_version.py
+from os import environ
+print("The new version is " + environ.get('BUMPVER_NEW_VERSION', ''))
+```
+
+```
+$ bumpver update --post-commit-hook scripts/print_new_version.py
+INFO    - fetching tags from remote (to turn off use: -n / --no-fetch)
+INFO    - Old Version: 2023.1001-alpha
+INFO    - New Version: 2023.1002-alpha
+INFO    - git commit --message 'bump version 2023.1001-alpha -> 2023.1002-alpha'
+INFO    - Run post-commit hook: scripts/print_new_version.py
+INFO    - 	The new version is 2023.1002-alpha
+INFO    - git tag --annotate 2023.1002-alpha --message '2023.1002-alpha'
+INFO    - git push origin --follow-tags 2023.1002-alpha HEAD
+```
+
+Make sure your script is executable, otherwise you might be greeted with:
+```
+$ bumpver update --post-commit-hook scripts/print_new_version.py
+...
+INFO    - Run post-commit hook: scripts/print_new_version.py
+ERROR   - 	[Errno 13] Permission denied: 'scripts/print_new_version.py'
+ERROR   - Script exited with an error. Stopping
 ```
 
 

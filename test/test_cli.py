@@ -10,8 +10,10 @@ import re
 import time
 import shlex
 import shutil
+import logging
 import datetime as dt
 import subprocess as sp
+from test import util
 
 import pytest
 import pathlib2 as pl
@@ -1587,3 +1589,59 @@ def test_git_tag_scope_branch_version_conflict(runner, caplog, vcs_name):
 
     error_message = "Invariant violated: New version must be unique accross all branches"
     assert any(error_message in r.message for r in caplog.records)
+
+
+def test_commit_hook_execution(runner, caplog):
+    result = runner.invoke(cli.cli, ['init'])
+    assert result.exit_code == 0
+
+    _update_config_val("bumpver.toml", push="false")
+    _update_config_val("bumpver.toml", current_version='"0.1.0"')
+    _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH"')
+
+    _vcs_init("git", files=["bumpver.toml"])
+
+    hooks_path = util.FIXTURES_DIR / "hooks"
+
+    cmd = [
+        'update',
+        '--minor',
+        '--pre-commit-hook',
+        f'{str(hooks_path / "pre_commit_hook.py")}',
+        '--post-commit-hook',
+        f'{str(hooks_path / "post_commit_hook.py")}',
+    ]
+
+    caplog.set_level(logging.INFO)
+    result = runner.invoke(cli.cli, cmd)
+    assert result.exit_code == 0
+
+    pre_commit_msg = "I'm a pre commit hook. The old version was: 0.1.0"
+    assert any(pre_commit_msg in r.message for r in caplog.records)
+
+    post_commit_msg = "I'm a post commit hook. The new version is: 0.2.0"
+    assert any(post_commit_msg in r.message for r in caplog.records)
+
+
+def test_commit_hook_execution_fail(runner, caplog):
+    result = runner.invoke(cli.cli, ['init'])
+    assert result.exit_code == 0
+
+    _update_config_val("bumpver.toml", push="false")
+
+    _vcs_init("git", files=["bumpver.toml"])
+
+    hooks_path = util.FIXTURES_DIR / "hooks"
+
+    cmd = [
+        'update',
+        '--pre-commit-hook',
+        f'{str(hooks_path / "pre_commit_hook_fail.py")}',
+    ]
+
+    result = runner.invoke(cli.cli, cmd)
+    assert result.exit_code == 1
+    assert len(caplog.records) > 0
+
+    log_msg = caplog.records[0].message
+    assert "Script exited with an error. Stopping" in log_msg
