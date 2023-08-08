@@ -13,7 +13,8 @@ import datetime as dt
 import configparser
 
 import toml
-import pathlib2 as pl
+
+from bumpver import pathlib as pl
 
 from . import version
 from . import v1version

@@ -28,7 +28,6 @@ mypy-extensions==1.0.0
 types-setuptools
 types-toml
 types-click
-types-pathlib2
 
 # http://doc.pytest.org/en/latest/py27-py34-deprecation.html
 # The pytest 4.6 series will be the last to support Python 2.7

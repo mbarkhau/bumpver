@@ -6,7 +6,7 @@
 import typing as typ
 import difflib
 
-import pathlib2 as pl
+from bumpver import pathlib as pl
 
 from . import config
 from .patterns import Pattern

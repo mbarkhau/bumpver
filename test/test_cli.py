@@ -16,11 +16,11 @@ import subprocess as sp
 from test import util
 
 import pytest
-import pathlib2 as pl
 from click.testing import CliRunner
 
 from bumpver import cli
 from bumpver import config
+from bumpver import pathlib as pl
 from bumpver import v2patterns
 
 # pylint:disable=redefined-outer-name ; pytest fixtures
@@ -560,7 +560,7 @@ def test_novcs_bump(runner, version_pattern, cur_version, cur_pep440):
         current_version='"' + cur_version + '"',
     )
 
-    with pl.Path("README.md").open(mode="r") as fobj:
+    with pl.Path("README.md").open(mode="r", encoding="utf-8") as fobj:
         content = fobj.read()
 
     result = runner.invoke(cli.cli, ['update', "-vv"])
@@ -568,7 +568,7 @@ def test_novcs_bump(runner, version_pattern, cur_version, cur_pep440):
 
     calver = cur_version.split(".")[0]
 
-    with pl.Path("README.md").open() as fobj:
+    with pl.Path("README.md").open(encoding="utf-8") as fobj:
         content = fobj.read()
         assert calver + ".1002-alpha !\n" in content
         assert calver[1:] + ".1002a0 !]\n" in content
@@ -576,7 +576,7 @@ def test_novcs_bump(runner, version_pattern, cur_version, cur_pep440):
     result = runner.invoke(cli.cli, ['update', "-vv", "--tag", "beta"])
     assert result.exit_code == 0
 
-    with pl.Path("README.md").open() as fobj:
+    with pl.Path("README.md").open(encoding="utf-8") as fobj:
         content = fobj.read()
         assert calver + ".1003-beta !\n" in content
         assert calver[1:] + ".1003b0 !]\n" in content
@@ -605,7 +605,7 @@ def test_git_bump(runner, caplog, version_pattern, cur_version, cur_pep440):
 
     calver = cur_version.split(".")[0]
 
-    with pl.Path("README.md").open() as fobj:
+    with pl.Path("README.md").open(encoding="utf-8") as fobj:
         content = fobj.read()
         assert calver + ".1002-alpha !\n" in content
 
@@ -632,20 +632,20 @@ def test_hg_bump(runner, version_pattern, cur_version, cur_pep440):
 
     calver = cur_version.split(".")[0]
 
-    with pl.Path("README.md").open() as fobj:
+    with pl.Path("README.md").open(encoding="utf-8") as fobj:
         content = fobj.read()
         assert calver + ".1002-alpha !\n" in content
 
 
 def test_empty_git_bump(runner, caplog):
     shell("git", "init")
-    with pl.Path("setup.cfg").open(mode="w") as fobj:
+    with pl.Path("setup.cfg").open(mode="w", encoding="utf-8") as fobj:
         fobj.write("")
 
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
-    with pl.Path("setup.cfg").open(mode="r") as fobj:
+    with pl.Path("setup.cfg").open(mode="r", encoding="utf-8") as fobj:
         default_cfg_data = fobj.read()
 
     assert "[bumpver]\n" in default_cfg_data
@@ -661,13 +661,13 @@ def test_empty_git_bump(runner, caplog):
 
 def test_empty_hg_bump(runner, caplog):
     shell("hg", "init")
-    with pl.Path("setup.cfg").open(mode="w") as fobj:
+    with pl.Path("setup.cfg").open(mode="w", encoding="utf-8") as fobj:
         fobj.write("")
 
     result = runner.invoke(cli.cli, ['init', "-vv"])
     assert result.exit_code == 0
 
-    with pl.Path("setup.cfg").open(mode="r") as fobj:
+    with pl.Path("setup.cfg").open(mode="r", encoding="utf-8") as fobj:
         default_cfg_text = fobj.read()
 
     assert "[bumpver]\n" in default_cfg_text
@@ -890,7 +890,7 @@ DEFAULT_SEMVER_PATTERNS = [
 def test_update_semver_warning(runner, caplog, version_pattern):
     _add_project_files("README.md")
 
-    with pl.Path("setup.cfg").open(mode="w") as fobj:
+    with pl.Path("setup.cfg").open(mode="w", encoding="utf-8") as fobj:
         fobj.write(SETUP_CFG_SEMVER_FIXTURE)
 
     _update_config_val("setup.cfg", version_pattern=version_pattern)
@@ -911,7 +911,7 @@ def test_update_semver_warning(runner, caplog, version_pattern):
 def test_update_semver_diff(runner, caplog, version_pattern):
     _add_project_files("README.md")
 
-    with pl.Path("setup.cfg").open(mode="w") as fobj:
+    with pl.Path("setup.cfg").open(mode="w", encoding="utf-8") as fobj:
         fobj.write(SETUP_CFG_SEMVER_FIXTURE)
 
     _update_config_val("setup.cfg", version_pattern=version_pattern)
@@ -935,7 +935,7 @@ def test_update_semver_diff(runner, caplog, version_pattern):
 def test_update_set_version(runner, caplog):
     _add_project_files("README.md", "setup.cfg")
 
-    with pl.Path("setup.cfg").open(mode="w") as fobj:
+    with pl.Path("setup.cfg").open(mode="w", encoding="utf-8") as fobj:
         fobj.write(SETUP_CFG_SEMVER_FIXTURE)
 
     _update_config_val(
