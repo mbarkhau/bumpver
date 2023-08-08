@@ -1,5 +1,14 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2023.1126
+
+- Add [#214][gh_pr214]: Support for pre/post commit hooks
+
+[gh_pr214]: https://github.com/mbarkhau/bumpver/pull/214
+
+Thank you [Sven Lohrmann](https://github.com/malnvenshorn) for this contribution.
+
+
 ## BumpVer 2023.1125
 
 - Add [#188][gh_i188]: Add `--tag-scope=<SCOPE>` to support separate versioning for branches.
