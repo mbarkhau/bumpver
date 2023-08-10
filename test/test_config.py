@@ -503,7 +503,7 @@ CAPITALIZATION_CASES = [
 @pytest.mark.parametrize("filename", CAPITALIZATION_CASES)
 def test_capitalisation(filename):
     try:
-        with open(filename, mode='w', encoding="utf-8") as fobj:
+        with io.open(filename, mode='w', encoding="utf-8") as fobj:
             fobj.write("This is a test file for testing capitalization")
 
         raw_patterns      = {filename: filename}
