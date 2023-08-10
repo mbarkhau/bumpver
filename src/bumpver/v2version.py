@@ -793,7 +793,9 @@ def incr(
 
     new_version = format_version(cur_vinfo, raw_pattern)
 
-    if new_version == old_version:
+    if new_version == "":
+        return None
+    elif new_version == old_version:
         logger.error("Invalid arguments or pattern, version did not change.")
         return None
     else:
