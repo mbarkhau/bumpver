@@ -624,21 +624,21 @@ push = true
 
 DEFAULT_TOML_PYCALVER_STR = """
 "pycalver.toml" = [
-    '^current_version = "{version}"',
+    'current_version = "{version}"',
 ]
 """.lstrip()
 
 
 DEFAULT_TOML_BUMPVER_STR = """
 "bumpver.toml" = [
-    '^current_version = "{version}"',
+    'current_version = "{version}"',
 ]
 """.lstrip()
 
 
 DEFAULT_TOML_PYPROJECT_STR = """
 "pyproject.toml" = [
-    '^current_version = "{version}"',
+    'current_version = "{version}"',
 ]
 """.lstrip()
 
