@@ -112,15 +112,18 @@ With `bumpver`, you configure a single `version_pattern` which is then used to
 Your configuration might look something like this:
 
 ```
+# pyproject.toml
 [bumpver]
 current_version = "1.5.2"
 version_pattern = "MAJOR.MINOR.PATCH"
 
-[bumpver:file_patterns]
-setup.py
-    version="{version}",$
-src/mymodule/__init__.py
-    ^__version__ = "{version}"$
+[bumpver.file_patterns]
+"setup.py" = [
+    'version="{version}",$',
+]
+"src/mymodule/__init__.py" = [
+    '^__version__ = "{version}"$',
+]
 ```
 
 Using this configuration, the output of `bumpver update --dry` might look something like this:
@@ -420,7 +423,7 @@ If you want to build a package straight from your git repository,
 without making a release first, you can explictly add git hash to
 the version number using ``GITHASH`` version part.
 
-Let's say your ``setup.cfg`` looks like this:
+Let's say your ``pyproject.toml`` looks like this:
 
 ```ini
 [bumpver]
@@ -843,10 +846,10 @@ If you already have configuration file in your project (such as `setup.cfg` or `
 ```
 ~/myproject
 $ bumpver init
-Updated setup.cfg
+Updated pyproject.toml
 ```
 
-Your `setup.cfg` may now look something like this:
+Your `pyproject.toml` may now look something like this:
 
 ```ini
 [bumpver]
@@ -857,18 +860,21 @@ tag_message = "{new_version}"
 tag_scope = "default"
 pre_commit_hook = ""
 post_commit_hook = ""
-commit = True
-tag = True
-push = True
+commit = true
+tag = true
+push = true
 
-[bumpver:file_patterns]
-setup.cfg =
-    current_version = "{version}"
-setup.py =
-    version="{pep440_version}",
-README.md =
-    {version}
-    {pep440_version}
+[bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+]
+"setup.py" = [
+    'version="{pep440_version}",',
+]
+"README.md" = [
+    '{version}',
+    '{pep440_version}',
+]
 ```
 
 

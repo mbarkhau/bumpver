@@ -2,8 +2,9 @@
 
 ## BumpVer 2023.1126
 
-- Add [#214][gh_pr214]: Support for pre/post commit hooks
-- Add [#219][gh_pr219]: Fix pathlib issues on Windows
+- Add [#214][gh_pr214]: Support for pre/post commit hooks.
+- Add [#219][gh_pr219]: Fix pathlib issues on Windows.
+- Update [#216][gh_i216]: Use .toml format in REAMDE examples.
 
 [gh_pr214]: https://github.com/mbarkhau/bumpver/pull/214
 [gh_pr219]: https://github.com/mbarkhau/bumpver/pull/219
