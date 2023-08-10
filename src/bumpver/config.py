@@ -13,7 +13,8 @@ import datetime as dt
 import configparser
 
 import toml
-import pathlib2 as pl
+
+from bumpver import pathlib as pl
 
 from . import version
 from . import v1version
@@ -107,8 +108,8 @@ def init_project_ctx(project_path: typ.Union[str, pl.Path, None] = ".") -> Proje
     elif project_path is None:
         path = pl.Path(".")
     else:
-        # assume it's a str/unicode
-        path = pl.Path(project_path)
+        # assume it's coercable to str/unicode
+        path = pl.Path(str(project_path))
 
     config_filepath, config_rel_path, config_format = _parse_config_and_format(path)
 

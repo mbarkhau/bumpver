@@ -3,7 +3,7 @@ import sys
 import logging
 import subprocess as sp
 
-import pathlib2 as pl
+from bumpver import pathlib as pl
 
 logger = logging.getLogger("bumpver.hooks")
 

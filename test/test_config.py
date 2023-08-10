@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import io
+import os
 from test import util
 
 import pytest
@@ -491,3 +492,27 @@ def test_parse_commit_hooks_invalid(hook):
     with pytest.raises(ValueError) as err:
         config._parse_config(raw_cfg)
         assert "'foobar.py' does not exist" in err.message
+
+
+CAPITALIZATION_CASES = [
+    "test/temp_CAPITALIZED.txt",
+    "test/temp_uncapitalized.txt",
+]
+
+
+@pytest.mark.parametrize("filename", CAPITALIZATION_CASES)
+def test_capitalisation(filename):
+    try:
+        with io.open(filename, mode='w', encoding="utf-8") as fobj:
+            fobj.write("This is a test file for testing capitalization")
+
+        raw_patterns      = {filename: filename}
+        expanded_patterns = list(config._iter_glob_expanded_file_patterns(raw_patterns))
+        assert len(expanded_patterns) == 1
+
+        for filepath, raw_patterns in expanded_patterns:
+            filepath = filepath.replace("\\", "/")
+            assert filepath == raw_patterns
+
+    finally:
+        os.remove(filename)
