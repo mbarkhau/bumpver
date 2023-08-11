@@ -4,12 +4,15 @@
 
 - Add [#214][gh_pr214]: Support for pre/post commit hooks.
 - Add [#219][gh_pr219]: Fix pathlib issues on Windows.
+- Update [#201][gh_i201]: Use .toml format in REAMDE examples.
 - Update [#216][gh_i216]: Use .toml format in REAMDE examples.
 
 [gh_pr214]: https://github.com/mbarkhau/bumpver/pull/214
 [gh_pr219]: https://github.com/mbarkhau/bumpver/pull/219
+[gh_i201]: https://github.com/mbarkhau/bumpver/issues/201
+[gh_i216]: https://github.com/mbarkhau/bumpver/issues/216
 
-Thank you [Sven Lohrmann](https://github.com/malnvenshorn) for this contribution.
+Thank you [Sven Lohrmann](https://github.com/malnvenshorn) for your contribution.
 Thank you for your help in debugging Windows issues:
  - [Søren Furbo](https://github.com/SRFU-NN)
  - [Michal Vašut](https://github.com/MichalVasut)
