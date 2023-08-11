@@ -40,20 +40,24 @@ def rewrite_lines(
         new_line = match.line[:span_l] + replacement + match.line[span_r:]
         new_lines[match.lineno] = new_line
 
-    non_matched_patterns = set(patterns) - found_patterns
-    if non_matched_patterns:
-        for nmp in non_matched_patterns:
-            logger.error(f"No match for pattern '{nmp.raw_pattern}'")
-            msg = (
-                "\n# "
-                + regexfmt.regex101_url(nmp.regexp.pattern)
-                + "\nregex = "
-                + regexfmt.pyexpr_regex(nmp.regexp.pattern)
-            )
-            logger.error(msg)
-        raise rewrite.NoPatternMatch("Invalid pattern(s)")
-    else:
+    if set(patterns) == found_patterns:
         return new_lines
+
+    non_matched_patterns = set(patterns) - found_patterns
+    if len(found_patterns) > 0:
+        errmsg = "Possible greedy pattern. See: https://github.com/mbarkhau/bumpver/issues/215"
+        raise rewrite.NoPatternMatch(errmsg)
+
+    for nmp in non_matched_patterns:
+        logger.error(f"No match for pattern '{nmp.raw_pattern}'")
+        msg = (
+            "\n# "
+            + regexfmt.regex101_url(nmp.regexp.pattern)
+            + "\nregex = "
+            + regexfmt.pyexpr_regex(nmp.regexp.pattern)
+        )
+        logger.error(msg)
+    raise rewrite.NoPatternMatch("Invalid pattern(s)")
 
 
 def rfd_from_content(
@@ -131,9 +135,9 @@ def diff(
 
         try:
             rfd = rfd_from_content(patterns, new_vinfo, content)
-        except rewrite.NoPatternMatch:
+        except rewrite.NoPatternMatch as ex:
             # pylint:disable=raise-missing-from  ; we support py2, so not an option
-            errmsg = f"No patterns matched for file '{file_path}'"
+            errmsg = f"No patterns matched for file '{file_path}'. " + " ".join(ex.args)
             raise rewrite.NoPatternMatch(errmsg)
 
         rfd   = rfd._replace(path=str(file_path))

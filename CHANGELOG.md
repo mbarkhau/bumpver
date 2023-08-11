@@ -15,6 +15,7 @@
 [gh_i216]: https://github.com/mbarkhau/bumpver/issues/216
 
 Thank you [Sven Lohrmann](https://github.com/malnvenshorn) for your contribution.
+Thank you [Maikel Punie](https://github.com/Cereal2nd) your issue report.
 Thank you for your help in debugging Windows issues:
  - [Søren Furbo](https://github.com/SRFU-NN)
  - [Michal Vašut](https://github.com/MichalVasut)
