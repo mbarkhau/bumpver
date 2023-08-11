@@ -4,12 +4,14 @@
 
 - Add [#214][gh_pr214]: Support for pre/post commit hooks.
 - Add [#219][gh_pr219]: Fix pathlib issues on Windows.
-- Update [#201][gh_i201]: Use .toml format in REAMDE examples.
+- Fix [#201][gh_i201]: Better error message for SemVer corner case.
+- Update [#215][gh_i215]: Better error message for greedy pattern matching.
 - Update [#216][gh_i216]: Use .toml format in REAMDE examples.
 
 [gh_pr214]: https://github.com/mbarkhau/bumpver/pull/214
 [gh_pr219]: https://github.com/mbarkhau/bumpver/pull/219
 [gh_i201]: https://github.com/mbarkhau/bumpver/issues/201
+[gh_i215]: https://github.com/mbarkhau/bumpver/issues/215
 [gh_i216]: https://github.com/mbarkhau/bumpver/issues/216
 
 Thank you [Sven Lohrmann](https://github.com/malnvenshorn) for your contribution.
