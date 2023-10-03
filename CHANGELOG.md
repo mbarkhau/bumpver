@@ -1,5 +1,14 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2023.1127
+
+- Add [#222][gh_pr222]: Support for pre/post commit hooks.
+
+[gh_pr222]: https://github.com/mbarkhau/bumpver/pull/222
+
+Thank you [Atwam](https://github.com/atwam) for your contribution.
+
+
 ## BumpVer 2023.1126
 
 - Add [#214][gh_pr214]: Support for pre/post commit hooks.
