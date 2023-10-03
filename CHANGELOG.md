@@ -2,7 +2,7 @@
 
 ## BumpVer 2023.1127
 
-- Add [#222][gh_pr222]: Support for pre/post commit hooks.
+- Add [#222][gh_pr222]: Add part HEXHASH.
 
 [gh_pr222]: https://github.com/mbarkhau/bumpver/pull/222
 
