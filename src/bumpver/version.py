@@ -31,7 +31,7 @@ class V1CalendarInfo(typ.NamedTuple):
     dom     : MaybeInt
     doy     : MaybeInt
     iso_week: MaybeInt
-    us_week : MaybeInt
+    us_week: MaybeInt
 
 
 class V1VersionInfo(typ.NamedTuple):
@@ -84,6 +84,7 @@ class V2VersionInfo(typ.NamedTuple):
     tag    : str
     pytag  : str
     githash: str
+    hash   : str
     num    : int
     inc0   : int
     inc1   : int

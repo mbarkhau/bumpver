@@ -224,6 +224,7 @@ def parse_field_values_to_vinfo(field_values: FieldValues) -> version.V2VersionI
     tag     = fvals.get('tag'    ) or ""
     pytag   = fvals.get('pytag'  ) or ""
     githash = fvals.get('githash') or ""
+    hash = fvals.get('hash') or ""
 
     if tag and not pytag:
         pytag = version.PEP440_TAG_BY_TAG[tag]
@@ -259,6 +260,7 @@ def parse_field_values_to_vinfo(field_values: FieldValues) -> version.V2VersionI
         tag=tag,
         pytag=pytag,
         githash=githash,
+        hash=hash,
         num=num,
         inc0=inc0,
         inc1=inc1,
