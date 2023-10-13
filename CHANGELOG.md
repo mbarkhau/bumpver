@@ -1,12 +1,15 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
-## BumpVer 2023.1128
+## BumpVer 2023.1129
 
 - Fix [#224][gh_i224]: Add `--environ` so it emits `0` values. Depricate `-e/--env`.
+- Add [#223][gh_pr223]: Add support for `.bumpver.toml`
 
 [gh_i224]: https://github.com/mbarkhau/bumpver/issues/224
+[gh_pr223]: https://github.com/mbarkhau/bumpver/pull/223
 
 Thank you [Adrianne](https://github.com/elfgirl) for this issue report.
+Thank you [Xavier Francisco](https://github.com/XF-FW) for your contribution.
 
 
 ## BumpVer 2023.1127
