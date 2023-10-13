@@ -33,7 +33,13 @@ PatternsByFile   = typ.Dict[str, typ.List[Pattern]]
 FilePatternsItem = typ.Tuple[str, typ.List[Pattern]]
 
 
-SUPPORTED_CONFIGS = ["setup.cfg", "pyproject.toml", "pycalver.toml", "bumpver.toml", ".bumpver.toml"]
+SUPPORTED_CONFIGS = [
+    "setup.cfg",
+    "pyproject.toml",
+    "pycalver.toml",
+    "bumpver.toml",
+    ".bumpver.toml",
+]
 
 
 class TagScope(str, enum.Enum):
