@@ -190,12 +190,23 @@ fetch_option = click.option(
 )
 
 
+# env_option is depricated in favour of --environ
+# see https://github.com/mbarkhau/bumpver/issues/224
 env_option = click.option(
     "-e",
     "--env",
     is_flag=True,
     default=False,
+    hidden=True,
     help="Print version state for use with shell scripts: eval $(bumpver show --env)",
+)
+
+
+environ_option = click.option(
+    "--environ",
+    is_flag=True,
+    default=False,
+    help="Print version state for use with shell scripts: eval $(bumpver show --environ)",
 )
 
 
@@ -431,7 +442,8 @@ def grep(
 @verbose_option
 @fetch_option
 @env_option
-def show(verbose: int = 0, fetch: bool = True, env: bool = False) -> None:
+@environ_option
+def show(verbose: int = 0, fetch: bool = True, env: bool = False, environ: bool = False) -> None:
     """Show current version of your project."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
 
@@ -443,9 +455,17 @@ def show(verbose: int = 0, fetch: bool = True, env: bool = False) -> None:
 
     cfg = _update_cfg_from_vcs(cfg, fetch)
     if env:
+        logger.warning("Depricated: -e/--env use --environ instead. ")
+        logger.warning("    See https://github.com/mbarkhau/bumpver/issues/224")
         version_info = v2version.parse_version_info(cfg.current_version, cfg.version_pattern)
         for key, val in version_info._asdict().items():
             click.echo(f"{key.upper()}={val if val else ''}")
+        click.echo(f"CURRENT_VERSION={cfg.current_version}")
+        click.echo(f"PEP440_VERSION={cfg.pep440_version}")
+    elif environ:
+        version_info = v2version.parse_version_info(cfg.current_version, cfg.version_pattern)
+        for key, val in version_info._asdict().items():
+            click.echo(f"{key.upper()}={'' if (val is False or val is None) else val}")
         click.echo(f"CURRENT_VERSION={cfg.current_version}")
         click.echo(f"PEP440_VERSION={cfg.pep440_version}")
     else:
