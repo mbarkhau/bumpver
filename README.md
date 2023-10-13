@@ -637,17 +637,17 @@ Options:
 
 <!-- END bumpver update --help -->
 
-To help with shell script automation, you can use `bumpver show --env`.
+To help with shell script automation, you can use `bumpver show --environ`.
 
 ```shell
-$ bumpver show -n --env
+$ bumpver show -n --environ
 YEAR_Y=2020
 YEAR_G=
 ...
 TAG=final
 ...
 
-$ eval $(bumpver show -n --env)
+$ eval $(bumpver show -n --environ)
 $ echo $TAG
 final
 ```

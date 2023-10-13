@@ -1,5 +1,14 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2023.1128
+
+- Fix [#224][gh_i224]: Add `--environ` so it emits `0` values. Depricate `-e/--env`.
+
+[gh_i224]: https://github.com/mbarkhau/bumpver/issues/224
+
+Thank you [Adrianne](https://github.com/elfgirl) for this issue report.
+
+
 ## BumpVer 2023.1127
 
 - Add [#222][gh_pr222]: Add part HEXHASH.
