@@ -33,7 +33,13 @@ PatternsByFile   = typ.Dict[str, typ.List[Pattern]]
 FilePatternsItem = typ.Tuple[str, typ.List[Pattern]]
 
 
-SUPPORTED_CONFIGS = ["setup.cfg", "pyproject.toml", "pycalver.toml", "bumpver.toml"]
+SUPPORTED_CONFIGS = [
+    "setup.cfg",
+    "pyproject.toml",
+    "pycalver.toml",
+    "bumpver.toml",
+    ".bumpver.toml",
+]
 
 
 class TagScope(str, enum.Enum):
@@ -61,6 +67,7 @@ def _pick_config_filepath(path: pl.Path) -> pl.Path:
     config_candidates: typ.List[pl.Path] = [
         path / "pycalver.toml",
         path / "bumpver.toml",
+        path / ".bumpver.toml",
         path / "pyproject.toml",
         path / "setup.cfg",
     ]
@@ -635,6 +642,11 @@ DEFAULT_TOML_BUMPVER_STR = """
 ]
 """.lstrip()
 
+DEFAULT_TOML_DOT_BUMPVER_STR = """
+".bumpver.toml" = [
+    'current_version = "{version}"',
+]
+""".lstrip()
 
 DEFAULT_TOML_PYPROJECT_STR = """
 "pyproject.toml" = [
@@ -697,6 +709,7 @@ def default_config(ctx: ProjectContext) -> str:
             "pyproject.toml": DEFAULT_TOML_PYPROJECT_STR,
             "pycalver.toml" : DEFAULT_TOML_PYCALVER_STR,
             "bumpver.toml"  : DEFAULT_TOML_BUMPVER_STR,
+            ".bumpver.toml" : DEFAULT_TOML_DOT_BUMPVER_STR,
             "setup.py"      : DEFAULT_TOML_SETUP_PY_STR,
             "README.rst"    : DEFAULT_TOML_README_RST_STR,
             "README.md"     : DEFAULT_TOML_README_MD_STR,
