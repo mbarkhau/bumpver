@@ -10,6 +10,7 @@ import re
 import time
 import shlex
 import shutil
+import inspect
 import logging
 import datetime as dt
 import subprocess as sp
@@ -21,6 +22,9 @@ from click.testing import CliRunner
 from bumpver import cli
 from bumpver import config
 from bumpver import pathlib as pl
+from bumpver import v1version
+from bumpver import v2version
+from bumpver import v1patterns
 from bumpver import v2patterns
 
 # pylint:disable=redefined-outer-name ; pytest fixtures
@@ -129,90 +133,167 @@ def test_show_env(runner):
     assert "TAG=alpha" in result.output
 
 
-def test_incr_default(runner):
-    old_version = "v201709.1004-alpha"
+def _fmt_output(output, label="output"):
+    return f"{f' {label} ':-^80}\n{output}\n{f' {label} ':^^80}"
 
-    cmd    = ['test', "-vv", "--pin-date", "--tag", "beta", old_version, "{pycalver}"]
+
+def _fmt_records(records):
+    label  = "logs"
+    output = "\n".join([r.message for r in records])
+    return _fmt_output(output, label)
+
+
+def _to_pep440(version_str, pattern):
+    if "{" in pattern or "}" in pattern:
+        v_info         = v1version.parse_version_info(version_str, pattern)
+        pep440_pattern = v1patterns.compile_pattern(pattern, "{pep440_version}").raw_pattern
+        return v1version.format_version(v_info, pep440_pattern)
+    else:
+        v_info         = v2version.parse_version_info(version_str, pattern)
+        pep440_pattern = v2patterns.normalize_pattern(pattern, "{pep440_version}")
+        return v2version.format_version(v_info, pep440_pattern)
+
+
+def _test_line_in_output(expected_line, output):
+    escaped_line = expected_line.rstrip("\n")
+    failure_msg  = f"Expected '{escaped_line}' to be in:\n{_fmt_output(output)}"
+    assert expected_line in output, failure_msg
+
+
+def _test_cli_test_output(
+    runner, caplog, pattern, old_version, expect_version, expect_pep440, *add_opts
+):
+    cmd    = ["test", "-vv", *add_opts, old_version, pattern]
     result = runner.invoke(cli.cli, cmd)
-    assert result.exit_code == 0
-    assert "Version: v201709.1005-beta\n" in result.output
 
-    old_version = "v2017.1004-alpha"
+    assert result.exit_code == 0, _fmt_records(caplog.records)
 
-    cmd    = ['test', "-vv", "--pin-date", "--tag", "beta", old_version, "v{year}{build}{release}"]
+    _test_line_in_output(f"New Version: {expect_version}\n", result.output)
+    if expect_version != expect_pep440:
+        _test_line_in_output(f"PEP440     : {expect_pep440}\n", result.output)
+
+
+def _test_cli_dry_output(
+    runner, caplog, pattern, old_version, expect_version, expect_pep440, *add_opts
+):
+    pyproject_toml = f"""
+        [build-system]
+        requires = ["setuptools >= 61.0.0"]
+        build-backend = "setuptools.build_meta"
+
+        [project]
+        name = "my-project"
+        version = "{_to_pep440(old_version, pattern)}"
+
+        [tool.bumpver]
+        current_version = "{old_version}"
+        version_pattern = "{pattern}"
+
+        [tool.bumpver.file_patterns]
+        "pyproject.toml" = [
+            '^version = "{{pep440_version}}"$',
+            '^current_version = "{{version}}"$',
+        ]
+    """
+    pyproject_toml_txt = inspect.cleandoc(pyproject_toml)
+    pl.Path("pyproject.toml").write_text(pyproject_toml_txt, encoding="utf-8")
+
+    cmd    = ["update", "-vv", "--no-fetch", "--ignore-vcs-tag", "--dry", *add_opts]
     result = runner.invoke(cli.cli, cmd)
-    assert result.exit_code == 0
-    assert "Version: v2017.1005-beta\n" in result.output
 
-    cmd    = ['test', "-vv", "--pin-date", "--tag", "beta", old_version, "vYYYY.BUILD[-TAG]"]
-    result = runner.invoke(cli.cli, cmd)
-    assert result.exit_code == 0
-    assert "Version: v2017.1005-beta\n" in result.output
+    assert result.exit_code == 0, _fmt_records(caplog.records)
+
+    _test_line_in_output(f'+current_version = "{expect_version}"\n', result.output)
+    _test_line_in_output(f'+version = "{expect_pep440}"\n', result.output)
 
 
-def test_incr_pin_date(runner):
-    old_version = "v2017.1999-alpha"
-    pattern     = "vYYYY.BUILD[-TAG]"
-    result      = runner.invoke(cli.cli, ['test', "-vv", "--pin-date", old_version, pattern])
-    assert result.exit_code == 0
-    assert "Version: v2017.22000-alpha\n" in result.output
+def _test_cli_output(
+    runner, caplog, pattern, old_version, expect_version, expect_pep440, *add_opts
+):
+    # Test cli output for `test` and `update` commands, making sure each command handles
+    # versions and pep440 versions the same way.
+    _test_cli_dry_output(
+        runner, caplog, pattern, old_version, expect_version, expect_pep440, *add_opts
+    )
+    _test_cli_test_output(
+        runner, caplog, pattern, old_version, expect_version, expect_pep440, *add_opts
+    )
 
 
 @pytest.mark.parametrize(
-    "version_pattern, old_version, new_version",
+    "version_pattern, old_version, new_version, new_pep440",
     [
-        ("vYYYY.INC0[-PATCH]", "v2017.0", "v2017.0-1"),
-        ("vYYYY.INC0[-PATCH]", "v2017.0-1", "v2017.0-2"),
-        ("vYYYY.INC1[-PATCH]", "v2017.1", "v2017.1-1"),
-        ("vYYYY.INC1[-PATCH]", "v2017.1-1", "v2017.1-2"),
+        ("{pycalver}"             , "v201709.1004-alpha", "v201709.1005-beta", "201709.1005b0"),
+        ("v{year}{build}{release}", "v2017.1004-alpha", "v2017.1005-beta", "2017.1005b0"),
+        ("vYYYY.BUILD[-TAG]"      , "v2017.1004-alpha", "v2017.1005-beta", "2017.1005b0"),
     ],
 )
-def test_incr_pin_increments(runner, version_pattern, old_version, new_version):
-    result = runner.invoke(
-        cli.cli,
-        [
-            'test',
-            "-vv",
-            "--pin-increments",
-            "--patch",
-            "--date",
-            "2017-12-01",
-            old_version,
-            version_pattern,
-        ],
+def test_incr_default(runner, caplog, version_pattern, old_version, new_version, new_pep440):
+    _test_cli_output(
+        runner,
+        caplog,
+        version_pattern,
+        old_version,
+        new_version,
+        new_pep440,
+        "--pin-date",
+        "--tag",
+        "beta",
     )
-    assert result.exit_code == 0
-    assert f"Version: {new_version}\n" in result.output
 
 
-def test_incr_semver(runner):
-    semver_patterns = [
-        "{semver}",
-        "{MAJOR}.{MINOR}.{PATCH}",
-        "MAJOR.MINOR.PATCH",
-    ]
+def test_incr_pin_date(runner, caplog):
+    _test_cli_output(
+        runner,
+        caplog,
+        "vYYYY.BUILD[-TAG]",
+        "v2017.1999-alpha",
+        "v2017.22000-alpha",
+        "2017.22000a0",
+        "--pin-date",
+    )
 
-    for semver_pattern in semver_patterns:
-        old_version = "0.1.0"
-        new_version = "0.1.1"
 
-        result = runner.invoke(cli.cli, ['test', "-vv", "--patch", old_version, semver_pattern])
-        assert result.exit_code == 0
-        assert f"Version: {new_version}\n" in result.output
+@pytest.mark.parametrize(
+    "version_pattern, old_version, new_version, new_pep440",
+    [
+        ("vYYYY.INC0[-PATCH]", "v2017.0", "v2017.0-1", "2017.01"),
+        ("vYYYY.INC0[-PATCH]", "v2017.0-1", "v2017.0-2", "2017.02"),
+        ("vYYYY.INC1[-PATCH]", "v2017.1", "v2017.1-1", "2017.11"),
+        ("vYYYY.INC1[-PATCH]", "v2017.1-1", "v2017.1-2", "2017.12"),
+    ],
+)
+def test_incr_pin_increments(runner, caplog, version_pattern, old_version, new_version, new_pep440):
+    _test_cli_output(
+        runner,
+        caplog,
+        version_pattern,
+        old_version,
+        new_version,
+        new_pep440,
+        "--pin-increments",
+        "--patch",
+        "--date",
+        "2017-12-01",
+    )
 
-        old_version = "0.1.1"
-        new_version = "0.2.0"
 
-        result = runner.invoke(cli.cli, ['test', "-vv", "--minor", old_version, semver_pattern])
-        assert result.exit_code == 0
-        assert f"Version: {new_version}\n" in result.output
-
-        old_version = "0.1.1"
-        new_version = "1.0.0"
-
-        result = runner.invoke(cli.cli, ['test', "-vv", "--major", old_version, semver_pattern])
-        assert result.exit_code == 0
-        assert f"Version: {new_version}\n" in result.output
+@pytest.mark.parametrize(
+    "increment, pattern, old_version, new_version",
+    [
+        ("--patch", "{semver}", "0.1.0", "0.1.1"),
+        ("--patch", "{MAJOR}.{MINOR}.{PATCH}", "0.1.0", "0.1.1"),
+        ("--patch", "MAJOR.MINOR.PATCH", "0.1.0", "0.1.1"),
+        ("--minor", "{semver}", "0.1.1", "0.2.0"),
+        ("--minor", "{MAJOR}.{MINOR}.{PATCH}", "0.1.1", "0.2.0"),
+        ("--minor", "MAJOR.MINOR.PATCH", "0.1.1", "0.2.0"),
+        ("--major", "{semver}", "0.1.1", "1.0.0"),
+        ("--major", "{MAJOR}.{MINOR}.{PATCH}", "0.1.1", "1.0.0"),
+        ("--major", "MAJOR.MINOR.PATCH", "0.1.1", "1.0.0"),
+    ],
+)
+def test_incr_semver(runner, caplog, pattern, increment, old_version, new_version):
+    _test_cli_output(runner, caplog, pattern, old_version, new_version, new_version, increment)
 
 
 def test_incr_semver_invalid(runner, caplog):
@@ -225,57 +306,76 @@ def test_incr_semver_invalid(runner, caplog):
     assert "to pattern 'vYYYY.BUILD[-TAG]'" in log_msg
 
 
-def test_incr_to_beta(runner):
-    pattern     = "vYYYY.BUILD[-TAG]"
-    old_version = "v2017.1999-alpha"
-    new_version = dt.datetime.utcnow().strftime("v%Y.22000-beta")
-
-    result = runner.invoke(cli.cli, ['test', "-vv", old_version, pattern, "--tag", "beta"])
-    assert result.exit_code == 0
-    assert f"Version: {new_version}\n" in result.output
-
-
-def test_incr_to_final(runner, caplog):
-    pattern     = "vYYYY.BUILD[-TAG]"
-    old_version = "v2017.1999-alpha"
-    new_version = dt.datetime.utcnow().strftime("v%Y.22000")
-
-    result = runner.invoke(cli.cli, ['test', "-vv", old_version, pattern, "--tag", "final"])
-    _debug_records(caplog)
-    assert result.exit_code == 0
-    assert f"Version: {new_version}\n" in result.output
+@pytest.mark.parametrize(
+    "pattern, old_version, new_version, new_pep440",
+    [
+        (
+            "vYYYY.BUILD[-TAG]",
+            "v2017.1999-alpha",
+            dt.datetime.utcnow().strftime("v%Y.22000-beta"),
+            dt.datetime.utcnow().strftime("%Y.22000b0"),
+        ),
+    ],
+)
+def test_incr_to_beta(runner, caplog, pattern, old_version, new_version, new_pep440):
+    _test_cli_output(runner, caplog, pattern, old_version, new_version, new_pep440, "--tag", "beta")
 
 
-SEMVER = "MAJOR.MINOR.PATCH[PYTAGNUM]"
-
-
-def test_incr_tag(runner):
-    old_version = "0.1.0"
-    new_version = "0.1.1b0"
-
-    result = runner.invoke(
-        cli.cli, ['test', "-vv", old_version, SEMVER, "--patch", "--tag", "beta"]
+@pytest.mark.parametrize(
+    "pattern, old_version, new_version, new_pep440",
+    [
+        (
+            "vYYYY.BUILD[-TAG]",
+            "v2017.1999-alpha",
+            dt.datetime.utcnow().strftime("v%Y.22000"),
+            dt.datetime.utcnow().strftime("%Y.22000"),
+        ),
+    ],
+)
+def test_incr_to_final(runner, caplog, pattern, old_version, new_version, new_pep440):
+    _test_cli_output(
+        runner, caplog, pattern, old_version, new_version, new_pep440, "--tag", "final"
     )
-    assert result.exit_code == 0
-    assert f"Version: {new_version}\n" in result.output
 
 
-def test_dev_tag(runner):
-    old_version = "0.1.0"
-    new_version = "0.1.1dev0"
+@pytest.mark.parametrize(
+    "pattern, old_version, new_version, new_pep440",
+    [
+        ("MAJOR.MINOR.PATCH[PYTAGNUM]", "0.1.0", "0.1.1b0", "0.1.1b0"),
+        ("MAJOR.MINOR.PATCH[+PYTAGNUM]", "0.1.0", "0.1.1+b0", "0.1.1b0"),
+        ("MAJOR.MINOR.PATCH[-PYTAGNUM]", "0.1.0", "0.1.1-b0", "0.1.1b0"),
+    ],
+)
+def test_incr_tag(runner, caplog, pattern, old_version, new_version, new_pep440):
+    _test_cli_output(
+        runner, caplog, pattern, old_version, new_version, new_pep440, "--patch", "--tag", "beta"
+    )
 
-    result = runner.invoke(cli.cli, ['test', "-vv", old_version, SEMVER, "--patch", "--tag", "dev"])
-    assert result.exit_code == 0
-    assert f"Version: {new_version}\n" in result.output
+
+@pytest.mark.parametrize(
+    "pattern, old_version, new_version, new_pep440",
+    [
+        ("MAJOR.MINOR.PATCH[PYTAGNUM]", "0.1.0", "0.1.1dev0", "0.1.1dev0"),
+        ("MAJOR.MINOR.PATCH[+PYTAGNUM]", "0.1.0", "0.1.1+dev0", "0.1.1dev0"),
+        ("MAJOR.MINOR.PATCH[-PYTAGNUM]", "0.1.0", "0.1.1-dev0", "0.1.1dev0"),
+    ],
+)
+def test_dev_tag(runner, caplog, pattern, old_version, new_version, new_pep440):
+    _test_cli_output(
+        runner, caplog, pattern, old_version, new_version, new_pep440, "--patch", "--tag", "dev"
+    )
 
 
-def test_incr_tag_num(runner):
-    old_version = "0.1.0b0"
-    new_version = "0.1.0b1"
-
-    result = runner.invoke(cli.cli, ['test', "-vv", old_version, SEMVER, "--tag-num"])
-    assert result.exit_code == 0
-    assert f"Version: {new_version}\n" in result.output
+@pytest.mark.parametrize(
+    "pattern, old_version, new_version, new_pep440",
+    [
+        ("MAJOR.MINOR.PATCH[PYTAGNUM]", "0.1.0b0", "0.1.0b1", "0.1.0b1"),
+        ("MAJOR.MINOR.PATCH[+PYTAGNUM]", "0.1.0+b0", "0.1.0+b1", "0.1.0b1"),
+        ("MAJOR.MINOR.PATCH[-PYTAGNUM]", "0.1.0-b0", "0.1.0-b1", "0.1.0b1"),
+    ],
+)
+def test_incr_tag_num(runner, caplog, pattern, old_version, new_version, new_pep440):
+    _test_cli_output(runner, caplog, pattern, old_version, new_version, new_pep440, "--tag-num")
 
 
 def test_incr_invalid(runner):

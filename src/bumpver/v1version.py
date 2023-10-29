@@ -340,6 +340,11 @@ def format_version(vinfo: version.V1VersionInfo, raw_pattern: str) -> str:
     'v1.02.034'
     """
     full_pattern = raw_pattern
+
+    # remove regex chars
+    full_pattern = full_pattern.replace(r"^", r"")
+    full_pattern = full_pattern.replace(r"$", r"")
+
     for part_name, full_part_format in v1patterns.FULL_PART_FORMATS.items():
         full_pattern = full_pattern.replace("{" + part_name + "}", full_part_format)
 
