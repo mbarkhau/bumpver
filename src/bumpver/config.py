@@ -391,6 +391,18 @@ def _parse_cfg_strings(raw_cfg: RawConfig, key: str, default: str) -> str:
     return raw_cfg.get(key, default)
 
 
+def to_pep440(version_str: str, pattern: str) -> str:
+    """Derive pep440 compliant version string from PyCalVer version string.
+
+    >>> to_pep440("v201811.7-beta", "vYYYYMM.INC1[-TAG]")
+    '201811.7b0'
+    """
+    if "{" in pattern or "}" in pattern:
+        return v1version.to_pep440(version_str, pattern)
+    else:
+        return v2version.to_pep440(version_str, pattern)
+
+
 def _parse_config(raw_cfg: RawConfig) -> Config:
     """Parse configuration which was loaded from an .ini/.cfg or .toml file."""
 
@@ -410,7 +422,7 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
 
     _validate_version_with_pattern(current_version, version_pattern, is_new_pattern)
 
-    pep440_version = version.to_pep440(current_version)
+    pep440_version = to_pep440(current_version, version_pattern)
 
     file_patterns = _compile_file_patterns(raw_cfg, is_new_pattern)
 

@@ -326,7 +326,7 @@ def test(
 
         sys.exit(1)
 
-    pep440_version = version.to_pep440(new_version)
+    pep440_version = config.to_pep440(new_version, raw_pattern)
 
     click.echo(f"New Version: {new_version}")
     if new_version != pep440_version:
@@ -711,7 +711,7 @@ def _update_cfg_from_vcs(cfg: config.Config, fetch: bool) -> config.Config:
         logger.debug("no vcs tags found")
         return cfg
 
-    latest_version_pep440 = version.to_pep440(latest_version_tag)
+    latest_version_pep440 = config.to_pep440(latest_version_tag, cfg.version_pattern)
 
     scope_str = f"({cfg.tag_scope.value})" if not cfg.tag_scope == config.TagScope.DEFAULT else ""
     logger.info(f"Latest version from VCS tag: {latest_version_tag} {scope_str}")
@@ -931,8 +931,8 @@ def update(
         'old_version'       : old_version,
         'NEW_VERSION'       : new_version,
         'OLD_VERSION'       : old_version,
-        'new_version_pep440': version.to_pep440(new_version),
-        'old_version_pep440': version.to_pep440(old_version),
+        'new_version_pep440': config.to_pep440(new_version, cfg.version_pattern),
+        'old_version_pep440': config.to_pep440(old_version, cfg.version_pattern),
     }
 
     try_commit_message = commit_msg_template.format(**tag_and_commit_message_kwargs)

@@ -433,3 +433,19 @@ def incr(
         return None
     else:
         return new_version
+
+
+def to_pep440(version_str: str, pattern: str) -> str:
+    """Derive pep440 compliant version string from PyCalVer version string.
+
+    >>> to_pep440("v201811.7-beta", "vYYYYMM.INC1[-TAG]")
+    '201811.7b0'
+    """
+    v_info         = parse_version_info(version_str, pattern)
+    pep440_pattern = v1patterns.compile_pattern(pattern, "{pep440_version}").raw_pattern
+    try:
+        return format_version(v_info, pep440_pattern)
+    except TypeError:
+        # Not many v1 version patterns map nicely to a pep440 pattern, so fall back to the
+        # original pep440 conversion instead.
+        return str(version.parse_version(version_str))
