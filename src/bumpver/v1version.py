@@ -438,7 +438,7 @@ def incr(
 def to_pep440(version_str: str, pattern: str) -> str:
     """Derive pep440 compliant version string from PyCalVer version string.
 
-    >>> to_pep440("v201811.7-beta", "vYYYYMM.INC1[-TAG]")
+    >>> to_pep440("v201811.0007-beta", "{pycalver}")
     '201811.7b0'
     """
     v_info         = parse_version_info(version_str, pattern)
