@@ -10,7 +10,6 @@ import re
 import time
 import shlex
 import shutil
-import inspect
 import logging
 import datetime as dt
 import subprocess as sp
@@ -131,7 +130,8 @@ def test_show_env(runner):
 
 
 def _fmt_output(output, label="output"):
-    return f"{f' {label} ':-^80}\n{output}\n{f' {label} ':^^80}"
+    label = f" {label} "
+    return f"{label:-^80}\n{output}\n{label:^^80}"
 
 
 def _fmt_records(records):
@@ -163,28 +163,28 @@ def _test_cli_dry_output(
     runner, caplog, pattern, old_version, expect_version, expect_pep440, *add_opts
 ):
     pyproject_toml = f"""
-        [build-system]
-        requires = ["setuptools >= 61.0.0"]
-        build-backend = "setuptools.build_meta"
+[build-system]
+requires = ["setuptools >= 61.0.0"]
+build-backend = "setuptools.build_meta"
 
-        [project]
-        name = "my-project"
-        version = "{config.to_pep440(old_version, pattern)}"
+[project]
+name = "my-project"
+version = "{config.to_pep440(old_version, pattern)}"
 
-        [tool.bumpver]
-        current_version = "{old_version}"
-        version_pattern = "{pattern}"
+[tool.bumpver]
+current_version = "{old_version}"
+version_pattern = "{pattern}"
 
-        [tool.bumpver.file_patterns]
-        "pyproject.toml" = [
-            '^version = "{{pep440_version}}"$',
-            '^current_version = "{{version}}"$',
-        ]
-    """
-    pyproject_toml_txt = inspect.cleandoc(pyproject_toml)
-    pl.Path("pyproject.toml").write_text(pyproject_toml_txt, encoding="utf-8")
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    '^version = "{r'{pep440_version}'}"$',
+    '^current_version = "{r'{version}'}"$',
+]
+"""
+    pl.Path("pyproject.toml").write_text(pyproject_toml, encoding="utf-8")
 
-    cmd    = ["update", "-vv", "--no-fetch", "--ignore-vcs-tag", "--dry", *add_opts]
+    cmd = ["update", "-vv", "--no-fetch", "--ignore-vcs-tag", "--dry"]
+    cmd.extend(add_opts)
     result = runner.invoke(cli.cli, cmd)
 
     assert result.exit_code == 0, _fmt_records(caplog.records)

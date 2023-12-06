@@ -445,7 +445,7 @@ def to_pep440(version_str: str, pattern: str) -> str:
     pep440_pattern = v1patterns.compile_pattern(pattern, "{pep440_version}").raw_pattern
     try:
         return format_version(v_info, pep440_pattern)
-    except TypeError:
+    except (TypeError, ValueError):
         # Not many v1 version patterns map nicely to a pep440 pattern, so fall back to the
         # original pep440 conversion instead.
         return str(version.parse_version(version_str))
