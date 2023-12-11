@@ -112,7 +112,7 @@ def iter_rewritten(
     fobj: typ.IO[str]
 
     for file_path, patterns in rewrite.iter_path_patterns_items(file_patterns):
-        with file_path.open(mode="rt", encoding="utf-8") as fobj:
+        with file_path.open(mode="rt", newline='', encoding="utf-8") as fobj:
             content = fobj.read()
 
         rfd = rfd_from_content(patterns, new_vinfo, content)
@@ -130,7 +130,7 @@ def diff(
     fobj: typ.IO[str]
 
     for file_path, patterns in sorted(rewrite.iter_path_patterns_items(file_patterns)):
-        with file_path.open(mode="rt", encoding="utf-8") as fobj:
+        with file_path.open(mode="rt", newline='', encoding="utf-8") as fobj:
             content = fobj.read()
 
         try:
@@ -163,5 +163,5 @@ def rewrite_files(
 
     for file_data in iter_rewritten(file_patterns, new_vinfo):
         new_content = file_data.line_sep.join(file_data.new_lines)
-        with io.open(file_data.path, mode="wt", encoding="utf-8") as fobj:
+        with io.open(file_data.path, mode="wt", newline='', encoding="utf-8") as fobj:
             fobj.write(new_content)
