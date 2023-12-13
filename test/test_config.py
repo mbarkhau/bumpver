@@ -516,3 +516,20 @@ def test_capitalisation(filename):
 
     finally:
         os.remove(filename)
+
+
+@pytest.mark.parametrize(
+    "version_str, pattern, expected",
+    [
+        ("v2017.54321"       , "vYYYY.BUILD", "2017.54321"),
+        ("v201808.0123-alpha", "vYYYY0M.0INC1[-TAG]", "201808.0123a0"),
+        ("v201811.0007-beta" , "vYYYY0M.000INC1[-TAG]", "201811.0007b0"),
+        ("v2020.1003-alpha"  , "vYYYY.BUILD[-TAG]", "2020.1003a0"),
+        ("v2020.1003-beta"   , "vYYYY.BUILD[-TAG]", "2020.1003b0"),
+        ("v2020.1003-dev"    , "vYYYY.BUILD[-TAG]", "2020.1003dev0"),
+        ("v2017q1.54321"     , "vYYYYqQ.BUILD", "2017q1.54321"),
+        ("1.2.3"             , "MAJOR.MINOR.PATCH", "1.2.3"),
+    ],
+)
+def test_to_pep440(version_str, pattern, expected):
+    assert config.to_pep440(version_str, pattern) == expected

@@ -222,7 +222,7 @@ def _normalized_pattern(version_pattern: str, raw_pattern: str) -> str:
     elif version_pattern == r"{year}{build}{release}":
         res = res.replace(r"{pep440_version}", r"{year}.{BID}{pep440_tag}")
     elif r"{pep440_version}" in raw_pattern:
-        logger.warning(f"No mapping of '{version_pattern}' to '{{pep440_version}}'")
+        logger.warning(f"No mapping of '{version_pattern}' to '{r'{pep440_version}'}'")
 
     return res
 

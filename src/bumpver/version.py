@@ -176,12 +176,3 @@ def quarter_from_month(month: int) -> int:
     [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4]
     """
     return ((month - 1) // 3) + 1
-
-
-def to_pep440(version: str) -> str:
-    """Derive pep440 compliant version string from PyCalVer version string.
-
-    >>> to_pep440("v201811.0007-beta")
-    '201811.7b0'
-    """
-    return str(parse_version(version))

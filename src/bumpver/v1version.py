@@ -340,6 +340,11 @@ def format_version(vinfo: version.V1VersionInfo, raw_pattern: str) -> str:
     'v1.02.034'
     """
     full_pattern = raw_pattern
+
+    # remove regex chars
+    full_pattern = full_pattern.replace(r"^", r"")
+    full_pattern = full_pattern.replace(r"$", r"")
+
     for part_name, full_part_format in v1patterns.FULL_PART_FORMATS.items():
         full_pattern = full_pattern.replace("{" + part_name + "}", full_part_format)
 
@@ -428,3 +433,19 @@ def incr(
         return None
     else:
         return new_version
+
+
+def to_pep440(version_str: str, pattern: str) -> str:
+    """Derive pep440 compliant version string from PyCalVer version string.
+
+    >>> to_pep440("v201811.0007-beta", "{pycalver}")
+    '201811.7b0'
+    """
+    v_info         = parse_version_info(version_str, pattern)
+    pep440_pattern = v1patterns.compile_pattern(pattern, "{pep440_version}").raw_pattern
+    try:
+        return format_version(v_info, pep440_pattern)
+    except (TypeError, ValueError):
+        # Not many v1 version patterns map nicely to a pep440 pattern, so fall back to the
+        # original pep440 conversion instead.
+        return str(version.parse_version(version_str))
