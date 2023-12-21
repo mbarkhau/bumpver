@@ -7,7 +7,6 @@
 # Binary (non-pure) packages may also be listed here, but you
 # should see if there is a conda package that suits your needs.
 
-pathlib2; python_version < "3.4"
 typing; python_version < "3.5"
 click<8.0; python_version < "3.6"
 click; python_version >= "3.6"
