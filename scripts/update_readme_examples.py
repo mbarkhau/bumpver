@@ -6,7 +6,7 @@ import random
 import difflib
 import datetime as dt
 import subprocess as sp
-import pkg_resources
+import packaging.version
 
 import rich
 import rich.box
@@ -135,7 +135,7 @@ def pattern_examples():
             example_version = v2version.format_version(vinfo, raw_pattern)
             example_versions.append(example_version)
 
-            pep440_version = str(pkg_resources.parse_version(example_version))
+            pep440_version = str(packaging.version.parse(example_version))
             pep440_versions.append(pep440_version)
 
             notag_fvals = fvals.copy()
@@ -146,7 +146,7 @@ def pattern_examples():
             notag_versions.append(notag_version)
 
         sample = rand.sample(sorted(example_versions, key=len, reverse=True)[:-1], 2)
-        sample.sort(key=pkg_resources.parse_version)
+        sample.sort(key=packaging.version.parse)
 
         is_pep440 = pep440_versions == example_versions
         is_lexico = sorted(notag_versions) == notag_versions

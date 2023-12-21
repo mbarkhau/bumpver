@@ -13,9 +13,9 @@ def parse_version(version: str) -> typ.Any:
     # pylint: disable=import-outside-toplevel; lazy import to speed up --help
 
     try:
-        import pkg_resources
+        import packaging.version
 
-        return pkg_resources.parse_version(version)
+        return packaging.version.parse(version)
     except (ImportError, ValueError):
         import looseversion
 

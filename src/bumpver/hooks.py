@@ -9,7 +9,7 @@ import sys
 import logging
 import subprocess as sp
 
-from bumpver import pathlib as pl
+import pathlib as pl
 
 logger = logging.getLogger("bumpver.hooks")
 

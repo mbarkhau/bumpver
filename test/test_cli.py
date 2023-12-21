@@ -13,14 +13,13 @@ import shutil
 import logging
 import datetime as dt
 import subprocess as sp
+import pathlib as pl
 from test import util
-
 import pytest
 from click.testing import CliRunner
 
 from bumpver import cli
 from bumpver import config
-from bumpver import pathlib as pl
 from bumpver import v2patterns
 
 # pylint:disable=redefined-outer-name ; pytest fixtures
