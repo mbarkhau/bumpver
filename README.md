@@ -961,9 +961,9 @@ The current version depends on the configured `tag_scope` and is either
 | `branch`      | `max(branch_vcs_tags)`                              |
 
 - Before any tags have been created `bumpver` will always default to the value of `current_version` in `bumpver.toml` / `setup.cfg` / `pyproject.toml`.
-- Only Git/Mercurial tags which matches the `version_pattern` from your config will be considered and sorted using [`pkg_resources.parse_version`][url_setuptools_pkg_resources].
+- Only Git/Mercurial tags which matches the `version_pattern` from your config will be considered and sorted using [`packaging.version.parse`][url_packaing].
 
-[url_setuptools_pkg_resources]: https://setuptools.readthedocs.io/en/latest/pkg_resources.html#parsing-utilities
+[url_packaging]: https://packaging.pypa.io/en/latest/version.html#packaging.version.parse
 
 As part of doing `bumpver update` and `bumpver show`, your local tags are updated using `git fetch --tags`/`hg pull`.
 

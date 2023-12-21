@@ -34,9 +34,7 @@ dependencies   = [
                "lexid",
                "colorama >=0.4",
                "looseversion",
-               # "ujson"
-               # "argon2_cffi",
-               # "pyblake2",
+               "packaging",
 ]
 
 [project.optional-dependencies]
@@ -127,7 +125,7 @@ warn_redundant_casts   = true
 ##-- isort
 [tool.isort]
 known_first_party = "bumpver"
-known_third_party = ["click","lexid","pkg_resources"]
+known_third_party = ["click","lexid", "packaging"]
 force_single_line = true
 length_sort       = true
 ##-- end isort
