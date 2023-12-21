@@ -194,7 +194,6 @@ push            = true
     ]
 ##-- end bumpver
 
-
 ##-- pylint
 [tool.pylint]
 score   = false
