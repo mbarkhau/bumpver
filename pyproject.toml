@@ -1,0 +1,257 @@
+[project]
+name            = "bumpver"
+version         = "2023.1129"
+description     = "Bump version numbers in project files."
+readme          = "README.md"
+requires-python = ">=3.6"
+license         = {file = "LICENSE"}
+keywords        = ["version", "bumpver", "calver", "semver", "versioning", "bumpversion", "pep440"]
+authors         = [
+  {email = "mbarkhau@gmail.com", name  = "Manuel Barkhau" }
+]
+classifiers     = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: Other Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Unix",
+    "Operating System :: POSIX",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+##-- dependencies
+dependencies   = [
+               "click",
+               "toml",
+               "lexid",
+               "colorama >=0.4",
+               "looseversion",
+               # "ujson"
+               # "argon2_cffi",
+               # "pyblake2",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest < 5.0.0",
+]
+
+##-- end dependencies
+
+##-- urls
+[project.urls]
+homepage      = "https://github.com/mbarkhau/bumpver"
+repository    = "https://github.com/mbarkhau/bumpver"
+
+##-- end urls
+
+##-- entry points
+[project.scripts] # CLI
+bumpver = "bumpver.cli:cli"
+
+[project.gui-scripts] #GUI
+# spam-gui      = "spam:main_gui"
+
+[project.entry-points."nothing"] # Plugins
+# tomatoes      = "spam:main_tomatoes"
+
+##-- end entry points
+
+##-- build-system
+[build-system]
+# frontend: https://pypa-build.readthedocs.io/en/latest/index.html
+# frontend: https://pdm.fming.dev/latest/
+requires = [
+         "setuptools >= 63.1.0",
+         "wheel >= 0.37.1"
+         # https://flit.pypa.io/en/stable/index.html
+         # "flit_core > 3.2, <4",
+         # https://pdm-backend.fming.dev/
+         # "pdm-backend"
+
+]
+
+build-backend = "setuptools.build_meta"
+# build-backend = "flit_core.buildapi"
+# build-backend = "pdm.backend"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+namespaces = true
+where      = ["src"]
+include    = ["bumpver*"]
+
+[tool.setuptools.package-data]
+"*" = ["*"]
+
+[tool.setuptools.exclude-package-data]
+
+##-- end build-system
+
+# Tools #######################################################################
+
+##-- pytest
+[tool.pytest.ini_options]
+log_cli       = false
+log_level     = "DEBUG"
+log_cli_level = "DEBUG"
+
+##-- end pytest
+
+##-- mypy
+[tool.mypy]
+check_untyped_defs     = true
+disallow_untyped_calls = true
+follow_imports         = "silent"
+strict_optional        = true
+error_summary          = false
+ignore_missing_imports = true
+show_error_codes       = true
+warn_unreachable       = true
+warn_return_any        = true
+warn_unused_ignores    = true
+warn_redundant_casts   = true
+
+##-- end mypy
+
+##-- isort
+[tool.isort]
+known_first_party = "bumpver"
+known_third_party = ["click","pathlib2","lexid","pkg_resources"]
+force_single_line = true
+length_sort       = true
+##-- end isort
+
+##-- flake8
+[flake8]
+max-line-length = 100
+max-complexity = 12
+ignore = [
+    "C812", # Missing trailing comma (handled by sjfmt)
+    "E201", # No whitespace after paren open "("
+    "E202", # No whitespace before paren ")"
+    "E203", # Whitespace before ":"
+    "E221", # Multiple spaces before operator
+    "E222", # Multiple spaces after operand
+    "E231", # Missing whitespace after ','
+    "E241", # Multiple spaces after ':'
+    "E251", # Spaces around keyword/parameter equals
+    "E272", # Multiple spaces before keyword
+    "E501", # Line too long (B950 is used instead)
+    "W503", # Line break before binary op
+    "W504", # Line break after binary op
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+
+    # D104, # Missing docstring in public package
+    # D105, # Missing docstring in magic method
+    "D107",   # Missing docstring on __init__
+    "D202", # No blank lines allowed after function docstring
+    "D400", # First line should end in a period
+    "D401", # First line should be in imperative mood
+    ]
+select = ["A","AAA","D","C","E","F","W","H","B","D212","D404","D405","D406","B901","B950","YTT"]
+exclude = [".git", "__pycache__", ".eggs/", "dist/", ".mypy_cache"]
+##-- end flake8
+
+##-- pytest
+[tool.pytest]
+addopts = ["--doctest-modules", "--ignore", "test/fixtures/hooks", "--ignore", "compat_test/fixtures/hooks"]
+##-- end pytest
+
+##-- bumpver
+[bumpver]
+current_version = "2023.1129"
+version_pattern = "YYYY.BUILD[-TAG]"
+commit_message  = "bump {old_version} -> {new_version}"
+commit          = true
+tag             = true
+push            = true
+
+[bumpver.file_patterns]
+"bootstrapit.sh"          = 'PACKAGE_VERSION="{version}"'
+"setup.cfg"               = 'current_version = "{version}"'
+"setup.py"                = 'version="{pep440_version}",$'
+"src/bumpver/__init__.py" = '^__version__ = "{version}"$'
+"src/bumpver/cli.py"      = '@click.version_option(version="{version}")'
+"src/bumpver/*.py"        = 'Copyright (c) 2018-YYYY'
+"LICENSE"                 = 'Copyright (c) 2018-YYYY'
+"license.header"          = 'Copyright (c) 2018-YYYY'
+"README.md"               = [
+    # "\[CalVer {version}\]",
+    "img.shields.io/static/v1.svg?label=CalVer&message={version}&color=blue",
+    "Successfully installed bumpver-{pep440_version}"
+    ]
+##-- end bumpver
+
+
+##-- pylint
+[tool.pylint]
+score   = false
+reports = false
+jobs    = 4
+
+# Set the output format. Available formats are text, parseable, colorized,
+# msvs (visual studio) and html. You can also give a reporter class, eg
+# mypackage.mymodule.MyReporterClass.
+output-format = "colorized"
+
+# Maximum number of locals for function / method body
+max-locals = 17
+
+# Maximum number of arguments for function / method
+max-args = 9
+
+# Maximum number of branch for function / method body
+max-branches = 14
+
+good-names = ["logger","i","ex"]
+
+# These are packages that are implemented as c extensions and
+# which pylint cannot do introspection on.
+extension-pkg-whitelist = ["numpy","pandas","lxml","PIL","sklearn","pyblake2"]
+notes                   = ["TODO","FIXME","XXX","SLOW","BUG"]
+
+# similarities/duplicaition checker
+min-similarity-lines = 4
+ignore-comments      = true
+ignore-docstrings    = true
+ignore-imports       = true
+
+ignored-argument-names = ["args","kwargs"]
+
+# https://pylint.pycqa.org/en/stable/technical_reference/features.html
+disable = [
+    "bad-continuation",
+    "bad-whitespace",
+    "line-too-long",
+    "logging-not-lazy",
+    "logging-fstring-interpolation",
+    "no-else-return",
+    "no-else-raise",
+    "too-few-public-methods",
+    "missing-docstring",
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "raise-missing-from",
+    "duplicate-code",
+    "ungrouped-imports",
+    ]
+
+generated-members = [
+    "(_replace|_asdict|_fields)", # members of typing.NamedTuple
+    ]
+##-- end pylint
