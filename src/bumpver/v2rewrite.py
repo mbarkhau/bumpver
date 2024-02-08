@@ -6,9 +6,9 @@
 """Rewrite files, updating occurences of version strings."""
 
 import io
+import re
 import typing as typ
 import logging
-import re
 
 from . import parse
 from . import config
