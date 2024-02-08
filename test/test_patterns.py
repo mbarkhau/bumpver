@@ -251,6 +251,22 @@ def test_v2_patterns(pattern_str, line, expected):
     assert result_val == expected, (pattern_str, line, pattern.regexp.pattern)
 
 
+def test_v2_patterns_with_whitespace():
+    pattern_str = r'^__version__\s+=\s+"{version}"'
+    pattern = v2patterns.compile_pattern("MAJOR.MINOR.PATCH", pattern_str)
+    result = pattern.regexp.search('__version__ = "0.1.0"')
+    assert(result is not None)
+
+    result = pattern.regexp.search('__version__      = "0.1.0"')
+    assert(result is not None)
+
+    result = pattern.regexp.search('__version__ =          "0.1.0"')
+    assert(result is not None)
+
+    result = pattern.regexp.search('__version__ = "0.1.0"     ')
+    assert(result is not None)
+
+
 def test_epoch_pattern():
     raw_pattern = v2patterns.normalize_pattern("v1!MAJOR.MINOR.PATCH", "{version}")
     pattern     = v2patterns.compile_pattern(raw_pattern)
