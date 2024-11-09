@@ -9,14 +9,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: config
       run:
         git config --global init.defaultBranch master
 
     - name: Cache Conda Envs
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: |
           ~/miniconda3
@@ -48,14 +48,14 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: config
       run:
         git config --global init.defaultBranch master
 
     - name: Cache Conda Envs
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: |
           ~/miniconda3
