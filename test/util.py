@@ -4,7 +4,7 @@ import shutil
 import tempfile
 import subprocess as sp
 
-from bumpver import pathlib as pl
+import pathlib as pl
 
 
 class Shell:
