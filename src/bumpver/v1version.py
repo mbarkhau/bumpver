@@ -183,8 +183,7 @@ VersionInfoKW = typ.Dict[str, typ.Union[str, int, None]]
 def _parse_pattern_groups(pattern_groups: PatternGroups) -> FieldValues:
     for part_name in pattern_groups.keys():
         is_valid_part_name = (
-            part_name    in v1patterns.COMPOSITE_PART_PATTERNS
-            or part_name in v1patterns.PATTERN_PART_FIELDS
+            part_name in v1patterns.COMPOSITE_PART_PATTERNS or part_name in v1patterns.PATTERN_PART_FIELDS
         )
         if not is_valid_part_name:
             err_msg = f"Invalid part '{part_name}'"

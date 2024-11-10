@@ -333,9 +333,7 @@ def _replace_pattern_parts(pattern: str) -> str:
     result_pattern = pattern
     for _, (start_idx, end_idx, named_part_pattern) in sorted(part_patterns_by_index.items()):
         if end_idx <= last_start_idx:
-            result_pattern = (
-                result_pattern[:start_idx] + named_part_pattern + result_pattern[end_idx:]
-            )
+            result_pattern = result_pattern[:start_idx] + named_part_pattern + result_pattern[end_idx:]
             last_start_idx = start_idx
 
     return result_pattern

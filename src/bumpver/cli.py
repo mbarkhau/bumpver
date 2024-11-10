@@ -86,9 +86,7 @@ def _validate_date(date: typ.Optional[str], pin_date: bool) -> typ.Optional[dt.d
         dt_val = dt.datetime.strptime(date, "%Y-%m-%d")
         return dt_val.date()
     except ValueError:
-        logger.error(
-            f"Invalid parameter --date='{date}', must match format YYYY-0M-0D.", exc_info=True
-        )
+        logger.error(f"Invalid parameter --date='{date}', must match format YYYY-0M-0D.", exc_info=True)
         sys.exit(1)
 
 
@@ -181,6 +179,26 @@ dry_option = click.option(
 )
 
 
+allow_dirty_option = click.option(
+    "--allow-dirty",
+    default=False,
+    is_flag=True,
+    help=(
+        "Commit even when working directory is has uncomitted changes. "
+        "(WARNING: The commit will still be aborted if there are uncomitted "
+        "to files with version strings."
+    ),
+)
+
+
+ignore_vcs_tag_option = click.option(
+    "--ignore-vcs-tag",
+    default=False,
+    is_flag=True,
+    help="Ignore VCS tag invariant and update version anyway.",
+)
+
+
 fetch_option = click.option(
     "-f/-n",
     "--fetch/--no-fetch",
@@ -213,12 +231,8 @@ environ_option = click.option(
 def version_options(function: typ.Callable) -> typ.Callable:
     decorators = [
         click.option("--major", is_flag=True, default=False, help="Increment MAJOR component."),
-        click.option(
-            "-m", "--minor", is_flag=True, default=False, help="Increment MINOR component."
-        ),
-        click.option(
-            "-p", "--patch", is_flag=True, default=False, help="Increment PATCH component."
-        ),
+        click.option("-m", "--minor", is_flag=True, default=False, help="Increment MINOR component."),
+        click.option("-p", "--patch", is_flag=True, default=False, help="Increment PATCH component."),
         click.option(
             "-t",
             "--tag",
@@ -241,9 +255,7 @@ def version_options(function: typ.Callable) -> typ.Callable:
             default=False,
             help="Leave the auto-increments INC0 and INC1 unchanged.",
         ),
-        click.option(
-            "--pin-date", is_flag=True, default=False, help="Leave date components unchanged."
-        ),
+        click.option("--pin-date", is_flag=True, default=False, help="Leave date components unchanged."),
         click.option(
             "--date",
             default=None,
@@ -351,9 +363,7 @@ def _grep_text(pattern: patterns.Pattern, text: str, color: bool) -> typ.Iterabl
             )
         else:
             matched_line = (
-                text[line_start:match_start]
-                + text[match_start:match_end]
-                + text[match_end:line_end]
+                text[line_start:match_start] + text[match_start:match_end] + text[match_end:line_end]
             )
 
         lines_offset = max(0, line_idx - 1) + 1
@@ -440,10 +450,17 @@ def grep(
 
 @cli.command()
 @verbose_option
+@ignore_vcs_tag_option
 @fetch_option
 @env_option
 @environ_option
-def show(verbose: int = 0, fetch: bool = True, env: bool = False, environ: bool = False) -> None:
+def show(
+    verbose       : int = 0,
+    ignore_vcs_tag: bool = False,
+    fetch         : bool = True,
+    env           : bool = False,
+    environ       : bool = False,
+) -> None:
     """Show current version of your project."""
     _configure_logging(verbose=max(_VERBOSE, verbose))
 
@@ -453,7 +470,9 @@ def show(verbose: int = 0, fetch: bool = True, env: bool = False, environ: bool 
         logger.error("Could not parse configuration. Perhaps try 'bumpver init'.")
         sys.exit(1)
 
-    cfg = _update_cfg_from_vcs(cfg, fetch)
+    if not ignore_vcs_tag:
+        cfg = _update_cfg_from_vcs(cfg, fetch)
+
     if env:
         logger.warning("Depricated: -e/--env use --environ instead. ")
         logger.warning("    See https://github.com/mbarkhau/bumpver/issues/224")
@@ -526,16 +545,12 @@ def _print_diff(cfg: config.Config, new_version: str) -> None:
         sys.exit(1)
 
 
-def _parse_version_tags(
-    all_tags: typ.List[str], version_pattern: str, is_new_pattern: bool
-) -> typ.List[str]:
+def _parse_version_tags(all_tags: typ.List[str], version_pattern: str, is_new_pattern: bool) -> typ.List[str]:
     version_parser = v2version if is_new_pattern else v1version
     return [tag for tag in all_tags if version_parser.is_valid(tag, version_pattern)]
 
 
-def _is_valid_version(
-    raw_pattern: str, old_version: str, new_version: str, unique: bool = False
-) -> bool:
+def _is_valid_version(raw_pattern: str, old_version: str, new_version: str, unique: bool = False) -> bool:
     is_new_pattern = "{" not in raw_pattern and "}" not in raw_pattern
 
     try:
@@ -770,24 +785,10 @@ def _sub_msg_template(message: str) -> str:
 
 @cli.command()
 @dry_option
+@allow_dirty_option
+@ignore_vcs_tag_option
 @fetch_option
 @verbose_option
-@click.option(
-    "--allow-dirty",
-    default=False,
-    is_flag=True,
-    help=(
-        "Commit even when working directory is has uncomitted changes. "
-        "(WARNING: The commit will still be aborted if there are uncomitted "
-        "to files with version strings."
-    ),
-)
-@click.option(
-    "--ignore-vcs-tag",
-    default=False,
-    is_flag=True,
-    help="Ignore VCS tag invariant and update version anyway.",
-)
 @version_options
 @click.option(
     "-c",
@@ -873,9 +874,7 @@ def update(
         sys.exit(1)
 
     try:
-        cfg = _parse_vcs_options(
-            cfg, commit, tag_commit, push, tag_scope, pre_commit_hook, post_commit_hook
-        )
+        cfg = _parse_vcs_options(cfg, commit, tag_commit, push, tag_scope, pre_commit_hook, post_commit_hook)
     except ValueError as ex:
         logger.warning(f"Invalid argument: {ex}")
         sys.exit(1)
@@ -906,9 +905,7 @@ def update(
 
     uniqueness_check = cfg.tag_scope == config.TagScope.BRANCH or set_version is not None
 
-    if not _is_valid_version(
-        cfg.version_pattern, old_version, new_version, unique=uniqueness_check
-    ):
+    if not _is_valid_version(cfg.version_pattern, old_version, new_version, unique=uniqueness_check):
         if set_version:
             logger.error(f"Invalid argument --set-version='{set_version}'")
         sys.exit(1)

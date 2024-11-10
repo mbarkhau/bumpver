@@ -79,9 +79,7 @@ def _pick_config_filepath(path: pl.Path) -> pl.Path:
             with config_filepath.open(mode="rb") as fobj:
                 data = fobj.read()
 
-            has_bumpver_section = (
-                b"bumpver]" in data or b"pycalver]" in data
-            ) and b"current_version" in data
+            has_bumpver_section = (b"bumpver]" in data or b"pycalver]" in data) and b"current_version" in data
             if has_bumpver_section:
                 return config_filepath
 

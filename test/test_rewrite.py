@@ -62,9 +62,7 @@ def test_v2_rewrite_lines():
     lines           = v2rewrite.rewrite_lines(patterns, new_vinfo, ['__version__ = "v201809.0002-alpha"   '])
     assert lines == ['__version__ = "v201811.0123-beta"   ']
 
-    lines = v2rewrite.rewrite_lines(
-        patterns, new_vinfo, ['__version__ = "v201809.0002-alpha"    # comment']
-    )
+    lines = v2rewrite.rewrite_lines(patterns, new_vinfo, ['__version__ = "v201809.0002-alpha"    # comment'])
     assert lines == ['__version__ = "v201811.0123-beta"    # comment']
 
     patterns  = [v2patterns.compile_pattern(version_pattern, '__version__ = "YYYY0M.BLD[PYTAGNUM]"')]
@@ -220,9 +218,7 @@ def test_v1_iter_rewritten():
     version_pattern = "{year}{build}{release}"
     new_vinfo       = v1version.parse_version_info("2018.0123", version_pattern)
 
-    init_pattern = v1patterns.compile_pattern(
-        version_pattern, '__version__ = "{year}{build}{release}"'
-    )
+    init_pattern    = v1patterns.compile_pattern(version_pattern, '__version__ = "{year}{build}{release}"')
     file_patterns   = {"src/bumpver/__init__.py": [init_pattern]}
     rewritten_datas = v1rewrite.iter_rewritten(file_patterns, new_vinfo)
     rfd             = list(rewritten_datas)[0]

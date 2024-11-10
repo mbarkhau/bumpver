@@ -267,9 +267,7 @@ def parse_field_values_to_vinfo(field_values: FieldValues) -> version.V2VersionI
     )
 
 
-def parse_version_info(
-    version_str: str, raw_pattern: str = "vYYYY0M.BUILD[-TAG]"
-) -> version.V2VersionInfo:
+def parse_version_info(version_str: str, raw_pattern: str = "vYYYY0M.BUILD[-TAG]") -> version.V2VersionInfo:
     """Parse normalized V2VersionInfo.
 
     >>> vinfo = parse_version_info("v201712.0033-beta", raw_pattern="vYYYY0M.BUILD[-TAG]")

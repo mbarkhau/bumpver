@@ -253,9 +253,7 @@ def test_incr_tag(runner):
     old_version = "0.1.0"
     new_version = "0.1.1b0"
 
-    result = runner.invoke(
-        cli.cli, ['test', "-vv", old_version, SEMVER, "--patch", "--tag", "beta"]
-    )
+    result = runner.invoke(cli.cli, ['test', "-vv", old_version, SEMVER, "--patch", "--tag", "beta"])
     assert result.exit_code == 0
     assert f"Version: {new_version}\n" in result.output
 
@@ -732,9 +730,7 @@ def test_incorrect_vcs_option_tag_push(runner, caplog):
     result = runner.invoke(cli.cli, ['update', "-vv", "--tag-commit"])
     assert result.exit_code == 1
     assert len(caplog.records) == 1
-    expected = (
-        "Invalid argument: --tag-commit requires either --commit or commit=True in your config"
-    )
+    expected = "Invalid argument: --tag-commit requires either --commit or commit=True in your config"
     assert expected in caplog.records[0].message
 
     result = runner.invoke(cli.cli, ['update', "-vv", "--push"])
@@ -944,9 +940,7 @@ def test_update_set_version(runner, caplog):
         current_version='"v2020.1001-alpha"',
     )
 
-    result = runner.invoke(
-        cli.cli, ['update', "-vv", "-n", "--dry", "--set-version", "v2121.1234-beta"]
-    )
+    result = runner.invoke(cli.cli, ['update', "-vv", "-n", "--dry", "--set-version", "v2121.1234-beta"])
     assert result.exit_code == 0
     assert len(caplog.records) == 0
 
@@ -954,9 +948,7 @@ def test_update_set_version(runner, caplog):
     assert '-current_version = "v2020.1001-alpha"' in out_lines
     assert '+current_version = "v2121.1234-beta"' in out_lines
 
-    result = runner.invoke(
-        cli.cli, ['update', "-vv", "-n", "--dry", "--set-version", "2020.1234-invalid"]
-    )
+    result = runner.invoke(cli.cli, ['update', "-vv", "-n", "--dry", "--set-version", "2020.1234-invalid"])
     assert result.exit_code == 1
     assert len(caplog.records) > 0
 
@@ -1225,19 +1217,13 @@ def test_git_tag_message_annotated(runner, caplog):
     expected_tag = "v2019.1002-beta"
     assert expected_tag in tags
 
-    objecttype = (
-        shell("git", "tag", "--list", expected_tag, "--format=%(objecttype)")
-        .decode("utf-8")
-        .strip()
-    )
+    objecttype = shell("git", "tag", "--list", expected_tag, "--format=%(objecttype)").decode("utf-8").strip()
 
     expected_type = "tag"
     assert objecttype == expected_type
 
     message = (
-        shell("git", "tag", "--list", expected_tag, "--format=%(contents:subject)")
-        .decode("utf-8")
-        .strip()
+        shell("git", "tag", "--list", expected_tag, "--format=%(contents:subject)").decode("utf-8").strip()
     )
 
     expected_message = "bump: v2019.1001-alpha (2019.1001a0) -> v2019.1002-beta (2019.1002b0)"
@@ -1275,11 +1261,7 @@ def test_git_tag_message_lightweight(runner, caplog):
     expected_tag = "v2019.1002-beta"
     assert expected_tag in tags
 
-    objecttype = (
-        shell("git", "tag", "--list", expected_tag, "--format=%(objecttype)")
-        .decode("utf-8")
-        .strip()
-    )
+    objecttype = shell("git", "tag", "--list", expected_tag, "--format=%(objecttype)").decode("utf-8").strip()
 
     expected_type = "commit"
     assert objecttype == expected_type
@@ -1318,9 +1300,7 @@ def test_cli_tag_message(runner, caplog):
     assert expected_tag in tags
 
     message = (
-        shell("git", "tag", "--list", expected_tag, "--format=%(contents:subject)")
-        .decode("utf-8")
-        .strip()
+        shell("git", "tag", "--list", expected_tag, "--format=%(contents:subject)").decode("utf-8").strip()
     )
 
     expected_message = "my custom message (v2019.1001-alpha -> v2019.1002-beta)"
@@ -1534,9 +1514,7 @@ def test_ignore_vcs_tag(runner, monkeypatch, vcs_name):
     result = runner.invoke(cli.cli, ['update', "--set-version", "0.1.9"])
     assert result.exit_code == 1
 
-    result = runner.invoke(
-        cli.cli, ['update', "-vv", "--ignore-vcs-tag", "--dry", "--set-version", "0.1.9"]
-    )
+    result = runner.invoke(cli.cli, ['update', "-vv", "--ignore-vcs-tag", "--dry", "--set-version", "0.1.9"])
     assert result.exit_code == 0
 
     out_lines = set(result.output.splitlines())
