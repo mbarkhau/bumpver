@@ -13,7 +13,7 @@ SHELL := /bin/bash
 PROJECT_DIR := $(notdir $(abspath .))
 
 ifndef DEVELOPMENT_PYTHON_VERSION
-	DEVELOPMENT_PYTHON_VERSION := python=3.8
+	DEVELOPMENT_PYTHON_VERSION := python=3.9
 endif
 
 ifndef SUPPORTED_PYTHON_VERSIONS
