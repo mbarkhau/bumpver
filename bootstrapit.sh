@@ -15,8 +15,8 @@ GIT_REPO_DOMAIN="github.com"
 
 PACKAGE_VERSION="2023.1129"
 
-DEFAULT_PYTHON_VERSION="python=3.8"
-SUPPORTED_PYTHON_VERSIONS="python=2.7 python=3.6 pypy2.7 pypy3.5 python=3.8"
+DEFAULT_PYTHON_VERSION="python=3.13"
+SUPPORTED_PYTHON_VERSIONS="python=3.13 pypy@3.10 python=2.7"
 
 DOCKER_REGISTRY_DOMAIN=registry.gitlab.com
 

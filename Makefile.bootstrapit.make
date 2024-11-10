@@ -13,7 +13,7 @@ SHELL := /bin/bash
 PROJECT_DIR := $(notdir $(abspath .))
 
 ifndef DEVELOPMENT_PYTHON_VERSION
-	DEVELOPMENT_PYTHON_VERSION := python=3.8
+	DEVELOPMENT_PYTHON_VERSION := python=3.13
 endif
 
 ifndef SUPPORTED_PYTHON_VERSIONS
@@ -23,34 +23,28 @@ endif
 PKG_NAME := $(PACKAGE_NAME)
 MODULE_NAME := $(shell echo $(subst -,_,$(PACKAGE_NAME)) | tr A-Z a-z)
 
-# TODO (mb 2018-09-23): Support for bash on windows
-#    perhaps we need to install conda using this
-#    https://repo.continuum.io/miniconda/Miniconda3-latest-Windows-x86_64.exe
+HOME := $(shell echo $$HOME)
 PLATFORM = $(shell uname -s)
 
-# miniconda is shared between projects
-CONDA_ROOT := $(shell if [[ -d /opt/conda/envs ]]; then echo "/opt/conda"; else echo "$$HOME/miniconda3"; fi;)
-CONDA_BIN := $(CONDA_ROOT)/bin/conda
-
-ENV_PREFIX := $(CONDA_ROOT)/envs
+VENVS_ROOT := $(HOME)/venvs
 
 DEV_ENV_NAME := \
-	$(subst pypy,$(PKG_NAME)_pypy,$(subst python=,$(PKG_NAME)_py,$(subst .,,$(DEVELOPMENT_PYTHON_VERSION))))
+	$(subst pypy@,$(PKG_NAME)_pypy,$(subst python=,$(PKG_NAME)_py,$(subst .,,$(DEVELOPMENT_PYTHON_VERSION))))
 
-CONDA_ENV_NAMES := \
-	$(subst pypy,$(PKG_NAME)_pypy,$(subst python=,$(PKG_NAME)_py,$(subst .,,$(SUPPORTED_PYTHON_VERSIONS))))
+VENV_NAMES := \
+	$(subst pypy@,$(PKG_NAME)_pypy,$(subst python=,$(PKG_NAME)_py,$(subst .,,$(SUPPORTED_PYTHON_VERSIONS))))
 
-CONDA_ENV_PATHS := \
-	$(subst pypy,$(ENV_PREFIX)/$(PKG_NAME)_pypy,$(subst python=,$(ENV_PREFIX)/$(PKG_NAME)_py,$(subst .,,$(SUPPORTED_PYTHON_VERSIONS))))
+VENV_PATHS := \
+	$(subst pypy@,$(VENVS_ROOT)/$(PKG_NAME)_pypy,$(subst python=,$(VENVS_ROOT)/$(PKG_NAME)_py,$(subst .,,$(SUPPORTED_PYTHON_VERSIONS))))
 
 # envname/bin/python is unfortunately not always the correct
 # interpreter. In the case of pypy it is either envname/bin/pypy or
 # envname/bin/pypy3
-CONDA_ENV_BIN_PYTHON_PATHS := \
-	$(shell echo "$(CONDA_ENV_PATHS)" \
+VENV_PYTHON_PATHS := \
+	$(shell echo "$(VENV_PATHS)" \
 	| sed 's!\(_py[[:digit:]]\{1,\}\)!\1/bin/python!g' \
-	| sed 's!\(_pypy2[[:digit:]]\)!\1/bin/pypy!g' \
-	| sed 's!\(_pypy3[[:digit:]]\)!\1/bin/pypy3!g' \
+	| sed 's!\(_pypy2[[:digit:]]\{1,\}\)!\1/bin/pypy!g' \
+	| sed 's!\(_pypy3[[:digit:]]\{1,\}\)!\1/bin/pypy3!g' \
 )
 
 empty :=
@@ -64,7 +58,7 @@ BDIST_WHEEL_FILE_CMD = ls -1t dist/*.whl | head -n 1
 
 
 # default version for development
-DEV_ENV := $(ENV_PREFIX)/$(DEV_ENV_NAME)
+DEV_ENV := $(VENVS_ROOT)/$(DEV_ENV_NAME)
 DEV_ENV_PY := $(DEV_ENV)/bin/python
 
 DOCKER := $(shell which docker)
@@ -77,35 +71,23 @@ DOCKER_IMAGE_VERSION = $(shell date -u +'%Y%m%dt%H%M%S')_$(GIT_HEAD_REV)
 MAX_LINE_LEN = $(shell grep 'max-line-length' setup.cfg | sed 's![^0-9]\{1,\}!!')
 
 
-build/envs.txt: requirements/conda.txt
+build/envs.txt:
 	@mkdir -p build/;
 
-	@if [[ ! -f $(CONDA_BIN) ]]; then \
-		echo "installing miniconda ..."; \
-		if [[ $(PLATFORM) == "Linux" ]]; then \
-			curl "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" --location \
-				> build/miniconda3.sh; \
-		elif [[ $(PLATFORM) == "MINGW64_NT-10.0" ]]; then \
-			curl "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" --location \
-				> build/miniconda3.sh; \
-		elif [[ $(PLATFORM) == "Darwin" ]]; then \
-			curl "https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh" --location \
-				> build/miniconda3.sh; \
-		fi; \
-		bash build/miniconda3.sh -b -p $(CONDA_ROOT); \
-		rm build/miniconda3.sh; \
+	@if [[ ! -f $(shell which uv) ]]; then \
+		echo "installing uv ..."; \
+		pip install uv; \
 	fi
 
-	rm -f build/envs.txt.tmp;
+	@rm -f build/envs.txt.tmp;
 
 	@SUPPORTED_PYTHON_VERSIONS="$(SUPPORTED_PYTHON_VERSIONS)" \
-		CONDA_ENV_NAMES="$(CONDA_ENV_NAMES)" \
-		CONDA_ENV_PATHS="$(CONDA_ENV_PATHS)" \
-		CONDA_ENV_BIN_PYTHON_PATHS="$(CONDA_ENV_BIN_PYTHON_PATHS)" \
-		CONDA_BIN="$(CONDA_BIN)" \
-		bash scripts/setup_conda_envs.sh;
+		VENV_NAMES="$(VENV_NAMES)" \
+		VENV_PATHS="$(VENV_PATHS)" \
+		VENV_PYTHON_PATHS="$(VENV_PYTHON_PATHS)" \
+		bash scripts/setup_venvs.sh;
 
-	$(CONDA_BIN) env list \
+	ls -1 $(HOME)/venv \
 		| grep $(PKG_NAME) \
 		| rev | cut -d " " -f1 \
 		| rev | sort >> build/envs.txt.tmp;
@@ -117,11 +99,10 @@ build/deps.txt: build/envs.txt requirements/*.txt
 	@mkdir -p build/;
 
 	@SUPPORTED_PYTHON_VERSIONS="$(SUPPORTED_PYTHON_VERSIONS)" \
-		CONDA_ENV_NAMES="$(CONDA_ENV_NAMES)" \
-		CONDA_ENV_PATHS="$(CONDA_ENV_PATHS)" \
-		CONDA_ENV_BIN_PYTHON_PATHS="$(CONDA_ENV_BIN_PYTHON_PATHS)" \
-		CONDA_BIN="$(CONDA_BIN)" \
-		bash scripts/update_conda_env_deps.sh;
+		VENV_NAMES="$(VENV_NAMES)" \
+		VENV_PATHS="$(VENV_PATHS)" \
+		VENV_PYTHON_PATHS="$(VENV_PYTHON_PATHS)" \
+		bash scripts/update_venv_deps.sh;
 
 	@echo "updating $(DEV_ENV_NAME) development deps ...";
 
@@ -142,7 +123,7 @@ build/deps.txt: build/envs.txt requirements/*.txt
 
 	@rm -f build/deps.txt.tmp;
 
-	@for env_py in $(CONDA_ENV_BIN_PYTHON_PATHS); do \
+	@for env_py in $(VENV_PYTHON_PATHS); do \
 		printf "\n# pip freeze for $${env_py}:\n" >> build/deps.txt.tmp; \
 		$${env_py} -m pip freeze >> build/deps.txt.tmp; \
 		printf "\n\n" >> build/deps.txt.tmp; \
@@ -243,8 +224,8 @@ helpverbose:
 ## Delete conda envs and cache 💩
 .PHONY: clean
 clean:
-	@for env_name in $(CONDA_ENV_NAMES); do \
-		env_py="$(ENV_PREFIX)/$${env_name}/bin/python"; \
+	@for env_name in $(VENV_NAMES); do \
+		env_py="$(VENVS_ROOT)/$${env_name}/bin/python"; \
 		if [[ -f $${env_py} ]]; then \
 			$(CONDA_BIN) env remove --name $${env_name} --yes; \
 		fi; \
@@ -258,7 +239,7 @@ clean:
 	rm -rf __pycache__/
 	rm -rf src/__pycache__/
 	rm -rf vendor/__pycache__/
-	@printf "\n setup/update completed  ✨ 🍰 ✨ \n\n"
+	@printf "\n    make clean completed  🧹🧹🧹 \n\n"
 
 
 ## Force update of dependencies by removing marker files
@@ -280,8 +261,8 @@ force:
 
 
 ## Create/Update python virtual environments
-.PHONY: conda
-conda: build/deps.txt
+.PHONY: venvs
+venvs: build/deps.txt
 
 
 ## Install git pre-push hooks
@@ -407,7 +388,7 @@ test:
 
 	# Next we install the package and run the test suite against it.
 
-	# 	IFS=' ' read -r -a env_py_paths <<< "$(CONDA_ENV_BIN_PYTHON_PATHS)"; \
+	# 	IFS=' ' read -r -a env_py_paths <<< "$(VENV_PYTHON_PATHS)"; \
 	# 	for i in $${!env_py_paths[@]}; do \
 	# 		env_py=$${env_py_paths[i]}; \
 	# 		$${env_py} -m pip install --upgrade .; \
@@ -455,18 +436,16 @@ check: fmt lint mypy devtest test
 .PHONY: env_subshell
 env_subshell:
 	@bash --init-file <(echo '\
-		source $$HOME/.bashrc; \
-		source $(CONDA_ROOT)/etc/profile.d/conda.sh \
-		export ENV=$${ENV-dev}; \
+		source $(HOME)/.bashrc; \
 		export PYTHONPATH="src/:vendor/:$$PYTHONPATH"; \
-		conda activate $(DEV_ENV_NAME) \
+		source $(DEV_ENV_NAME)/bin/activate \
 	')
 
 
 ## Usage: "source ./activate", to deactivate: "deactivate"
 .PHONY: activate
 activate:
-	@echo 'source $(CONDA_ROOT)/etc/profile.d/conda.sh;'
+	@echo 'source $(VENVS_ROOT)/etc/profile.d/conda.sh;'
 	@echo 'if [[ -z $$ENV ]]; then'
 	@echo '		export _env_before_activate=$${ENV};'
 	@echo 'fi'
@@ -475,7 +454,7 @@ activate:
 	@echo 'fi'
 	@echo 'export ENV=$${ENV-dev};'
 	@echo 'export PYTHONPATH="src/:vendor/:$$PYTHONPATH";'
-	@echo 'conda activate $(DEV_ENV_NAME);'
+	@echo 'source $(DEV_ENV_NAME)/bin/activate;'
 
 	@echo 'function deactivate {'
 	@echo '		if [[ -z $${_env_before_activate} ]]; then'

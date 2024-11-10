@@ -1,7 +1,7 @@
 #!/bin/bash
 
-read -r -a env_py_paths <<< "${CONDA_ENV_BIN_PYTHON_PATHS//, /$IFS}";
-read -r -a env_names <<< "${CONDA_ENV_NAMES//, /$IFS}";
+read -r -a env_py_paths <<< "${VENV_PYTHON_PATHS//, /$IFS}";
+read -r -a env_names <<< "${VENV_NAMES//, /$IFS}";
 
 for i in ${!env_py_paths[@]}; do
     env_path_python=${env_py_paths[i]};

@@ -15,21 +15,20 @@ jobs:
       run:
         git config --global init.defaultBranch master
 
-    - name: Cache Conda Envs
+    - name: Cache Venvs
       uses: actions/cache@v4
       with:
         path: |
-          ~/miniconda3
           build/*.txt
-        key: ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'Makefile*') }}
+        key: ${{ runner.OS }}-venv-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'Makefile*') }}
         restore-keys: |
-          ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'Makefile*') }}
+          ${{ runner.OS }}-venv-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'Makefile*') }}
 
-    - name: make conda
+    - name: make venvs
       run:
         if [[ -e build/envs.txt ]]; then touch build/envs.txt; fi;
         if [[ -e build/deps.txt ]]; then touch build/deps.txt; fi;
-        make conda
+        make venvs
 
     - name: make lint
       run: make lint
@@ -54,24 +53,23 @@ jobs:
       run:
         git config --global init.defaultBranch master
 
-    - name: Cache Conda Envs
+    - name: Cache Venvs
       uses: actions/cache@v4
       with:
         path: |
-          ~/miniconda3
           build/*.txt
-        key: ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'Makefile*') }}
+        key: ${{ runner.OS }}-venv-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'Makefile*') }}
         restore-keys: |
-          ${{ runner.OS }}-conda-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'Makefile*') }}
+          ${{ runner.OS }}-venv-cache-${{ hashFiles('requirements/*.txt', 'setup.py', 'Makefile*') }}
 
     - name: brew install mercurial
       run: brew install mercurial
 
-    - name: make conda
+    - name: make venvs
       run:
         if [[ -e build/envs.txt ]]; then touch build/envs.txt; fi;
         if [[ -e build/deps.txt ]]; then touch build/deps.txt; fi;
-        make conda
+        make venvs
 
     - name: make lint
       run: make lint

@@ -1,0 +1,96 @@
+[project]
+name = "bumpver"
+description = "Bump version numbers in project files."
+keywords=[
+    "version",
+    "bumpver",
+    "calver",
+    "semver",
+    "versioning",
+    "bumpversion pep440",
+]
+version = "2023.1129"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [
+    {"author" = "Manuel Barkhau", "email" = "mbarkhau@gmail.com"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: Other Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Unix",
+    "Operating System :: POSIX",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "click>=7.1.2",
+    "colorama>=0.4",
+    "lexid>=2021.1006",
+    "toml>=0.10.2",
+    "typing>=3.10.0.0",
+]
+
+
+[tool.ruff]
+line-length = 110
+indent-width = 4
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+docstring-code-format = true
+
+[dependency-groups]
+dev = [
+    "graphviz>=0.20.3",
+    "ipython>=8.18.1",
+    "pipdeptree>=2.23.4",
+    "pretty-traceback>=2024.1021",
+    "pudb>=2024.1.3",
+    "py-spy>=0.4.0",
+    "pytest-cache>=1.0",
+    "q>=2.7",
+    "rich>=13.9.4",
+    "snakeviz>=2.2.2",
+]
+integration = [
+    "flake8>=4.0.1",
+    "flake8-2020>=1.6.1",
+    "flake8-bugbear>=23.3.12",
+    "flake8-builtins>=2.5.0",
+    "flake8-comprehensions>=3.16.0",
+    "flake8-docstrings>=1.7.0",
+    "flake8-junit-report>=2.1.0",
+    "isort>=5.13.2",
+    "lib3to6>=202107.1047",
+    "lxml>=5.3.0",
+    "md-toc>=9.0.0",
+    "mypy-extensions==1.0.0",
+    "mypy==1.4.1",
+    "pip>=24.3.1",
+    "pycalver>=202010.1043",
+    "pydocstyle<4",
+    "pylint-ignore>=2020.1013",
+    "pylint==2.12.1",
+    "pytest>=8.3.3 ; python_full_version >= '3.5'",
+    "pytest-cov>=6.0.0",
+    "pytest-html<2.0 ; python_full_version < '3.5'",
+    "pytest-html==3.2 ; python_full_version >= '3.5'",
+    "pytest<5.0 ; python_full_version < '3.5'",
+    "readme-renderer[md]>=44.0",
+    "straitjacket>=202008.1016",
+    "twine>=5.1.1",
+    "types-click>=7.1.8",
+    "types-setuptools>=75.3.0.20241107",
+    "types-toml>=0.10.8.20240310",
+]
