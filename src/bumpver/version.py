@@ -6,6 +6,7 @@
 import typing as typ
 import datetime as dt
 
+from . import utils
 from . import setuptools_v65_version
 
 MaybeInt = typ.Optional[int]
@@ -84,7 +85,7 @@ class V2VersionInfo(typ.NamedTuple):
 
 
 # The test suite may replace this.
-TODAY = dt.datetime.utcnow().date()
+TODAY = utils.now().date()
 
 
 TAG_BY_PEP440_TAG = {

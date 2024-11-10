@@ -9,13 +9,13 @@ import re
 import enum
 import typing as typ
 import logging
-import datetime as dt
 import configparser
 
 import toml
 
 from bumpver import pathlib as pl
 
+from . import utils
 from . import version
 from . import v1version
 from . import v2version
@@ -678,11 +678,11 @@ DEFAULT_TOML_README_MD_STR = """
 
 
 def _initial_version() -> str:
-    return dt.datetime.utcnow().strftime("%Y.1001-alpha")
+    return utils.now().strftime("%Y.1001-alpha")
 
 
 def _initial_version_pep440() -> str:
-    return dt.datetime.utcnow().strftime("%Y.1001a0")
+    return utils.now().strftime("%Y.1001a0")
 
 
 def default_config(ctx: ProjectContext) -> str:

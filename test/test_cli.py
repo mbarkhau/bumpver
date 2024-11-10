@@ -19,6 +19,7 @@ import pytest
 from click.testing import CliRunner
 
 from bumpver import cli
+from bumpver import utils
 from bumpver import config
 from bumpver import pathlib as pl
 from bumpver import v2patterns
@@ -228,7 +229,7 @@ def test_incr_semver_invalid(runner, caplog):
 def test_incr_to_beta(runner):
     pattern     = "vYYYY.BUILD[-TAG]"
     old_version = "v2017.1999-alpha"
-    new_version = dt.datetime.utcnow().strftime("v%Y.22000-beta")
+    new_version = utils.now().strftime("v%Y.22000-beta")
 
     result = runner.invoke(cli.cli, ['test', "-vv", old_version, pattern, "--tag", "beta"])
     assert result.exit_code == 0
@@ -238,7 +239,7 @@ def test_incr_to_beta(runner):
 def test_incr_to_final(runner, caplog):
     pattern     = "vYYYY.BUILD[-TAG]"
     old_version = "v2017.1999-alpha"
-    new_version = dt.datetime.utcnow().strftime("v%Y.22000")
+    new_version = utils.now().strftime("v%Y.22000")
 
     result = runner.invoke(cli.cli, ['test', "-vv", old_version, pattern, "--tag", "final"])
     _debug_records(caplog)
@@ -443,7 +444,7 @@ def _vcs_init(vcs, files=("README.md",)):
     shell(f"{vcs}", "commit", "-m", "initial commit")
 
 
-_today = dt.datetime.utcnow().date()
+_today = utils.now().date()
 
 
 DEFAULT_VERSION_PATTERNS = [

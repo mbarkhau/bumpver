@@ -4,6 +4,7 @@
 # Copyright (c) 2018-2023 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 import typing as typ
+import datetime as dt
 import functools
 
 # NOTE (mb 2020-09-24): The main use of the memo function is
@@ -22,3 +23,10 @@ def memo(func: typ.Callable) -> typ.Callable:
         return cache[key]
 
     return wrapper
+
+
+def now() -> dt.datetime:
+    if hasattr(dt, 'UTC'):
+        return dt.datetime.now(dt.UTC)
+    else:
+        return dt.datetime.utcnow()
