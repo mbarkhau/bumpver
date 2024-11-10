@@ -60,7 +60,7 @@ test_compat: $(COMPAT_TEST_FILES)
 		if $${env_py} -m pip freeze | grep -q bumpver; then \
 			$${env_py} -m pip uninstall --yes bumpver; \
 		fi; \
-		$${env_py} -m pip install --upgrade build/test_wheel/*.whl; \
+		$${env_py} -m pip install --upgrade build/test_wheel/*.whl  --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org; \
 		ENABLE_BACKTRACE=0 PYTHONPATH="" ENV=$${ENV-dev} \
 			$${env_py} -m pytest \
 			-k "$${PYTEST_FILTER-$${FLTR}}" \
