@@ -11,7 +11,7 @@
 # Support for Python 2.x and PyPy has been dropped (#340).
 pydocstyle<4
 
-
+pip
 flake8
 flake8-bugbear
 flake8-docstrings
