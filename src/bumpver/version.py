@@ -6,20 +6,13 @@
 import typing as typ
 import datetime as dt
 
+from . import setuptools_v65_version
+
 MaybeInt = typ.Optional[int]
 
 
 def parse_version(version: str) -> typ.Any:
-    # pylint: disable=import-outside-toplevel; lazy import to speed up --help
-
-    try:
-        import pkg_resources
-
-        return pkg_resources.parse_version(version)
-    except (ImportError, ValueError):
-        import looseversion
-
-        return looseversion.LooseVersion(version)
+    return setuptools_v65_version.parse(version)
 
 
 class V1CalendarInfo(typ.NamedTuple):
