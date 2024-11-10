@@ -10,7 +10,6 @@
 
 
 import re
-import warnings
 import itertools
 import collections
 from typing import List
