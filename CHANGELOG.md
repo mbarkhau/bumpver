@@ -1,5 +1,19 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2024.1130
+
+This update adds the vendored module `setuptools_v65_version.py` from `setuptools==v65.7.0`.
+This was the last version with support for `LegacyVersion`.
+
+- Fix [#242][gh_i242]: Fix incorrect parsing of versions with tags.
+- Fix [#156][gh_i156]: Remove runtime dependency on setuptools and looseversion.
+
+[gh_i242]: https://github.com/mbarkhau/bumpver/issues/242
+[gh_i156]: https://github.com/mbarkhau/bumpver/issues/156
+
+Thank you [Andrew Mitchell](https://github.com/MitchellAcoustics) and [Tzu-Ting](https://github.com/tzing) for your issue reports.
+
+
 ## BumpVer 2023.1129
 
 - Fix [#224][gh_i224]: Add `--environ` so it emits `0` values. Depricate `-e/--env`.
