@@ -158,10 +158,10 @@ class LegacyVersion(_BaseVersion):
         self._version = str(version)
         self._key     = _legacy_cmpkey(self._version)
 
-        warnings.warn(
-            "Creating a LegacyVersion has been deprecated and will be " "removed in the next major release",
-            DeprecationWarning,
-        )
+        # warnings.warn(
+        #     "Creating a LegacyVersion has been deprecated and will be " "removed in the next major release",
+        #     DeprecationWarning,
+        # )
 
     def __str__(self) -> str:
         return self._version
