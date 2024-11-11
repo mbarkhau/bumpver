@@ -13,7 +13,7 @@ import configparser
 
 import toml
 
-from bumpver import pathlib as pl
+import pathlib as pl
 
 from . import utils
 from . import version

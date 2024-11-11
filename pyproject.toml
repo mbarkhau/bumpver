@@ -1,7 +1,8 @@
 [project]
 name = "bumpver"
 description = "Bump version numbers in project files."
-keywords=[
+readme = {file = "README.md", content-type = "text/markdown"}
+keywords = [
     "version",
     "bumpver",
     "calver",
@@ -10,7 +11,7 @@ keywords=[
     "bumpversion pep440",
 ]
 version = "2023.1129"
-license = "MIT"
+license = {file = "LICENSE"}
 requires-python = ">=3.9"
 authors = [
     {"author" = "Manuel Barkhau", "email" = "mbarkhau@gmail.com"},
@@ -39,16 +40,13 @@ dependencies = [
     "toml>=0.10.2",
     "typing>=3.10.0.0",
 ]
+[project.urls]
+homepage      = "https://github.com/mbarkhau/bumpver"
+repository    = "https://github.com/mbarkhau/bumpver"
 
+[project.scripts] # CLI
+bumpver = "bumpver.cli:cli"
 
-[tool.ruff]
-line-length = 110
-indent-width = 4
-
-[tool.ruff.format]
-quote-style = "single"
-indent-style = "space"
-docstring-code-format = true
 
 [dependency-groups]
 dev = [
@@ -91,6 +89,158 @@ integration = [
     "straitjacket>=202008.1016",
     "twine>=5.1.1",
     "types-click>=7.1.8",
-    "types-setuptools>=75.3.0.20241107",
     "types-toml>=0.10.8.20240310",
+]
+
+[tool.ruff]
+line-length = 110
+indent-width = 4
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+docstring-code-format = true
+
+
+[tool.mypy]
+check_untyped_defs     = true
+disallow_untyped_calls = true
+follow_imports         = "silent"
+strict_optional        = true
+error_summary          = false
+ignore_missing_imports = true
+show_error_codes       = true
+warn_unreachable       = true
+warn_return_any        = true
+warn_unused_ignores    = true
+warn_redundant_casts   = true
+
+
+[tool.isort]
+known_first_party = "bumpver"
+known_third_party = ["click","lexid", "packaging"]
+force_single_line = true
+length_sort       = true
+
+
+[flake8]
+max-line-length = 100
+max-complexity = 12
+ignore = [
+    "C812", # Missing trailing comma (handled by sjfmt)
+    "E201", # No whitespace after paren open "("
+    "E202", # No whitespace before paren ")"
+    "E203", # Whitespace before ":"
+    "E221", # Multiple spaces before operator
+    "E222", # Multiple spaces after operand
+    "E231", # Missing whitespace after ','
+    "E241", # Multiple spaces after ':'
+    "E251", # Spaces around keyword/parameter equals
+    "E272", # Multiple spaces before keyword
+    "E501", # Line too long (B950 is used instead)
+    "W503", # Line break before binary op
+    "W504", # Line break after binary op
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+
+    # D104, # Missing docstring in public package
+    # D105, # Missing docstring in magic method
+    "D107",   # Missing docstring on __init__
+    "D202", # No blank lines allowed after function docstring
+    "D400", # First line should end in a period
+    "D401", # First line should be in imperative mood
+]
+select = ["A","AAA","D","C","E","F","W","H","B","D212","D404","D405","D406","B901","B950","YTT"]
+exclude = [".git", "__pycache__", ".eggs/", "dist/", ".mypy_cache"]
+
+
+[tool.pylint]
+score   = false
+reports = false
+jobs    = 4
+
+# Set the output format. Available formats are text, parseable, colorized,
+# msvs (visual studio) and html. You can also give a reporter class, eg
+# mypackage.mymodule.MyReporterClass.
+output-format = "colorized"
+
+# Maximum number of locals for function / method body
+max-locals = 17
+
+# Maximum number of arguments for function / method
+max-args = 9
+
+# Maximum number of branch for function / method body
+max-branches = 14
+
+good-names = ["logger","i","ex"]
+
+# These are packages that are implemented as c extensions and
+# which pylint cannot do introspection on.
+extension-pkg-whitelist = ["numpy","pandas","lxml","PIL","sklearn","pyblake2"]
+notes                   = ["TODO","FIXME","XXX","SLOW","BUG"]
+
+# similarities/duplicaition checker
+min-similarity-lines = 4
+ignore-comments      = true
+ignore-docstrings    = true
+ignore-imports       = true
+
+ignored-argument-names = ["args", "kwargs"]
+
+# https://pylint.pycqa.org/en/stable/technical_reference/features.html
+disable = [
+    "bad-continuation",
+    "bad-whitespace",
+    "line-too-long",
+    "logging-not-lazy",
+    "logging-fstring-interpolation",
+    "no-else-return",
+    "no-else-raise",
+    "too-few-public-methods",
+    "missing-docstring",
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "raise-missing-from",
+    "duplicate-code",
+    "ungrouped-imports",
+]
+
+generated-members = [
+    "(_replace|_asdict|_fields)", # members of typing.NamedTuple
+]
+
+
+[tool.pytest]
+addopts = [
+    "--doctest-modules",
+    "--ignore",
+    "test/fixtures/hooks",
+    "--ignore",
+    "compat_test/fixtures/hooks",
+]
+
+
+[bumpver]
+current_version = "2023.1129"
+version_pattern = "YYYY.BUILD[-TAG]"
+commit_message  = "bump {old_version} -> {new_version}"
+commit          = true
+tag             = true
+push            = true
+
+[bumpver.file_patterns]
+"bootstrapit.sh"          = 'PACKAGE_VERSION="{version}"'
+"setup.cfg"               = 'current_version = "{version}"'
+"pyproject.toml"          = 'current_version = "{version}"'
+"setup.py"                = 'version="{pep440_version}",$'
+"src/bumpver/__init__.py" = '^__version__ = "{version}"$'
+"src/bumpver/cli.py"      = '@click.version_option(version="{version}")'
+"README.md"               = [
+    # "\[CalVer {version}\]",
+    "img.shields.io/static/v1.svg?label=CalVer&message={version}&color=blue",
+    "Successfully installed bumpver-{pep440_version}",
 ]
