@@ -70,6 +70,15 @@ def test_v2_rewrite_lines():
     lines     = v2rewrite.rewrite_lines(patterns, new_vinfo, old_lines)
     assert lines == ['__version__ = "201811.123b0"']
 
+def test_v2_rewrite_lines_whitespace():
+    version_pattern = "MAJOR.MINOR.PATCH"
+    base_pattern    = r'__version__\s+=\s+"{version}"'
+    new_version     = "0.2.0"
+    new_vinfo       = v2version.parse_version_info(new_version, version_pattern)
+    patterns        = [v2patterns.compile_pattern(version_pattern, base_pattern)]
+    lines           = v2rewrite.rewrite_lines(patterns, new_vinfo, ['__version__    =    "0.1.0"   '])
+    assert lines == ['__version__    =    "0.2.0"   ']
+
 
 def test_v1_rewrite_final():
     # Patterns written with {release_tag} placeholder preserve

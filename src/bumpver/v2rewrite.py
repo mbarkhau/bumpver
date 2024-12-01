@@ -6,6 +6,7 @@
 """Rewrite files, updating occurences of version strings."""
 
 import io
+import re
 import typing as typ
 import logging
 
@@ -32,12 +33,18 @@ def rewrite_lines(
     new_lines = old_lines[:]
     for match in parse.iter_matches(old_lines, patterns):
         found_patterns.add(match.pattern)
-        normalized_pattern = v2patterns.normalize_pattern(
-            match.pattern.version_pattern, match.pattern.raw_pattern
-        )
-        replacement = v2version.format_version(new_vinfo, normalized_pattern)
-        span_l, span_r = match.span
-        new_line = match.line[:span_l] + replacement + match.line[span_r:]
+
+        if match.pattern.replacement_pattern is not None:
+            replacement_version = v2version.format_version(new_vinfo, match.pattern.version_pattern)
+            new_line = match.pattern.replacement_pattern.sub(rf"\g<1>{replacement_version}\g<3>", match.line)
+        else:
+            normalized_pattern = v2patterns.normalize_pattern(
+                match.pattern.version_pattern, match.pattern.raw_pattern
+            )
+            replacement = v2version.format_version(new_vinfo, normalized_pattern)
+            span_l, span_r = match.span
+            new_line = match.line[:span_l] + replacement + match.line[span_r:]
+
         new_lines[match.lineno] = new_line
 
     if set(patterns) == found_patterns:
