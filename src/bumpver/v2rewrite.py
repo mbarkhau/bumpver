@@ -26,7 +26,7 @@ def rewrite_lines(
     new_vinfo: version.V2VersionInfo,
     old_lines: typ.List[str],
 ) -> typ.List[str]:
-    """Replace occurances of patterns in old_lines with new_vinfo."""
+    """Replace occurences of patterns in old_lines with new_vinfo."""
     found_patterns: typ.Set[Pattern] = set()
 
     new_lines = old_lines[:]
