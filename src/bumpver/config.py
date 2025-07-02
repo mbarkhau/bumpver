@@ -312,6 +312,13 @@ def _compile_v2_file_patterns(raw_cfg: RawConfig) -> typ.Iterable[FilePatternsIt
     raw_patterns_by_file: RawPatternsByFile = raw_cfg['file_patterns']
 
     for filepath, raw_patterns in _iter_glob_expanded_file_patterns(raw_patterns_by_file):
+        if isinstance(raw_patterns, str):
+            errmsg = '\n'.join([
+                "",
+                f'Invalid patterns for "{filepath}": {raw_patterns}. ',
+                "Expected a list of patterns",
+            ])
+            raise ValueError(errmsg)
         for raw_pattern in raw_patterns:
             if raw_pattern.startswith("["):
                 errmsg = (
