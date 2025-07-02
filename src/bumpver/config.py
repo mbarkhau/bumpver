@@ -25,9 +25,8 @@ from .patterns import Pattern
 
 logger = logging.getLogger("bumpver.config")
 
-RawPatterns         = typ.List[str]
-RawPatternsByFile   = typ.Dict[str, RawPatterns]
-FileRawPatternsItem = typ.Tuple[str, RawPatterns]
+RawPatternsByFile   = typ.Dict[str, typ.Union[str, typ.List[str]]]
+FileRawPatternsItem = typ.Tuple[str, typ.List[str]]
 
 PatternsByFile   = typ.Dict[str, typ.List[Pattern]]
 FilePatternsItem = typ.Tuple[str, typ.List[Pattern]]
@@ -276,6 +275,9 @@ def _iter_glob_expanded_file_patterns(
     raw_patterns_by_file: RawPatternsByFile,
 ) -> typ.Iterator[FileRawPatternsItem]:
     for filepath_glob, raw_patterns in raw_patterns_by_file.items():
+        if isinstance(raw_patterns, str):
+            raw_patterns = [raw_patterns]
+
         filepaths = list(pl.Path().glob(filepath_glob))
 
         if filepaths:
@@ -312,13 +314,6 @@ def _compile_v2_file_patterns(raw_cfg: RawConfig) -> typ.Iterable[FilePatternsIt
     raw_patterns_by_file: RawPatternsByFile = raw_cfg['file_patterns']
 
     for filepath, raw_patterns in _iter_glob_expanded_file_patterns(raw_patterns_by_file):
-        if isinstance(raw_patterns, str):
-            errmsg = '\n'.join([
-                "",
-                f'Invalid patterns for "{filepath}": {raw_patterns}. ',
-                "Expected a list of patterns",
-            ])
-            raise ValueError(errmsg)
         for raw_pattern in raw_patterns:
             if raw_pattern.startswith("["):
                 errmsg = (

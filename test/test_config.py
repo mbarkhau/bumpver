@@ -66,9 +66,7 @@ push = true
     "{version}",
     "{pep440_version}",
 ]
-"bumpver.toml" = [
-    'current_version = "{version}"',
-]
+"bumpver.toml" = 'current_version = "{version}"'
 """
 
 
@@ -506,13 +504,13 @@ def test_capitalisation(filename):
         with io.open(filename, mode='w', encoding="utf-8") as fobj:
             fobj.write("This is a test file for testing capitalization")
 
-        raw_patterns      = {filename: filename}
+        raw_patterns      = {filename: [filename]}
         expanded_patterns = list(config._iter_glob_expanded_file_patterns(raw_patterns))
         assert len(expanded_patterns) == 1
 
         for filepath, raw_patterns in expanded_patterns:
             filepath = filepath.replace("\\", "/")
-            assert filepath == raw_patterns
+            assert raw_patterns == [filepath]
 
     finally:
         os.remove(filename)

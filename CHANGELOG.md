@@ -1,5 +1,14 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## BumpVer 2025.1131
+
+- Fix [#248][gh_i248]: Improve handling of "expected list, got string" when parsing
+
+[gh_i248]: https://github.com/mbarkhau/bumpver/issues/248
+
+Thank you [J Alan Brogan](https://github.com/jalanb) for your contribution.
+
+
 ## BumpVer 2024.1130
 
 This update adds the vendored module `setuptools_v65_version.py` from `setuptools==v65.7.0`.
