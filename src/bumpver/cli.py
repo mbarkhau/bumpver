@@ -276,7 +276,7 @@ def version_options(function: typ.Callable) -> typ.Callable:
 
 
 @click.group(context_settings={'help_option_names': ["-h", "--help"]})
-@click.version_option(version="2024.1130")
+@click.version_option(version="2025.1131")
 @verbose_option
 def cli(verbose: int = 0) -> None:
     """Automatically update version strings in plaintext files."""
