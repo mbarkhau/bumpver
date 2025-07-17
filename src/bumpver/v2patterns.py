@@ -352,13 +352,31 @@ def _compile_pattern_re(normalized_pattern: str) -> typ.Pattern[str]:
     pattern_str = _replace_pattern_parts(escaped_pattern)
     return re.compile(pattern_str)
 
+def _compile_replacement_pattern(version_pattern, raw_pattern) -> typ.Optional[typ.Pattern[str]]:
+    if not raw_pattern:
+        return None
+    if "{version}" not in raw_pattern:
+        return None
+
+    replacement_target = "{version}"
+    version_match = re.search(replacement_target, raw_pattern)
+    if not version_match:
+        return None
+
+    span_l, span_r = version_match.span()
+    group_1 = raw_pattern[:span_l]
+    group_3 = raw_pattern[span_r:]
+    replacement_pattern = re.compile(f"({group_1})(.+?)({group_3})")
+    return replacement_pattern
 
 @utils.memo
 def compile_pattern(version_pattern: str, raw_pattern: typ.Optional[str] = None) -> Pattern:
-    _raw_pattern       = version_pattern if raw_pattern is None else raw_pattern
-    normalized_pattern = normalize_pattern(version_pattern, _raw_pattern)
-    regexp             = _compile_pattern_re(normalized_pattern)
-    return Pattern(version_pattern, normalized_pattern, regexp)
+    _raw_pattern        = version_pattern if raw_pattern is None else raw_pattern
+    normalized_pattern  = normalize_pattern(version_pattern, _raw_pattern)
+    regexp              = _compile_pattern_re(normalized_pattern)
+    replacement_pattern = _compile_replacement_pattern(version_pattern, raw_pattern)
+
+    return Pattern(version_pattern, normalized_pattern, regexp, replacement_pattern)
 
 
 def compile_patterns(version_pattern: str, raw_patterns: typ.List[str]) -> typ.List[Pattern]:
