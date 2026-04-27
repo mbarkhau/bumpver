@@ -11,7 +11,8 @@ pathlib2; python_version < "3.4"
 typing; python_version < "3.5"
 click<8.0; python_version < "3.6"
 click; python_version >= "3.6"
-toml
+toml; python_version < "3.7"
+tomli; python_version >= "3.7" and python_version < "3.11"
 lexid
 colorama>=0.4
 enum34; python_version < "3.4"
