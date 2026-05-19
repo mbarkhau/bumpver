@@ -151,6 +151,8 @@ class Config(typ.NamedTuple):
     push          : bool
     is_new_pattern: bool
 
+    allowed_branches: typ.List[str]
+
     file_patterns: PatternsByFile
 
 
@@ -172,6 +174,7 @@ def _debug_str(cfg: Config) -> str:
         f"\n    tag={cfg.tag},",
         f"\n    push={cfg.push},",
         f"\n    is_new_pattern={cfg.is_new_pattern},",
+        f"\n    allowed_branches={cfg.allowed_branches},",
         "\n    file_patterns={",
     ]
 
@@ -419,6 +422,11 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
     pre_commit_hook : str = _parse_cfg_strings(raw_cfg, 'pre_commit_hook' , "")
     post_commit_hook: str = _parse_cfg_strings(raw_cfg, 'post_commit_hook', "")
 
+    allowed_branches_raw: str = _parse_cfg_strings(raw_cfg, 'allowed_branches', "")
+    allowed_branches: typ.List[str] = [
+        part.strip() for part in allowed_branches_raw.split(",") if part.strip()
+    ]
+
     commit = raw_cfg['commit']
     tag    = raw_cfg['tag']
     push   = raw_cfg['push']
@@ -458,6 +466,7 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
         tag=tag,
         push=push,
         is_new_pattern=is_new_pattern,
+        allowed_branches=allowed_branches,
         file_patterns=file_patterns,
     )
     logger.debug(_debug_str(cfg))

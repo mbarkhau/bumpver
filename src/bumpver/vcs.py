@@ -18,6 +18,7 @@ mercurial, then the git terms are used. For example "fetch"
 import os
 import re
 import sys
+import fnmatch
 import shlex
 import typing as typ
 import logging
@@ -58,6 +59,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'push'          : "git push {remote} HEAD",
         'show_remotes'  : "git config --get remote.origin.url",
         'ls_branches'   : "git branch -vv",
+        'current_branch': "git rev-parse --abbrev-ref HEAD",
     },
     'hg': {
         'is_usable'     : "hg root",
@@ -72,6 +74,7 @@ VCS_SUBCOMMANDS_BY_NAME = {
         'push_tag'      : "hg push {tag}",
         'push'          : "hg push",
         'show_remotes'  : "hg paths",
+        'current_branch': "hg branch",
     },
 }
 
@@ -167,6 +170,13 @@ class VCSAPI:
         logger.debug(f"ls_tags_branch output {ls_tag_lines}")
         return [line.strip().split(" ", 1)[0] for line in ls_tag_lines]
 
+    def current_branch(self) -> typ.Optional[str]:
+        """Return the name of the currently checked-out branch."""
+        try:
+            return self('current_branch').strip() or None
+        except (sp.CalledProcessError, KeyError):
+            return None
+
     def add(self, path: str) -> None:
         """Add updates to be included in next commit."""
         try:
@@ -244,6 +254,24 @@ def get_vcs_api() -> VCSAPI:
 
 
 # cli helper methods
+
+
+def assert_allowed_branch(vcs_api: VCSAPI, allowed_branches: typ.List[str]) -> None:
+    if not allowed_branches:
+        return
+
+    branch = vcs_api.current_branch()
+    if branch is None:
+        return
+
+    if any(fnmatch.fnmatchcase(branch, pattern) for pattern in allowed_branches):
+        return
+
+    logger.error(
+        f"Current branch '{branch}' does not match allowed_branches="
+        f"{','.join(allowed_branches)!r}."
+    )
+    sys.exit(1)
 
 
 def assert_not_dirty(vcs_api: VCSAPI, filepaths: typ.Set[str], allow_dirty: bool) -> None:

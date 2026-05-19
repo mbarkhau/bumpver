@@ -1056,6 +1056,7 @@ The configuration for these steps can be done with the following parameters:
 | `post_commit_hook` | string²  | Path to the post-commit script.            |
 | `tag`              | boolean² | Tag the newly created commit.              |
 | `push`             | boolean² | Push to the default remote.                |
+| `allowed_branches` | string   | Comma-separated list of glob patterns; refuse to release if the current branch does not match. |
 
 - ¹ Available template placeholders: `{new_version}`, `{old_version}`, `{new_version_pep440}`, `{old_version_pep440}`
 - ² Requires `commit = True`
