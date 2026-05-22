@@ -18,9 +18,9 @@ mercurial, then the git terms are used. For example "fetch"
 import os
 import re
 import sys
-import fnmatch
 import shlex
 import typing as typ
+import fnmatch
 import logging
 import tempfile
 import subprocess as sp
