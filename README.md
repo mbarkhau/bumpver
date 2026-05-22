@@ -1075,6 +1075,7 @@ post_commit_hook = "scripts/update_changelog.sh"
 commit = True
 tag = True
 push = True
+allowed_branches = "master,main,default,release*"
 ```
 
 If everything looks OK, you can do `bumpver update`.
