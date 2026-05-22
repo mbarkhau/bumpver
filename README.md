@@ -1046,19 +1046,21 @@ The individual steps performed by `bumpver update`:
 
 The configuration for these steps can be done with the following parameters:
 
-|      Parameter     |   Type   |                 Description                |
-|--------------------|----------|--------------------------------------------|
-| `tag_scope`        | string   | Scope for the `current_version` in step 2. |
-| `commit_message`   | string¹  | Template for commit message in step 6.     |
-| `tag_message`      | string¹  | Template for tag message in step 9.        |
-| `pre_commit_hook`  | string²  | Path to the pre-commit script.             |
-| `commit`           | boolean  | Create a commit with all updated files.    |
-| `post_commit_hook` | string²  | Path to the post-commit script.            |
-| `tag`              | boolean² | Tag the newly created commit.              |
-| `push`             | boolean² | Push to the default remote.                |
+|     Parameter      |   Type   |                    Description                     |
+|--------------------|----------|----------------------------------------------------|
+| `tag_scope`        | string   | Scope for the `current_version` in step 2.         |
+| `commit_message`   | string¹  | Template for commit message in step 6.             |
+| `tag_message`      | string¹  | Template for tag message in step 9.                |
+| `pre_commit_hook`  | string²  | Path to the pre-commit script.                     |
+| `commit`           | boolean  | Create a commit with all updated files.            |
+| `post_commit_hook` | string²  | Path to the post-commit script.                    |
+| `tag`              | boolean² | Tag the newly created commit.                      |
+| `push`             | boolean² | Push to the default remote.                        |
+| `allowed_branches` | string³  | Limit update to specific branches/branch patterns. |
 
 - ¹ Available template placeholders: `{new_version}`, `{old_version}`, `{new_version_pep440}`, `{old_version_pep440}`
 - ² Requires `commit = True`
+- ³ Comma-separated list of strings/globs
 
 An example configuration might look like this:
 
@@ -1073,6 +1075,7 @@ post_commit_hook = "scripts/update_changelog.sh"
 commit = True
 tag = True
 push = True
+allowed_branches = "master,main,default,release*"
 ```
 
 If everything looks OK, you can do `bumpver update`.

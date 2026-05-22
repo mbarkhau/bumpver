@@ -1456,6 +1456,8 @@ def test_get_latest_vcs_version_tag(runner, vcs_name, tag_scope, expected_versio
     _update_config_val("bumpver.toml", push="false")
     _update_config_val("bumpver.toml", current_version='"0.1.8"')
     _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH[PYTAGNUM]"')
+    _update_config_val("bumpver.toml", allowed_branches='"master,default,dev"')
+
 
     if tag_scope is not None:
         _update_config_val("bumpver.toml", tag_scope=f'"{tag_scope.value}"')
@@ -1535,6 +1537,7 @@ def test_git_tag_scope_branch_version_conflict(runner, caplog, vcs_name):
     _update_config_val("bumpver.toml", current_version='"0.1.8"')
     _update_config_val("bumpver.toml", version_pattern='"MAJOR.MINOR.PATCH[PYTAGNUM]"')
     _update_config_val("bumpver.toml", tag_scope=f'"{config.TagScope.BRANCH.value}"')
+    _update_config_val("bumpver.toml", allowed_branches='"master,default,dev"')
 
     _vcs_init(vcs_name, files=["bumpver.toml"])
 

@@ -650,6 +650,7 @@ def _update(
 
     if vcs_api:
         vcs.assert_not_dirty(vcs_api, filepaths, allow_dirty)
+        vcs.assert_allowed_branch(vcs_api, cfg.allowed_branches)
 
     try:
         if cfg.is_new_pattern:

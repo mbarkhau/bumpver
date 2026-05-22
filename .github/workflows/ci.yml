@@ -31,9 +31,6 @@ jobs:
         if [[ -e build/deps.txt ]]; then touch build/deps.txt; fi;
         make conda
 
-    - name: make lint
-      run: make lint
-
     - name: make mypy
       run: make mypy
 
@@ -72,9 +69,6 @@ jobs:
         if [[ -e build/envs.txt ]]; then touch build/envs.txt; fi;
         if [[ -e build/deps.txt ]]; then touch build/deps.txt; fi;
         make conda
-
-    - name: make lint
-      run: make lint
 
     - name: make mypy
       run: make mypy

@@ -248,6 +248,24 @@ def test_parse_tag_scope_cfg_invalid_value(tag_scope):
         config._parse_config(raw_cfg)
 
 
+def test_parse_allowed_branches_cfg():
+    buf = mk_buf(f"{MINIMAL_CFG_FIXTURE}\nallowed_branches=master,main,release-*")
+
+    raw_cfg = config._parse_cfg(buf)
+    cfg     = config._parse_config(raw_cfg)
+
+    assert cfg.allowed_branches == ["master", "main", "release-*"]
+
+
+def test_parse_allowed_branches_default_empty():
+    buf = mk_buf(MINIMAL_CFG_FIXTURE)
+
+    raw_cfg = config._parse_cfg(buf)
+    cfg     = config._parse_config(raw_cfg)
+
+    assert cfg.allowed_branches == []
+
+
 def test_parse_default_toml():
     project_path = util.FIXTURES_DIR / "project_a"
 
