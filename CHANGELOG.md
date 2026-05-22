@@ -1,10 +1,12 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
-## Unreleased
+## BumpVer 2026.1132
 
 - Add [#198][gh_i198]: Add `allowed_branches` config option to restrict which branches can be released from. Accepts a comma-separated list of glob patterns (e.g. `master,main,release-*`). Empty (the default) allows any branch.
 
 [gh_i198]: https://github.com/mbarkhau/bumpver/issues/198
+
+Thank you [SAY-5](https://github.com/SAY-5) for your contribution.
 
 
 ## BumpVer 2025.1131

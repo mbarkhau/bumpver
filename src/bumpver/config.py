@@ -572,6 +572,8 @@ post_commit_hook = ""
 commit = True
 tag = True
 push = True
+allowed_branches = "master,main,release*"
+
 
 [bumpver:file_patterns]
 """.lstrip()
@@ -616,6 +618,7 @@ post_commit_hook = ""
 commit = true
 tag = true
 push = true
+allowed_branches = "master,main,release*"
 
 [tool.bumpver.file_patterns]
 """.lstrip()
