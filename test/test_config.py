@@ -114,6 +114,27 @@ version_pattern = "vYYYY0M.BUILD[-TAG]"
 """
 
 
+PYPROJECT_TOML_WITH_DEPENDENCY_GROUPS_FIXTURE = """
+[dependency-groups]
+local = [
+    "packaging",
+]
+test = [
+    "pytest",
+    {include-group = "local"},
+]
+
+[tool.bumpver]
+current_version = "v2025.1131"
+version_pattern = "vYYYY.BUILD"
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+]
+"""
+
+
 def mk_buf(text):
     buf = io.StringIO()
     buf.write(text)
@@ -396,6 +417,19 @@ def test_parse_default_pattern():
     assert raw_patterns_by_filepath == {
         "pyproject.toml": [r'current_version = "v{year}q{quarter}.{build_no}"']
     }
+
+
+def test_parse_pyproject_toml_with_dependency_groups():
+    buf = mk_buf(PYPROJECT_TOML_WITH_DEPENDENCY_GROUPS_FIXTURE)
+
+    raw_cfg = config._parse_toml(buf)
+    cfg     = config._parse_config(raw_cfg)
+
+    assert cfg.current_version == "v2025.1131"
+    assert cfg.version_pattern == "vYYYY.BUILD"
+
+    raw_patterns_by_path = _parse_raw_patterns_by_filepath(cfg)
+    assert raw_patterns_by_path["pyproject.toml"] == ['current_version = "vYYYY.BUILD"']
 
 
 def test_parse_cfg_file(tmpdir):

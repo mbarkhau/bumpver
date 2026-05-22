@@ -11,7 +11,13 @@ import typing as typ
 import logging
 import configparser
 
-import toml
+try:
+    import tomllib  # Python 3.11+
+except ImportError:
+    try:
+        import tomli as tomllib  # Python 3.7+
+    except ImportError:
+        import toml as tomllib  # Python 2.7/3.6
 
 from bumpver import pathlib as pl
 
@@ -254,7 +260,7 @@ def _parse_cfg(cfg_buffer: typ.IO[str]) -> RawConfig:
 
 
 def _parse_toml(cfg_buffer: typ.IO[str]) -> RawConfig:
-    raw_full_cfg: typ.Any = toml.load(cfg_buffer)
+    raw_full_cfg: typ.Any = tomllib.loads(cfg_buffer.read())
     raw_cfg     : RawConfig
 
     if 'tool' in raw_full_cfg and 'bumpver' in raw_full_cfg['tool']:
