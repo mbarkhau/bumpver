@@ -129,7 +129,7 @@ def _validate_flags(
 
 def _log_no_change(subcmd: str, version_pattern: str) -> None:
     is_semver = "{semver}" in version_pattern or (
-        "MAJOR" in version_pattern and "MAJOR" in version_pattern and "PATCH" in version_pattern
+        "MAJOR" in version_pattern and "MINOR" in version_pattern and "PATCH" in version_pattern
     )
     if is_semver:
         logger.warning(f"bumpver {subcmd} [--major/--minor/--patch] required for use with SemVer.")
