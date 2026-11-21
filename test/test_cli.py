@@ -19,6 +19,7 @@ import pytest
 from click.testing import CliRunner
 
 from bumpver import cli
+from bumpver import vcs
 from bumpver import utils
 from bumpver import config
 from bumpver import pathlib as pl
@@ -442,6 +443,48 @@ def _vcs_init(vcs, files=("README.md",)):
         shell(f"{vcs}", "add", filename)
 
     shell(f"{vcs}", "commit", "-m", "initial commit")
+
+
+@pytest.mark.parametrize("filename", ["pyproject.toml", "setup.cfg"])
+@pytest.mark.parametrize("command", ["show", "update"])
+@pytest.mark.parametrize(
+    "fetch_value, flags, expected",
+    [
+        (None, [], True),
+        ("true", [], True),
+        ("false", [], False),
+        ("false", ["--fetch"], True),
+        ("false", ["-f"], True),
+        ("true", ["--no-fetch"], False),
+        ("true", ["-n"], False),
+    ],
+)
+def test_fetch_config(runner, monkeypatch, filename, command, fetch_value, flags, expected):
+    section = "tool.bumpver" if filename == "pyproject.toml" else "bumpver"
+    cfg_text = f'[{section}]\ncurrent_version = "1.2.3"\nversion_pattern = "MAJOR.MINOR.PATCH"\n'
+    if fetch_value is not None:
+        cfg_text += f"fetch = {fetch_value}\n"
+    pl.Path(filename).write_text(cfg_text, encoding="utf-8")
+
+    _vcs_init("git", files=[filename])
+    shell("git", "tag", "1.2.5")
+    fetch_calls = []
+
+    def fetch(vcs_api):
+        fetch_calls.append(vcs_api.name)
+
+    monkeypatch.setattr(vcs.VCSAPI, "fetch", fetch)
+    args = [command] + flags
+    if command == "update":
+        args += ["--patch", "--dry"]
+    result = runner.invoke(cli.cli, args)
+
+    assert result.exit_code == 0, result.output
+    assert fetch_calls == (["git"] if expected else [])
+    if command == "show":
+        assert "Current Version: 1.2.5" in result.output
+    else:
+        assert '+current_version = "1.2.6"' in result.output
 
 
 _today = utils.now().date()

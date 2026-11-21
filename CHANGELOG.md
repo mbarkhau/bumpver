@@ -1,5 +1,14 @@
 # Changelog for https://github.com/mbarkhau/bumpver
 
+## Unreleased
+
+- Add [#231][gh_i231]: Allow `fetch = false` in project configuration to skip
+  remote tag fetching by default. Explicit `--fetch`/`--no-fetch` flags override
+  the setting for both `show` and `update`.
+
+[gh_i231]: https://github.com/mbarkhau/bumpver/issues/231
+
+
 ## BumpVer 2026.1132
 
 - Add [#198][gh_i198]: Add `allowed_branches` config option to restrict which branches can be released from. Accepts a comma-separated list of glob patterns (e.g. `master,main,release-*`). Empty (the default) allows any branch.

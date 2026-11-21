@@ -266,6 +266,21 @@ def test_parse_allowed_branches_default_empty():
     assert cfg.allowed_branches == []
 
 
+@pytest.mark.parametrize("filename", config.SUPPORTED_CONFIGS)
+@pytest.mark.parametrize("fetch_value, expected", [(None, True), ("true", True), ("false", False)])
+def test_parse_fetch(tmpdir, filename, fetch_value, expected):
+    section = "tool.bumpver" if filename == "pyproject.toml" else "bumpver"
+    cfg_text = f'[{section}]\ncurrent_version = "1.2.3"\nversion_pattern = "MAJOR.MINOR.PATCH"\n'
+    if fetch_value is not None:
+        cfg_text += f"fetch = {fetch_value}\n"
+    tmpdir.join(filename).write(cfg_text)
+
+    _, cfg = config.init(str(tmpdir))
+
+    assert cfg is not None
+    assert cfg.fetch is expected
+
+
 def test_parse_default_toml():
     project_path = util.FIXTURES_DIR / "project_a"
 

@@ -203,7 +203,7 @@ fetch_option = click.option(
     "-f/-n",
     "--fetch/--no-fetch",
     is_flag=True,
-    default=True,
+    default=None,
     help="Sync tags from remote origin.",
 )
 
@@ -457,7 +457,7 @@ def grep(
 def show(
     verbose       : int = 0,
     ignore_vcs_tag: bool = False,
-    fetch         : bool = True,
+    fetch         : typ.Optional[bool] = None,
     env           : bool = False,
     environ       : bool = False,
 ) -> None:
@@ -471,7 +471,7 @@ def show(
         sys.exit(1)
 
     if not ignore_vcs_tag:
-        cfg = _update_cfg_from_vcs(cfg, fetch)
+        cfg = _update_cfg_from_vcs(cfg, fetch=cfg.fetch if fetch is None else fetch)
 
     if env:
         logger.warning("Depricated: -e/--env use --environ instead. ")
@@ -842,7 +842,7 @@ def update(
     dry             : bool = False,
     allow_dirty     : bool = False,
     ignore_vcs_tag  : bool = False,
-    fetch           : bool = True,
+    fetch           : typ.Optional[bool] = None,
     verbose         : int = 0,
     major           : bool = False,
     minor           : bool = False,
@@ -881,7 +881,7 @@ def update(
         sys.exit(1)
 
     if not ignore_vcs_tag:
-        cfg = _update_cfg_from_vcs(cfg, fetch)
+        cfg = _update_cfg_from_vcs(cfg, fetch=cfg.fetch if fetch is None else fetch)
 
     old_version = cfg.current_version
     if set_version is None:
