@@ -149,6 +149,7 @@ class Config(typ.NamedTuple):
     commit        : bool
     tag           : bool
     push          : bool
+    fetch         : bool
     is_new_pattern: bool
 
     allowed_branches: typ.List[str]
@@ -173,6 +174,7 @@ def _debug_str(cfg: Config) -> str:
         f"\n    commit={cfg.commit},",
         f"\n    tag={cfg.tag},",
         f"\n    push={cfg.push},",
+        f"\n    fetch={cfg.fetch},",
         f"\n    is_new_pattern={cfg.is_new_pattern},",
         f"\n    allowed_branches={cfg.allowed_branches},",
         "\n    file_patterns={",
@@ -220,7 +222,7 @@ class _ConfigParser(configparser.RawConfigParser):
 
 OptionVal = typ.Union[str, bool, None]
 
-BOOL_OPTIONS: typ.Mapping[str, OptionVal] = {'commit': False, 'tag': None, 'push': None}
+BOOL_OPTIONS: typ.Mapping[str, OptionVal] = {'commit': False, 'tag': None, 'push': None, 'fetch': True}
 
 
 def _parse_cfg(cfg_buffer: typ.IO[str]) -> RawConfig:
@@ -465,6 +467,7 @@ def _parse_config(raw_cfg: RawConfig) -> Config:
         commit=commit,
         tag=tag,
         push=push,
+        fetch=raw_cfg['fetch'],
         is_new_pattern=is_new_pattern,
         allowed_branches=allowed_branches,
         file_patterns=file_patterns,

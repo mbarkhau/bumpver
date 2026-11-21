@@ -989,6 +989,11 @@ The approach of fetching tags before the version is bumped/incremented, helps to
 
 For a small project (with only one maintainer and no automated packaging) this is a non-issue and you can always use `-n/--no-fetch` to skip fetching the tags.
 
+To skip fetching by default for both `show` and `update`, set `fetch = false` in
+`[tool.bumpver]` in `pyproject.toml` (or `fetch = False` in `[bumpver]` in
+`setup.cfg`). The setting defaults to `true` and local tags are still checked.
+Use `--fetch`/`-f` or `--no-fetch`/`-n` to override it for a single command.
+
 
 ### Dry Mode
 
